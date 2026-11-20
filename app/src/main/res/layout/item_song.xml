@@ -1,81 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="12dp"
     android:background="?attr/selectableItemBackground">
 
-    <!-- Ảnh bìa bài hát (Bọc trong CardView để tự bo góc) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardCover"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#E9D5FF"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/divider">
 
         <ImageView
-            android:id="@+id/imgCover"
+            android:id="@+id/ivCover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery" />
+            android:src="@drawable/bg_cover_placeholder" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Tên bài hát -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
-        android:text="Tên bài hát"
-        android:textColor="@color/text_black"
-        android:textSize="16sp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#1F1B2E"
+        android:textSize="17sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/tvArtist"
-        app:layout_constraintEnd_toStartOf="@+id/tvDuration"
-        app:layout_constraintStart_toEndOf="@+id/cardCover"
-        app:layout_constraintTop_toTopOf="@+id/cardCover" />
+        app:layout_constraintStart_toEndOf="@id/cardCover"
+        app:layout_constraintEnd_toStartOf="@id/tvDuration"
+        app:layout_constraintTop_toTopOf="@id/cardCover"
+        app:layout_constraintBottom_toTopOf="@id/tvArtist"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Dreaming"
+        xmlns:tools="http://schemas.android.com/tools" />
 
-    <!-- Tên ca sĩ -->
     <TextView
         android:id="@+id/tvArtist"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Ca sĩ"
-        android:textColor="@color/text_gray"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#8E8AA0"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@+id/cardCover"
-        app:layout_constraintEnd_toEndOf="@+id/tvTitle"
-        app:layout_constraintStart_toStartOf="@+id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
+        app:layout_constraintEnd_toEndOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        tools:text="Unknown Artist" />
 
-    <!-- Thời gian -->
     <TextView
         android:id="@+id/tvDuration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="03:24"
-        android:textColor="@color/text_gray"
+        android:textColor="#8E8AA0"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnMenu"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/btnMore"
+        app:layout_constraintTop_toTopOf="@id/cardCover"
+        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        tools:text="03:24" />
 
-    <!-- Nút 3 chấm -->
     <ImageView
-        android:id="@+id/btnMenu"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_more"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/btnMore"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_more_vert"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Tùy chọn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_gray" />
+        app:layout_constraintTop_toTopOf="@id/cardCover"
+        app:layout_constraintBottom_toBottomOf="@id/cardCover" />
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginEnd="8dp"
+        android:background="#EDE9F6"
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
