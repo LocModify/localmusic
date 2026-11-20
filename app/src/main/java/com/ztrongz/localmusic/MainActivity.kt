@@ -13,7 +13,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -135,7 +134,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // SỬA LỖI: Dùng PopupWindow thay vì AlertDialog để bảng menu nhỏ gọn
     private fun showSongOptions(position: Int, view: View) {
         val popupView = LayoutInflater.from(this).inflate(R.layout.dialog_song_options, null)
         val popupWindow = PopupWindow(
@@ -181,7 +179,6 @@ class MainActivity : AppCompatActivity() {
             deleteSong(position)
         }
 
-        // Hiển thị menu ngay dưới nút 3 chấm, lùi sang trái một chút để không bị tràn màn hình
         popupWindow.showAsDropDown(view, -350, 0)
     }
 
@@ -234,8 +231,7 @@ class MainActivity : AppCompatActivity() {
             controller?.addListener(playerListener)
             songAdapter.updateData(tracks)
             
-            // SỬA LỖI: Chỉ nạp danh sách nếu trình phát đang trống.
-            // Nếu nhạc đang phát dở, giữ nguyên trạng thái, không reset về bài 1.
+            // Nếu trình phát đang trống (vừa mở app hoặc chưa play gì), nạp danh sách vào
             if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
                 val items = tracks.map { t ->
@@ -245,35 +241,52 @@ class MainActivity : AppCompatActivity() {
                 }
                 c.setMediaItems(items)
             }
+            
+            // ĐỒNG BỘ GIAO DIỆN MINI PLAYER NGAY KHI MỞ APP
+            updateMiniPlayerUI()
+            
         }, MoreExecutors.directExecutor())
+    }
+
+    // HÀM MỚI: Cập nhật giao diện Mini Player dựa trên trạng thái thực tế của Controller
+    private fun updateMiniPlayerUI() {
+        val c = controller ?: return
+        val currentMediaItem = c.currentMediaItem
+        
+        binding.tvNowPlaying.text = currentMediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
+        val artistText = currentMediaItem?.mediaMetadata?.artist?.toString() ?: ""
+        
+        if (artistText.isBlank()) {
+            binding.tvMiniArtist.visibility = View.GONE
+        } else {
+            binding.tvMiniArtist.visibility = View.VISIBLE
+            binding.tvMiniArtist.text = artistText
+        }
+
+        val currentIndex = c.currentMediaItemIndex
+        if (currentIndex in tracks.indices) {
+            val currentTrack = tracks[currentIndex]
+            if (currentTrack.cover != null) {
+                binding.ivMiniCover.setImageBitmap(currentTrack.cover)
+            } else {
+                binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
+            }
+        } else {
+            binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
+        }
+
+        binding.btnPlayPause.setImageResource(
+            if (c.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        )
     }
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            binding.btnPlayPause.setImageResource(
-                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-            )
+            updateMiniPlayerUI()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
-            val artistText = mediaItem?.mediaMetadata?.artist?.toString() ?: ""
-            if (artistText.isBlank()) {
-                binding.tvMiniArtist.visibility = View.GONE
-            } else {
-                binding.tvMiniArtist.visibility = View.VISIBLE
-                binding.tvMiniArtist.text = artistText
-            }
-
-            val currentIndex = controller?.currentMediaItemIndex ?: -1
-            if (currentIndex in tracks.indices) {
-                val currentTrack = tracks[currentIndex]
-                if (currentTrack.cover != null) {
-                    binding.ivMiniCover.setImageBitmap(currentTrack.cover)
-                } else {
-                    binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
-                }
-            }
+            updateMiniPlayerUI()
         }
     }
 
