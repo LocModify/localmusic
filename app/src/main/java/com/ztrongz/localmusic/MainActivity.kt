@@ -2,24 +2,23 @@ package com.ztrongz.localmusic
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -30,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ztrongz.localmusic.databinding.ActivityMainBinding
+import org.json.JSONArray
 import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity() {
@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
+            saveTracksToStorage() // Lưu lại vào bộ nhớ máy
         }
     }
 
@@ -98,52 +99,91 @@ class MainActivity : AppCompatActivity() {
         binding.btnNext.setOnClickListener { controller?.seekToNextMediaItem() }
         binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
 
+        // Load lại danh sách đã lưu khi mở app
+        loadTracksFromStorage()
         connectController()
     }
 
+    // --- HÀM LƯU VÀ ĐỌC DỮ LIỆU TỪ BỘ NHỚ ---
+    private fun saveTracksToStorage() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonArray = JSONArray()
+        tracks.forEach { jsonArray.put(it.uri.toString()) }
+        prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
+    }
+
+    private fun loadTracksFromStorage() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+        
+        try {
+            val jsonArray = JSONArray(jsonString)
+            tracks.clear()
+            for (i in 0 until jsonArray.length()) {
+                val uri = Uri.parse(jsonArray.getString(i))
+                val track = extractTrackInfo(uri)
+                if (track != null) {
+                    tracks.add(track)
+                }
+            }
+            songAdapter.updateData(tracks)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // --- HÀM HIỂN THỊ MENU TÙY CHỈNH ---
     private fun showSongOptions(position: Int, view: View) {
-        val popup = PopupMenu(this, view)
-        popup.menuInflater.inflate(R.menu.song_options_menu, popup.menu)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_song_options, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        // Làm nền dialog trong suốt để hiện góc bo tròn của CardView
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val track = tracks[position]
 
-        val favItem = popup.menu.findItem(R.id.action_favorite)
-        if (track.isFavorite) { // Lỗi ở đây nếu Track.kt chưa có isFavorite
-            favItem.setIcon(R.drawable.ic_heart_filled)
-            favItem.title = "Bỏ yêu thích"
+        // Ánh xạ view
+        val btnFavorite = dialogView.findViewById<View>(R.id.btnMenuFavorite)
+        val ivHeart = dialogView.findViewById<ImageView>(R.id.ivMenuHeart)
+        val tvFavorite = dialogView.findViewById<TextView>(R.id.tvMenuFavorite)
+        val btnRename = dialogView.findViewById<View>(R.id.btnMenuRename)
+        val btnDelete = dialogView.findViewById<View>(R.id.btnMenuDelete)
+
+        // Cập nhật trạng thái Yêu thích
+        if (track.isFavorite) {
+            ivHeart.setImageResource(R.drawable.ic_heart_filled)
+            tvFavorite.text = "Bỏ yêu thích"
+            tvFavorite.setTextColor(android.graphics.Color.RED)
         } else {
-            favItem.setIcon(R.drawable.ic_heart_outline)
-            favItem.title = "Yêu thích"
+            ivHeart.setImageResource(R.drawable.ic_heart_outline)
+            tvFavorite.text = "Yêu thích"
+            tvFavorite.setTextColor(android.graphics.Color.parseColor("#1F1B2E"))
         }
 
-        val deleteItem = popup.menu.findItem(R.id.action_delete)
-        val spannable = SpannableString(deleteItem.title)
-        spannable.setSpan(ForegroundColorSpan(Color.RED), 0, spannable.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        deleteItem.title = spannable
-
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_favorite -> {
-                    toggleFavorite(position)
-                    true
-                }
-                R.id.action_rename -> {
-                    showRenameDialog(position)
-                    true
-                }
-                R.id.action_delete -> {
-                    deleteSong(position)
-                    true
-                }
-                else -> false
-            }
+        // Gắn sự kiện
+        btnFavorite.setOnClickListener {
+            toggleFavorite(position)
+            dialog.dismiss()
         }
-        popup.show()
+
+        btnRename.setOnClickListener {
+            dialog.dismiss()
+            showRenameDialog(position)
+        }
+
+        btnDelete.setOnClickListener {
+            dialog.dismiss()
+            deleteSong(position)
+        }
+
+        dialog.show()
     }
 
     private fun toggleFavorite(position: Int) {
         val track = tracks[position]
-        tracks[position] = track.copy(isFavorite = !track.isFavorite) // Lỗi ở đây nếu Track.kt chưa có isFavorite
+        tracks[position] = track.copy(isFavorite = !track.isFavorite)
         songAdapter.notifyItemChanged(position)
     }
 
@@ -172,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         songAdapter.notifyItemRemoved(position)
         songAdapter.notifyItemRangeChanged(position, tracks.size)
         updatePlayerPlaylist()
+        saveTracksToStorage() // Cập nhật lại bộ nhớ sau khi xóa
     }
 
     private fun playSongAt(position: Int) {
@@ -188,6 +229,16 @@ class MainActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             songAdapter.updateData(tracks)
+            // Đẩy danh sách đã load từ bộ nhớ vào trình phát
+            if (tracks.isNotEmpty()) {
+                val c = controller ?: return@addListener
+                val items = tracks.map { t ->
+                    MediaItem.Builder().setUri(t.uri).setMediaMetadata(
+                        MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist).build()
+                    ).build()
+                }
+                c.setMediaItems(items)
+            }
         }, MoreExecutors.directExecutor())
     }
 
@@ -200,7 +251,6 @@ class MainActivity : AppCompatActivity() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
-            
             val artistText = mediaItem?.mediaMetadata?.artist?.toString() ?: ""
             if (artistText.isBlank()) {
                 binding.tvMiniArtist.visibility = View.GONE
@@ -229,10 +279,7 @@ class MainActivity : AppCompatActivity() {
 
         val defaultArtworkBytes = getDefaultArtworkBytes()
         val items = tracks.map { t ->
-            val metadataBuilder = MediaMetadata.Builder()
-                .setTitle(t.title)
-                .setArtist(t.artist)
-
+            val metadataBuilder = MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist)
             if (t.cover != null) {
                 val stream = ByteArrayOutputStream()
                 t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
@@ -240,7 +287,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
             }
-
             MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
         }
 
@@ -253,10 +299,7 @@ class MainActivity : AppCompatActivity() {
         val defaultArtworkBytes = getDefaultArtworkBytes()
 
         val newItems = newTracks.map { t ->
-            val metadataBuilder = MediaMetadata.Builder()
-                .setTitle(t.title)
-                .setArtist(t.artist)
-
+            val metadataBuilder = MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist)
             if (t.cover != null) {
                 val stream = ByteArrayOutputStream()
                 t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
@@ -264,16 +307,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
             }
-
             MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
         }
 
-        if (c.mediaItemCount == 0) {
-            c.setMediaItems(newItems)
-        } else {
-            c.addMediaItems(newItems)
-        }
-        
+        if (c.mediaItemCount == 0) c.setMediaItems(newItems) else c.addMediaItems(newItems)
         songAdapter.updateData(tracks)
     }
 
@@ -288,12 +325,8 @@ class MainActivity : AppCompatActivity() {
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(this, uri)
-            
-            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) 
-                ?: queryName(uri) ?: "Unknown Title"
-            
+            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: queryName(uri) ?: "Unknown Title"
             val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
-            
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val duration = durationStr?.toLongOrNull() ?: 0L
             
@@ -302,7 +335,6 @@ class MainActivity : AppCompatActivity() {
             if (embeddedPicture != null) {
                 coverBitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.size)
             }
-
             Track(uri, title, artist, duration, coverBitmap)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -323,9 +355,7 @@ class MainActivity : AppCompatActivity() {
     private fun persistPermission(uris: List<Uri>) {
         uris.forEach { uri ->
             try {
-                contentResolver.takePersistableUriPermission(
-                    uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
+                contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (_: SecurityException) {}
         }
     }
