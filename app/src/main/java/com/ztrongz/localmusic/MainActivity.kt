@@ -61,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Khởi tạo Adapter và truyền sự kiện click
         songAdapter = SongAdapter(tracks) { position ->
             playSongAt(position)
         }
@@ -91,11 +90,10 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
-    // Hàm phát nhạc khi click vào item
     private fun playSongAt(position: Int) {
         controller?.let { c ->
-            c.seekTo(position, 0L) // Nhảy đến bài hát được chọn
-            c.play() // Bắt đầu phát
+            c.seekTo(position, 0L)
+            c.play()
         }
     }
 
@@ -119,7 +117,6 @@ class MainActivity : AppCompatActivity() {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
             
-            // Ẩn/hiện ca sĩ ở Mini Player
             val artistText = mediaItem?.mediaMetadata?.artist?.toString() ?: ""
             if (artistText.isBlank()) {
                 binding.tvMiniArtist.visibility = android.view.View.GONE
@@ -131,10 +128,11 @@ class MainActivity : AppCompatActivity() {
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (currentIndex in tracks.indices) {
                 val currentTrack = tracks[currentIndex]
+                // ĐÃ ĐỔI THÀNH ẢNH MỚI
                 if (currentTrack.cover != null) {
                     binding.ivMiniCover.setImageBitmap(currentTrack.cover)
                 } else {
-                    binding.ivMiniCover.setImageResource(R.drawable.bg_cover_placeholder)
+                    binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
                 }
             }
         }
@@ -172,7 +170,6 @@ class MainActivity : AppCompatActivity() {
             val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) 
                 ?: queryName(uri) ?: "Unknown Title"
             
-            // Nếu không có ca sĩ, trả về chuỗi rỗng
             val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
             
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
