@@ -298,3 +298,69 @@
                 android:layout_height="wrap_content"
                 android:drawableTop="@drawable/ic_nav_home"
                 android:drawablePadding="2dp"
+                android:gravity="center"
+                android:text="Trang chủ"
+                android:textColor="@color/purple_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:drawableTint="@color/purple_primary" />
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:background="@color/purple_primary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/ic_nav_library"
+                android:drawablePadding="2dp"
+                android:gravity="center"
+                android:text="Thư viện"
+                android:textColor="#6B6880"
+                android:textSize="12sp"
+                app:drawableTint="#6B6880" />
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:visibility="invisible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/ic_nav_settings"
+                android:drawablePadding="2dp"
+                android:gravity="center"
+                android:text="Cài đặt"
+                android:textColor="#6B6880"
+                android:textSize="12sp"
+                app:drawableTint="#6B6880" />
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="4dp"
+                android:visibility="invisible" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
