@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ztrongz.localmusic.databinding.ActivityMainBinding
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity() {
@@ -44,7 +45,6 @@ class MainActivity : AppCompatActivity() {
     private val tracks = mutableListOf<Track>()
     private lateinit var songAdapter: SongAdapter
     
-    // Biến kiểm tra xem đang ở tab nào
     private var isShowingFavorites = false
 
     private val pickFiles = registerForActivityResult(
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
             saveTracksToStorage()
-            filterAndShowSongs() // Cập nhật lại danh sách hiển thị
+            filterAndShowSongs()
         }
     }
 
@@ -79,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Khởi tạo Adapter (Truyền Track ra ngoài)
         songAdapter = SongAdapter(
             songs = tracks,
             onSongClick = { track -> 
@@ -94,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
 
-        setupCategoryChips() // Thiết lập sự kiện cho các nút danh mục
+        setupCategoryChips()
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -120,7 +119,6 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
-    // --- THIẾT LẬP SỰ KIỆN CHO CÁC NÚT DANH MỤC ---
     private fun setupCategoryChips() {
         binding.chipAll.setOnClickListener {
             isShowingFavorites = false
@@ -135,16 +133,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Cập nhật giao diện nút (Tím/Trắng)
     private fun updateChipUI(activeChip: View, inactiveChip: View) {
-        // Active
         activeChip.setBackgroundResource(R.drawable.bg_category_active)
         if (activeChip is TextView) {
             activeChip.setTextColor(Color.WHITE)
             activeChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.white)
         }
 
-        // Inactive
         inactiveChip.setBackgroundResource(R.drawable.bg_category_inactive)
         if (inactiveChip is TextView) {
             inactiveChip.setTextColor(Color.parseColor("#1F1B2E"))
@@ -152,7 +147,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Hàm lọc và hiển thị danh sách
     private fun filterAndShowSongs() {
         val displayList = if (isShowingFavorites) {
             tracks.filter { it.isFavorite }
@@ -165,9 +159,8 @@ class MainActivity : AppCompatActivity() {
     private fun saveTracksToStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonArray = JSONArray()
-        // Lưu cả URI và trạng thái yêu thích
         tracks.forEach { 
-            val obj = org.json.JSONObject()
+            val obj = JSONObject()
             obj.put("uri", it.uri.toString())
             obj.put("isFavorite", it.isFavorite)
             jsonArray.put(obj) 
@@ -217,7 +210,7 @@ class MainActivity : AppCompatActivity() {
         val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
-        // SỬA LỖI MÀU CHỮ: Luôn giữ màu đen cho text, chỉ đổi icon
+        // LUÔN GIỮ MÀU CHỮ ĐEN, CHỈ ĐỔI ICON
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         if (track.isFavorite) {
             ivHeart.setImageResource(R.drawable.ic_heart_filled)
@@ -251,8 +244,8 @@ class MainActivity : AppCompatActivity() {
     private fun toggleFavorite(position: Int) {
         val track = tracks[position]
         tracks[position] = track.copy(isFavorite = !track.isFavorite)
-        saveTracksToStorage() // Lưu lại trạng thái
-        filterAndShowSongs() // Cập nhật lại danh sách (nếu đang ở tab Yêu thích thì nó sẽ mất đi)
+        saveTracksToStorage()
+        filterAndShowSongs()
     }
 
     private fun showRenameDialog(position: Int) {
