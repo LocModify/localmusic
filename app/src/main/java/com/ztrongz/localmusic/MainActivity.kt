@@ -35,14 +35,24 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNullOrEmpty()) return@registerForActivityResult
+        
+        // Danh sách chứa các bài hát MỚI ĐƯỢC THÊM
+        val newlyAddedTracks = mutableListOf<Track>()
+        
         uris.forEach { uri ->
             val track = extractTrackInfo(uri)
+            // Kiểm tra xem bài hát đã có trong danh sách chưa
             if (track != null && tracks.none { it.uri == uri }) {
                 tracks.add(track)
+                newlyAddedTracks.add(track) // Thêm vào danh sách mới
             }
         }
         persistPermission(uris)
-        refreshPlaylist()
+        
+        // Nếu có bài hát mới thì mới cập nhật vào trình phát
+        if (newlyAddedTracks.isNotEmpty()) {
+            addTracksToPlaylist(newlyAddedTracks)
+        }
     }
 
     private val requestNotif = registerForActivityResult(
@@ -87,7 +97,8 @@ class MainActivity : AppCompatActivity() {
         controllerFuture.addListener({
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
-            refreshPlaylist()
+            // Chỉ cập nhật giao diện, không nạp lại danh sách nhạc
+            songAdapter.updateData(tracks)
         }, MoreExecutors.directExecutor())
     }
 
@@ -99,12 +110,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            // Cập nhật tên bài hát
             binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
-            // Cập nhật tên ca sĩ
             binding.tvMiniArtist.text = mediaItem?.mediaMetadata?.artist ?: "Local"
 
-            // Cập nhật ảnh bìa cho Mini Player
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (currentIndex in tracks.indices) {
                 val currentTrack = tracks[currentIndex]
@@ -117,9 +125,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshPlaylist() {
+    // Hàm xử lý thêm nhạc vào danh sách phát mà không làm gián đoạn bài đang phát
+    private fun addTracksToPlaylist(newTracks: List<Track>) {
         val c = controller ?: return
-        val items = tracks.map { t ->
+        
+        val newItems = newTracks.map { t ->
             MediaItem.Builder()
                 .setUri(t.uri)
                 .setMediaMetadata(
@@ -130,7 +140,16 @@ class MainActivity : AppCompatActivity() {
                 )
                 .build()
         }
-        c.setMediaItems(items)
+
+        // Nếu danh sách phát đang trống (chưa phát gì) thì nạp toàn bộ.
+        // Nếu đang phát rồi thì CHỈ NỐI THÊM vào cuối danh sách (không reset).
+        if (c.mediaItemCount == 0) {
+            c.setMediaItems(newItems)
+        } else {
+            c.addMediaItems(newItems)
+        }
+        
+        // Cập nhật lại giao diện danh sách (RecyclerView)
         songAdapter.updateData(tracks)
     }
 
