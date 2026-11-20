@@ -6,15 +6,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.util.Locale
+import coil.load // Thư viện load ảnh
 
-class SongAdapter(
-    songs: List<Track>,
-    private val onItemClick: (Track) -> Unit
-) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
-
-    private var allSongs: List<Track> = songs.toList()
-    private var shownSongs: List<Track> = allSongs
+class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvTitle)
@@ -29,40 +23,24 @@ class SongAdapter(
     }
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
-        val song = shownSongs[position]
+        val song = songs[position]
+        
         holder.tvTitle.text = song.title
-        holder.tvArtist.text = song.artist
-        holder.tvDuration.text = formatDuration(song.durationMs)
-        if (song.cover != null) holder.ivCover.setImageBitmap(song.cover)
-        else holder.ivCover.setImageResource(R.drawable.bg_cover_placeholder)
-        holder.itemView.setOnClickListener { onItemClick(song) }
-    }
+        holder.tvArtist.text = "Unknown Artist" 
+        holder.tvDuration.text = "--:--" 
 
-    override fun getItemCount(): Int = shownSongs.size
-
-    fun updateData(newSongs: List<Track>, query: String = "") {
-        allSongs = newSongs.toList()
-        filter(query)
-    }
-
-    // Lọc realtime theo tên bài hoặc ca sĩ
-    fun filter(query: String) {
-        val q = query.trim().lowercase(Locale.getDefault())
-        shownSongs = if (q.isEmpty()) allSongs
-        else allSongs.filter {
-            it.title.lowercase(Locale.getDefault()).contains(q) ||
-                it.artist.lowercase(Locale.getDefault()).contains(q)
+        // Load ảnh bìa bài hát bằng Coil (tự động crop và bo góc theo CardView)
+        holder.ivCover.load(song.uri) {
+            placeholder(R.drawable.bg_cover_placeholder)
+            error(R.drawable.bg_cover_placeholder)
+            crossfade(true)
         }
-        notifyDataSetChanged()
     }
 
-    private fun formatDuration(ms: Long): String {
-        if (ms <= 0) return "--:--"
-        val total = ms / 1000
-        val h = total / 3600
-        val m = (total % 3600) / 60
-        val s = total % 60
-        return if (h > 0) String.format(Locale.US, "%d:%02d:%02d", h, m, s)
-        else String.format(Locale.US, "%02d:%02d", m, s)
+    override fun getItemCount(): Int = songs.size
+
+    fun updateData(newSongs: List<Track>) {
+        songs = newSongs
+        notifyDataSetChanged()
     }
 }
