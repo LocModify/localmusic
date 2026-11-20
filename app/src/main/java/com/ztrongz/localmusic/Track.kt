@@ -6,7 +6,8 @@ import android.net.Uri
 data class Track(
     val uri: Uri,
     val title: String,
-    val artist: String = "", // Để trống thay vì "Unknown Artist"
+    val artist: String = "",
     val durationMs: Long = 0L,
-    val cover: Bitmap? = null
+    val cover: Bitmap? = null,
+    val isFavorite: Boolean = false // Đã thêm biến này
 )
