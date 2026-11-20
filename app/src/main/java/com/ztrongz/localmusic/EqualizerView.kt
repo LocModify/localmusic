@@ -33,7 +33,7 @@ class EqualizerView @JvmOverloads constructor(
         }
     }
 
-    fun startAnimation() {
+    fun startMusicAnimation() {
         for (i in 0 until barCount) {
             val animator = ValueAnimator.ofFloat(0.2f, 1f, 0.2f).apply {
                 duration = 500L + (i * 150L) // Tốc độ nhấp nhô so le nhau
