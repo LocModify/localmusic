@@ -70,8 +70,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // KHỞI TẠO CHUẨN XÁC 2 THAM SỐ
         songAdapter = SongAdapter(
-            tracks,
+            songs = tracks,
             onSongClick = { position -> playSongAt(position) },
             onMoreClick = { position, view -> showSongOptions(position, view) }
         )
