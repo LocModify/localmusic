@@ -9,7 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SongAdapter(
     private var songs: List<Track>,
-    private val onSongClick: (Int) -> Unit
+    private val onSongClick: (Int) -> Unit,
+    private val onMoreClick: (Int, View) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -17,6 +18,7 @@ class SongAdapter(
         val tvArtist: TextView = view.findViewById(R.id.tvArtist)
         val tvDuration: TextView = view.findViewById(R.id.tvDuration)
         val ivCover: ImageView = view.findViewById(R.id.ivCover)
+        val btnMore: ImageView = view.findViewById(R.id.btnMore)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
@@ -37,7 +39,6 @@ class SongAdapter(
             holder.tvArtist.text = song.artist
         }
 
-        // ĐÃ ĐỔI THÀNH ẢNH MỚI
         if (song.cover != null) {
             holder.ivCover.setImageBitmap(song.cover)
         } else {
@@ -46,6 +47,10 @@ class SongAdapter(
 
         holder.itemView.setOnClickListener {
             onSongClick(position)
+        }
+
+        holder.btnMore.setOnClickListener { view ->
+            onMoreClick(position, view)
         }
     }
 
