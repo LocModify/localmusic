@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SongAdapter(
     private var songs: List<Track>,
-    private val onSongClick: (Track) -> Unit, // Đổi thành Track
-    private val onMoreClick: (Track, View) -> Unit // Đổi thành Track
+    private val onSongClick: (Track) -> Unit,
+    private val onMoreClick: (Track, View) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -45,7 +45,6 @@ class SongAdapter(
             holder.ivCover.setImageResource(R.drawable.bg_cover_default)
         }
 
-        // Truyền cả bài hát (song) ra ngoài
         holder.itemView.setOnClickListener {
             onSongClick(song)
         }
