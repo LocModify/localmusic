@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SongAdapter(
     private var songs: List<Track>,
-    private val onSongClick: (Int) -> Unit // Thêm sự kiện click
+    private val onSongClick: (Int) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -30,7 +30,6 @@ class SongAdapter(
         holder.tvTitle.text = song.title
         holder.tvDuration.text = formatDuration(song.durationMs)
 
-        // Ẩn tên ca sĩ nếu không có dữ liệu
         if (song.artist.isBlank()) {
             holder.tvArtist.visibility = View.GONE
         } else {
@@ -38,14 +37,13 @@ class SongAdapter(
             holder.tvArtist.text = song.artist
         }
 
-        // Hiển thị ảnh bìa
+        // ĐÃ ĐỔI THÀNH ẢNH MỚI
         if (song.cover != null) {
             holder.ivCover.setImageBitmap(song.cover)
         } else {
-            holder.ivCover.setImageResource(R.drawable.bg_cover_placeholder)
+            holder.ivCover.setImageResource(R.drawable.bg_cover_default)
         }
 
-        // Bắt sự kiện click vào bài hát
         holder.itemView.setOnClickListener {
             onSongClick(position)
         }
