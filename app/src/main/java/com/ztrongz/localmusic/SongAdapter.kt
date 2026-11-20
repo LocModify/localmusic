@@ -34,7 +34,7 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
             placeholder(R.drawable.bg_cover_placeholder)
             error(R.drawable.bg_cover_placeholder)
             crossfade(true)
-            centerCrop() // DÒNG NÀY ÉP ẢNH TRÀN ĐẦY KHUNG VÀ CẮT PHẦN THỪA
+            // Đã xóa dòng centerCrop() ở đây
         }
     }
 
