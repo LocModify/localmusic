@@ -15,6 +15,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ztrongz.localmusic.databinding.ActivityMainBinding
@@ -25,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
     private val tracks = mutableListOf<Track>()
+    
+    // Khai báo Adapter
+    private lateinit var songAdapter: SongAdapter
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -46,6 +50,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Khởi tạo RecyclerView và Adapter
+        songAdapter = SongAdapter(tracks)
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = songAdapter
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -82,10 +91,9 @@ class MainActivity : AppCompatActivity() {
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            // Sửa lại thành đổi Icon thay vì đổi Text
+            // Đổi icon Play/Pause sắc nét
             binding.btnPlayPause.setImageResource(
-                if (isPlaying) android.R.drawable.ic_media_pause 
-                else android.R.drawable.ic_media_play
+                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             )
         }
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -107,7 +115,9 @@ class MainActivity : AppCompatActivity() {
                 .build()
         }
         c.setMediaItems(items)
-        // binding.tvCount.text = "${tracks.size} bài" (Đã ẩn vì giao diện mới không có)
+        
+        // Cập nhật lại giao diện danh sách
+        songAdapter.updateData(tracks)
     }
 
     private fun queryName(uri: Uri): String? {
