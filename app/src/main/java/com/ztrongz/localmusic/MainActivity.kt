@@ -36,20 +36,17 @@ class MainActivity : AppCompatActivity() {
     ) { uris ->
         if (uris.isNullOrEmpty()) return@registerForActivityResult
         
-        // Danh sách chứa các bài hát MỚI ĐƯỢC THÊM
         val newlyAddedTracks = mutableListOf<Track>()
         
         uris.forEach { uri ->
             val track = extractTrackInfo(uri)
-            // Kiểm tra xem bài hát đã có trong danh sách chưa
             if (track != null && tracks.none { it.uri == uri }) {
                 tracks.add(track)
-                newlyAddedTracks.add(track) // Thêm vào danh sách mới
+                newlyAddedTracks.add(track)
             }
         }
         persistPermission(uris)
         
-        // Nếu có bài hát mới thì mới cập nhật vào trình phát
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
         }
@@ -64,7 +61,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        songAdapter = SongAdapter(tracks)
+        // Khởi tạo Adapter và truyền sự kiện click
+        songAdapter = SongAdapter(tracks) { position ->
+            playSongAt(position)
+        }
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
 
@@ -91,13 +91,20 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
+    // Hàm phát nhạc khi click vào item
+    private fun playSongAt(position: Int) {
+        controller?.let { c ->
+            c.seekTo(position, 0L) // Nhảy đến bài hát được chọn
+            c.play() // Bắt đầu phát
+        }
+    }
+
     private fun connectController() {
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         controllerFuture = MediaController.Builder(this, token).buildAsync()
         controllerFuture.addListener({
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
-            // Chỉ cập nhật giao diện, không nạp lại danh sách nhạc
             songAdapter.updateData(tracks)
         }, MoreExecutors.directExecutor())
     }
@@ -111,7 +118,15 @@ class MainActivity : AppCompatActivity() {
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
-            binding.tvMiniArtist.text = mediaItem?.mediaMetadata?.artist ?: "Local"
+            
+            // Ẩn/hiện ca sĩ ở Mini Player
+            val artistText = mediaItem?.mediaMetadata?.artist?.toString() ?: ""
+            if (artistText.isBlank()) {
+                binding.tvMiniArtist.visibility = android.view.View.GONE
+            } else {
+                binding.tvMiniArtist.visibility = android.view.View.VISIBLE
+                binding.tvMiniArtist.text = artistText
+            }
 
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (currentIndex in tracks.indices) {
@@ -125,7 +140,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Hàm xử lý thêm nhạc vào danh sách phát mà không làm gián đoạn bài đang phát
     private fun addTracksToPlaylist(newTracks: List<Track>) {
         val c = controller ?: return
         
@@ -141,15 +155,12 @@ class MainActivity : AppCompatActivity() {
                 .build()
         }
 
-        // Nếu danh sách phát đang trống (chưa phát gì) thì nạp toàn bộ.
-        // Nếu đang phát rồi thì CHỈ NỐI THÊM vào cuối danh sách (không reset).
         if (c.mediaItemCount == 0) {
             c.setMediaItems(newItems)
         } else {
             c.addMediaItems(newItems)
         }
         
-        // Cập nhật lại giao diện danh sách (RecyclerView)
         songAdapter.updateData(tracks)
     }
 
@@ -161,8 +172,8 @@ class MainActivity : AppCompatActivity() {
             val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) 
                 ?: queryName(uri) ?: "Unknown Title"
             
-            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) 
-                ?: "Unknown Artist"
+            // Nếu không có ca sĩ, trả về chuỗi rỗng
+            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
             
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val duration = durationStr?.toLongOrNull() ?: 0L
