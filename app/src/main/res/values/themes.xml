@@ -5,4 +5,8 @@
         <item name="android:windowSplashScreenBackground">#000000</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo</item>
     </style>
+<style name="RoundedCornerImage" parent="">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">12dp</item>
+</style>
 </resources>
