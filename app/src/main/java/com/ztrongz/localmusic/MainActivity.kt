@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     ) { uris ->
         if (uris.isNullOrEmpty()) return@registerForActivityResult
         uris.forEach { uri ->
-            // Trích xuất thông tin thật từ file MP3
             val track = extractTrackInfo(uri)
             if (track != null && tracks.none { it.uri == uri }) {
                 tracks.add(track)
@@ -98,8 +97,23 @@ class MainActivity : AppCompatActivity() {
                 if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             )
         }
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // Cập nhật tên bài hát
             binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
+            // Cập nhật tên ca sĩ
+            binding.tvMiniArtist.text = mediaItem?.mediaMetadata?.artist ?: "Local"
+
+            // Cập nhật ảnh bìa cho Mini Player
+            val currentIndex = controller?.currentMediaItemIndex ?: -1
+            if (currentIndex in tracks.indices) {
+                val currentTrack = tracks[currentIndex]
+                if (currentTrack.cover != null) {
+                    binding.ivMiniCover.setImageBitmap(currentTrack.cover)
+                } else {
+                    binding.ivMiniCover.setImageResource(R.drawable.bg_cover_placeholder)
+                }
+            }
         }
     }
 
@@ -120,7 +134,6 @@ class MainActivity : AppCompatActivity() {
         songAdapter.updateData(tracks)
     }
 
-    // Hàm bóc tách thông tin bài hát
     private fun extractTrackInfo(uri: Uri): Track? {
         val retriever = MediaMetadataRetriever()
         return try {
@@ -135,7 +148,6 @@ class MainActivity : AppCompatActivity() {
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val duration = durationStr?.toLongOrNull() ?: 0L
             
-            // Chuyển ByteArray thành Bitmap
             val embeddedPicture = retriever.embeddedPicture
             var coverBitmap: Bitmap? = null
             if (embeddedPicture != null) {
