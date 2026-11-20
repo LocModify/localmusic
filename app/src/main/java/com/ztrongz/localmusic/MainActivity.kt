@@ -82,10 +82,14 @@ class MainActivity : AppCompatActivity() {
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            binding.btnPlayPause.text = if (isPlaying) "Pause" else "Play"
+            // Sửa lại thành đổi Icon thay vì đổi Text
+            binding.btnPlayPause.setImageResource(
+                if (isPlaying) android.R.drawable.ic_media_pause 
+                else android.R.drawable.ic_media_play
+            )
         }
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "—"
+            binding.tvNowPlaying.text = mediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
         }
     }
 
@@ -103,7 +107,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
         }
         c.setMediaItems(items)
-        binding.tvCount.text = "${tracks.size} bài"
+        // binding.tvCount.text = "${tracks.size} bài" (Đã ẩn vì giao diện mới không có)
     }
 
     private fun queryName(uri: Uri): String? {
