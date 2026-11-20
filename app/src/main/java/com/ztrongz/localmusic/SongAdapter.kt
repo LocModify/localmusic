@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 
 class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
@@ -26,15 +25,14 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
         val song = songs[position]
         
         holder.tvTitle.text = song.title
-        holder.tvArtist.text = "Unknown Artist" 
-        holder.tvDuration.text = "--:--" 
+        holder.tvArtist.text = song.artist
+        holder.tvDuration.text = formatDuration(song.durationMs)
 
-        // Load ảnh bìa bài hát bằng Coil
-        holder.ivCover.load(song.uri) {
-            placeholder(R.drawable.bg_cover_placeholder)
-            error(R.drawable.bg_cover_placeholder)
-            crossfade(true)
-            // Đã xóa dòng centerCrop() ở đây
+        // Hiển thị ảnh bìa trực tiếp từ Bitmap (không cần dùng Coil)
+        if (song.cover != null) {
+            holder.ivCover.setImageBitmap(song.cover)
+        } else {
+            holder.ivCover.setImageResource(R.drawable.bg_cover_placeholder)
         }
     }
 
@@ -43,5 +41,13 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
     fun updateData(newSongs: List<Track>) {
         songs = newSongs
         notifyDataSetChanged()
+    }
+
+    // Hàm đổi mili giây thành định dạng mm:ss
+    private fun formatDuration(durationMs: Long): String {
+        val totalSeconds = durationMs / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return String.format("%02d:%02d", minutes, seconds)
     }
 }
