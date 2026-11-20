@@ -6,17 +6,24 @@
     android:padding="12dp"
     android:background="?attr/selectableItemBackground">
 
-    <!-- Ảnh bìa bài hát -->
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imgCover"
+    <!-- Ảnh bìa bài hát (Bọc trong CardView để tự bo góc) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardCover"
         android:layout_width="56dp"
         android:layout_height="56dp"
-        android:scaleType="centerCrop"
-        android:src="@android:drawable/ic_menu_gallery"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/RoundedCornerImage" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery" />
+    </androidx.cardview.widget.CardView>
 
     <!-- Tên bài hát -->
     <TextView
@@ -31,8 +38,8 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tvArtist"
         app:layout_constraintEnd_toStartOf="@+id/tvDuration"
-        app:layout_constraintStart_toEndOf="@+id/imgCover"
-        app:layout_constraintTop_toTopOf="@+id/imgCover" />
+        app:layout_constraintStart_toEndOf="@+id/cardCover"
+        app:layout_constraintTop_toTopOf="@+id/cardCover" />
 
     <!-- Tên ca sĩ -->
     <TextView
@@ -43,7 +50,7 @@
         android:text="Ca sĩ"
         android:textColor="@color/text_gray"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgCover"
+        app:layout_constraintBottom_toBottomOf="@+id/cardCover"
         app:layout_constraintEnd_toEndOf="@+id/tvTitle"
         app:layout_constraintStart_toStartOf="@+id/tvTitle"
         app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
