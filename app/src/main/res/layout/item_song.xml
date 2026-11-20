@@ -9,26 +9,19 @@
     android:paddingEnd="12dp"
     android:background="?attr/selectableItemBackground">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardCover"
+    <!-- Dùng ShapeableImageView thay cho CardView -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivCover"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="14dp"
-        app:cardElevation="0dp" 
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_cover_placeholder"
+        app:shapeAppearanceOverlay="@style/RoundedCornerImage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/divider">
-
-        <ImageView
-            android:id="@+id/ivCover"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/bg_cover_placeholder" />
-    </androidx.cardview.widget.CardView>
+        app:layout_constraintBottom_toTopOf="@id/divider" />
 
     <TextView
         android:id="@+id/tvTitle"
@@ -41,9 +34,9 @@
         android:maxLines="1"
         android:textColor="#1F1B2E"
         android:textSize="16sp"
-        app:layout_constraintStart_toEndOf="@id/cardCover"
+        app:layout_constraintStart_toEndOf="@id/ivCover"
         app:layout_constraintEnd_toStartOf="@id/tvDuration"
-        app:layout_constraintTop_toTopOf="@id/cardCover"
+        app:layout_constraintTop_toTopOf="@id/ivCover"
         app:layout_constraintBottom_toTopOf="@id/tvArtist"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Tên bài hát" />
@@ -60,7 +53,7 @@
         app:layout_constraintStart_toStartOf="@id/tvTitle"
         app:layout_constraintEnd_toEndOf="@id/tvTitle"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        app:layout_constraintBottom_toBottomOf="@id/ivCover"
         tools:text="Ca sĩ" />
 
     <TextView
@@ -71,20 +64,20 @@
         android:textColor="#6B6880"
         android:textSize="13sp"
         app:layout_constraintEnd_toStartOf="@id/btnMore"
-        app:layout_constraintTop_toTopOf="@id/cardCover"
-        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        app:layout_constraintTop_toTopOf="@id/ivCover"
+        app:layout_constraintBottom_toBottomOf="@id/ivCover"
         tools:text="03:24" />
 
     <ImageView
         android:id="@+id/btnMore"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="4dp"
         android:src="@drawable/ic_more_vert"
-        android:background="?attr/selectableItemBackgroundBorderless"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/cardCover"
-        app:layout_constraintBottom_toBottomOf="@id/cardCover" />
+        app:layout_constraintTop_toTopOf="@id/ivCover"
+        app:layout_constraintBottom_toBottomOf="@id/ivCover" />
 
     <View
         android:id="@+id/divider"
