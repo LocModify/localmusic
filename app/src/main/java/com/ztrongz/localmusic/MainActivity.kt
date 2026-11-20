@@ -3,6 +3,9 @@ package com.ztrongz.localmusic
 import android.Manifest
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -33,8 +36,11 @@ class MainActivity : AppCompatActivity() {
     ) { uris ->
         if (uris.isNullOrEmpty()) return@registerForActivityResult
         uris.forEach { uri ->
-            val name = queryName(uri) ?: uri.lastPathSegment ?: "Unknown"
-            if (tracks.none { it.uri == uri }) tracks.add(Track(uri, name))
+            // Trích xuất thông tin thật từ file MP3
+            val track = extractTrackInfo(uri)
+            if (track != null && tracks.none { it.uri == uri }) {
+                tracks.add(track)
+            }
         }
         persistPermission(uris)
         refreshPlaylist()
@@ -49,7 +55,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Khởi tạo Adapter (Đã sửa để khớp 1 tham số)
         songAdapter = SongAdapter(tracks)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
@@ -106,15 +111,44 @@ class MainActivity : AppCompatActivity() {
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(t.title)
-                        .setArtist("Local")
+                        .setArtist(t.artist)
                         .build()
                 )
                 .build()
         }
         c.setMediaItems(items)
-        
-        // Cập nhật lại danh sách (Đã sửa để khớp 1 tham số)
         songAdapter.updateData(tracks)
+    }
+
+    // Hàm bóc tách thông tin bài hát
+    private fun extractTrackInfo(uri: Uri): Track? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(this, uri)
+            
+            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) 
+                ?: queryName(uri) ?: "Unknown Title"
+            
+            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) 
+                ?: "Unknown Artist"
+            
+            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val duration = durationStr?.toLongOrNull() ?: 0L
+            
+            // Chuyển ByteArray thành Bitmap
+            val embeddedPicture = retriever.embeddedPicture
+            var coverBitmap: Bitmap? = null
+            if (embeddedPicture != null) {
+                coverBitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.size)
+            }
+
+            Track(uri, title, artist, duration, coverBitmap)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        } finally {
+            retriever.release()
+        }
     }
 
     private fun queryName(uri: Uri): String? {
