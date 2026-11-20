@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="20dp"
@@ -12,7 +13,7 @@
         android:id="@+id/cardCover"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="9dp"
         android:layout_marginBottom="10dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
@@ -45,8 +46,7 @@
         app:layout_constraintTop_toTopOf="@id/cardCover"
         app:layout_constraintBottom_toTopOf="@id/tvArtist"
         app:layout_constraintVertical_chainStyle="packed"
-        tools:text="Dreaming"
-        xmlns:tools="http://schemas.android.com/tools" />
+        tools:text="Dreaming" />
 
     <TextView
         android:id="@+id/tvArtist"
