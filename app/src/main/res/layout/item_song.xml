@@ -9,7 +9,6 @@
     android:paddingEnd="12dp"
     android:background="?attr/selectableItemBackground">
 
-    <!-- KHUNG VUÔNG BO GÓC BẰNG CARDVIEW -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardCover"
         android:layout_width="56dp"
@@ -23,13 +22,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/divider">
 
-        <!-- ẢNH BÊN TRONG TRÀN VIỀN 100% -->
+        <!-- ĐÃ ĐỔI THÀNH ẢNH MỚI -->
         <ImageView
             android:id="@+id/ivCover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/bg_cover_placeholder" />
+            android:src="@drawable/bg_cover_default" />
 
     </androidx.cardview.widget.CardView>
 
