@@ -156,6 +156,7 @@ class MainActivity : AppCompatActivity() {
         songAdapter.updateData(displayList)
     }
 
+    // LƯU THÊM TÊN BÀI HÁT VÀO BỘ NHỚ
     private fun saveTracksToStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonArray = JSONArray()
@@ -163,11 +164,13 @@ class MainActivity : AppCompatActivity() {
             val obj = JSONObject()
             obj.put("uri", it.uri.toString())
             obj.put("isFavorite", it.isFavorite)
+            obj.put("title", it.title) // Lưu tên mới
             jsonArray.put(obj) 
         }
         prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
     }
 
+    // ĐỌC TÊN TỪ BỘ NHỚ (NẾU CÓ)
     private fun loadTracksFromStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonString = prefs.getString("saved_tracks", null) ?: return
@@ -179,9 +182,13 @@ class MainActivity : AppCompatActivity() {
                 val obj = jsonArray.getJSONObject(i)
                 val uri = Uri.parse(obj.getString("uri"))
                 val isFav = obj.optBoolean("isFavorite", false)
+                val savedTitle = obj.optString("title", "")
+                
                 val track = extractTrackInfo(uri)
                 if (track != null) {
-                    tracks.add(track.copy(isFavorite = isFav))
+                    // Nếu có tên đã lưu thì dùng, không thì dùng tên gốc
+                    val finalTitle = if (savedTitle.isNotEmpty()) savedTitle else track.title
+                    tracks.add(track.copy(title = finalTitle, isFavorite = isFav))
                 }
             }
             filterAndShowSongs()
@@ -210,7 +217,6 @@ class MainActivity : AppCompatActivity() {
         val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
-        // LUÔN GIỮ MÀU CHỮ ĐEN, CHỈ ĐỔI ICON
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         if (track.isFavorite) {
             ivHeart.setImageResource(R.drawable.ic_heart_filled)
@@ -248,24 +254,44 @@ class MainActivity : AppCompatActivity() {
         filterAndShowSongs()
     }
 
+    // HÀM ĐỔI TÊN MỚI (BỎ ĐUÔI .MP3, GIAO DIỆN BO GÓC)
     private fun showRenameDialog(position: Int) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Đổi tên bài hát")
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_rename, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+            
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val input = EditText(this)
-        input.setText(tracks[position].title)
-        builder.setView(input)
+        val edtTitle = dialogView.findViewById<EditText>(R.id.edtNewTitle)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnSave = dialogView.findViewById<TextView>(R.id.btnSave)
 
-        builder.setPositiveButton("Lưu") { _, _ ->
-            val newTitle = input.text.toString().trim()
+        // Cắt bỏ đuôi file (ví dụ: .mp3)
+        val currentTitle = tracks[position].title
+        val titleWithoutExtension = if (currentTitle.contains(".")) {
+            currentTitle.substringBeforeLast(".")
+        } else {
+            currentTitle
+        }
+
+        edtTitle.setText(titleWithoutExtension)
+        edtTitle.setSelection(edtTitle.text.length) // Đưa con trỏ chuột về cuối chữ
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnSave.setOnClickListener {
+            val newTitle = edtTitle.text.toString().trim()
             if (newTitle.isNotEmpty()) {
                 tracks[position] = tracks[position].copy(title = newTitle)
+                saveTracksToStorage() // Lưu ngay lập tức vào bộ nhớ
                 filterAndShowSongs()
-                updatePlayerPlaylist()
+                updatePlayerPlaylist() // Cập nhật tên trên thanh thông báo / Mini Player
+                dialog.dismiss()
             }
         }
-        builder.setNegativeButton("Hủy") { dialog, _ -> dialog.cancel() }
-        builder.show()
+
+        dialog.show()
     }
 
     private fun deleteSong(position: Int) {
