@@ -43,6 +43,9 @@ class MainActivity : AppCompatActivity() {
     private var controller: MediaController? = null
     private val tracks = mutableListOf<Track>()
     private lateinit var songAdapter: SongAdapter
+    
+    // Biến kiểm tra xem đang ở tab nào
+    private var isShowingFavorites = false
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -63,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
             saveTracksToStorage()
+            filterAndShowSongs() // Cập nhật lại danh sách hiển thị
         }
     }
 
@@ -75,13 +79,22 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Khởi tạo Adapter (Truyền Track ra ngoài)
         songAdapter = SongAdapter(
             songs = tracks,
-            onSongClick = { position -> playSongAt(position) },
-            onMoreClick = { position, view -> showSongOptions(position, view) }
+            onSongClick = { track -> 
+                val index = tracks.indexOf(track)
+                if (index != -1) playSongAt(index)
+            },
+            onMoreClick = { track, view -> 
+                val index = tracks.indexOf(track)
+                if (index != -1) showSongOptions(index, view)
+            }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
+
+        setupCategoryChips() // Thiết lập sự kiện cho các nút danh mục
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -107,10 +120,58 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
+    // --- THIẾT LẬP SỰ KIỆN CHO CÁC NÚT DANH MỤC ---
+    private fun setupCategoryChips() {
+        binding.chipAll.setOnClickListener {
+            isShowingFavorites = false
+            updateChipUI(binding.chipAll, binding.chipFav)
+            filterAndShowSongs()
+        }
+
+        binding.chipFav.setOnClickListener {
+            isShowingFavorites = true
+            updateChipUI(binding.chipFav, binding.chipAll)
+            filterAndShowSongs()
+        }
+    }
+
+    // Cập nhật giao diện nút (Tím/Trắng)
+    private fun updateChipUI(activeChip: View, inactiveChip: View) {
+        // Active
+        activeChip.setBackgroundResource(R.drawable.bg_category_active)
+        if (activeChip is TextView) {
+            activeChip.setTextColor(Color.WHITE)
+            activeChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.white)
+        }
+
+        // Inactive
+        inactiveChip.setBackgroundResource(R.drawable.bg_category_inactive)
+        if (inactiveChip is TextView) {
+            inactiveChip.setTextColor(Color.parseColor("#1F1B2E"))
+            inactiveChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.black)
+        }
+    }
+
+    // Hàm lọc và hiển thị danh sách
+    private fun filterAndShowSongs() {
+        val displayList = if (isShowingFavorites) {
+            tracks.filter { it.isFavorite }
+        } else {
+            tracks
+        }
+        songAdapter.updateData(displayList)
+    }
+
     private fun saveTracksToStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonArray = JSONArray()
-        tracks.forEach { jsonArray.put(it.uri.toString()) }
+        // Lưu cả URI và trạng thái yêu thích
+        tracks.forEach { 
+            val obj = org.json.JSONObject()
+            obj.put("uri", it.uri.toString())
+            obj.put("isFavorite", it.isFavorite)
+            jsonArray.put(obj) 
+        }
         prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
     }
 
@@ -122,13 +183,15 @@ class MainActivity : AppCompatActivity() {
             val jsonArray = JSONArray(jsonString)
             tracks.clear()
             for (i in 0 until jsonArray.length()) {
-                val uri = Uri.parse(jsonArray.getString(i))
+                val obj = jsonArray.getJSONObject(i)
+                val uri = Uri.parse(obj.getString("uri"))
+                val isFav = obj.optBoolean("isFavorite", false)
                 val track = extractTrackInfo(uri)
                 if (track != null) {
-                    tracks.add(track)
+                    tracks.add(track.copy(isFavorite = isFav))
                 }
             }
-            songAdapter.updateData(tracks)
+            filterAndShowSongs()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -154,14 +217,14 @@ class MainActivity : AppCompatActivity() {
         val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
+        // SỬA LỖI MÀU CHỮ: Luôn giữ màu đen cho text, chỉ đổi icon
+        tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         if (track.isFavorite) {
             ivHeart.setImageResource(R.drawable.ic_heart_filled)
             tvFavorite.text = "Bỏ yêu thích"
-            tvFavorite.setTextColor(Color.RED)
         } else {
             ivHeart.setImageResource(R.drawable.ic_heart_outline)
             tvFavorite.text = "Yêu thích"
-            tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         }
 
         btnFavorite.setOnClickListener {
@@ -179,19 +242,17 @@ class MainActivity : AppCompatActivity() {
             deleteSong(position)
         }
 
-        // ĐO KÍCH THƯỚC POPUP ĐỂ CĂN CHỈNH SÁT MÉP PHẢI TỰ ĐỘNG
         popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val popupWidth = popupView.measuredWidth
-        // Lấy tọa độ nút 3 chấm để tính toán
-        val offsetX = view.width - popupWidth - 16 // Căn lề phải thẳng hàng, trừ hao 16px cho đẹp
-
+        val offsetX = view.width - popupWidth - 16
         popupWindow.showAsDropDown(view, offsetX, 0)
     }
 
     private fun toggleFavorite(position: Int) {
         val track = tracks[position]
         tracks[position] = track.copy(isFavorite = !track.isFavorite)
-        songAdapter.notifyItemChanged(position)
+        saveTracksToStorage() // Lưu lại trạng thái
+        filterAndShowSongs() // Cập nhật lại danh sách (nếu đang ở tab Yêu thích thì nó sẽ mất đi)
     }
 
     private fun showRenameDialog(position: Int) {
@@ -206,7 +267,7 @@ class MainActivity : AppCompatActivity() {
             val newTitle = input.text.toString().trim()
             if (newTitle.isNotEmpty()) {
                 tracks[position] = tracks[position].copy(title = newTitle)
-                songAdapter.notifyItemChanged(position)
+                filterAndShowSongs()
                 updatePlayerPlaylist()
             }
         }
@@ -216,10 +277,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteSong(position: Int) {
         tracks.removeAt(position)
-        songAdapter.notifyItemRemoved(position)
-        songAdapter.notifyItemRangeChanged(position, tracks.size)
         updatePlayerPlaylist()
         saveTracksToStorage()
+        filterAndShowSongs()
     }
 
     private fun playSongAt(position: Int) {
@@ -235,7 +295,6 @@ class MainActivity : AppCompatActivity() {
         controllerFuture.addListener({
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
-            songAdapter.updateData(tracks)
             
             if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
@@ -247,6 +306,7 @@ class MainActivity : AppCompatActivity() {
                 c.setMediaItems(items)
             }
             updateMiniPlayerUI()
+            filterAndShowSongs()
         }, MoreExecutors.directExecutor())
     }
 
@@ -331,7 +391,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (c.mediaItemCount == 0) c.setMediaItems(newItems) else c.addMediaItems(newItems)
-        songAdapter.updateData(tracks)
     }
 
     private fun getDefaultArtworkBytes(): ByteArray {
