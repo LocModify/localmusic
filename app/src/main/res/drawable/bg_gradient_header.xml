@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Nền trắng cơ bản -->
+    <item>
+        <shape>
+            <solid android:color="#FAFAFC" />
+        </shape>
+    </item>
+    
+    <!-- Vệt mờ góc trên trái -->
+    <item android:top="-100dp" android:left="-100dp">
+        <shape android:shape="oval">
+            <gradient
+                android:startColor="#33C88CFF"
+                android:endColor="#00C88CFF"
+                android:type="radial"
+                android:gradientRadius="300dp" />
+        </shape>
+    </item>
+
+    <!-- Vệt mờ góc trên phải -->
+    <item android:top="-150dp" android:right="-100dp">
+        <shape android:shape="oval">
+            <gradient
+                android:startColor="#4DEDE9FE"
+                android:endColor="#00EDE9FE"
+                android:type="radial"
+                android:gradientRadius="350dp" />
+        </shape>
+    </item>
+</layer-list>
