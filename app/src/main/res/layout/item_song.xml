@@ -42,8 +42,7 @@
         android:maxLines="1"
         android:textColor="#1F1B2E"
         android:textSize="17sp"
-        app:layout_constraintStart_toEndOf
-                app:layout_constraintStart_toEndOf="@id/cardCover"
+        app:layout_constraintStart_toEndOf="@id/cardCover"
         app:layout_constraintEnd_toStartOf="@id/tvDuration"
         app:layout_constraintTop_toTopOf="@id/cardCover"
         app:layout_constraintBottom_toTopOf="@id/tvArtist"
@@ -84,7 +83,7 @@
         android:src="@drawable/ic_more_vert"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Tùy chọn"
-            app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/cardCover"
         app:layout_constraintBottom_toBottomOf="@id/cardCover" />
 
@@ -95,6 +94,3 @@
         android:layout_marginEnd="8dp"
         android:background="#EDE9F6"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
