@@ -3,9 +3,9 @@ package com.ztrongz.localmusic
 import android.Manifest
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -84,120 +84,3 @@ class MainActivity : AppCompatActivity() {
         binding.btnPlayPause.setOnClickListener { v ->
             // Hiệu ứng nhún khi bấm
             v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80).withEndAction {
-                v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-            }.start()
-            controller?.let { c ->
-                if (c.isPlaying) c.pause() else c.play()
-            }
-        }
-
-        binding.btnNext.setOnClickListener { controller?.seekToNextMediaItem() }
-        binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
-
-        connectController()
-    }
-
-    private fun connectController() {
-        val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
-        controllerFuture = MediaController.Builder(this, token).buildAsync()
-        controllerFuture.addListener({
-            controller = controllerFuture.get()
-            controller?.addListener(playerListener)
-            refreshPlaylist()
-        }, MoreExecutors.directExecutor())
-    }
-
-    private val playerListener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            binding.btnPlayPause.setImageResource(
-                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-            )
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            val track = tracks.firstOrNull { it.uri.toString() == mediaItem?.mediaId }
-            binding.tvNowPlaying.text = track?.title ?: "Chưa phát bài nào"
-            binding.tvMiniArtist.text = track?.artist ?: "Local"
-            if (track?.cover != null) binding.ivMiniCover.setImageBitmap(track.cover)
-            else binding.ivMiniCover.setImageResource(R.drawable.bg_cover_placeholder)
-        }
-    }
-
-    private fun refreshPlaylist() {
-        val c = controller ?: return
-        val items = tracks.map { t ->
-            MediaItem.Builder()
-                .setUri(t.uri)
-                .setMediaId(t.uri.toString())
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(t.title)
-                        .setArtist(t.artist)
-                        .build()
-                )
-                .build()
-        }
-        c.setMediaItems(items)
-
-        songAdapter.updateData(tracks, binding.etSearch.text.toString())
-    }
-
-    private fun playTrack(track: Track) {
-        val c = controller ?: return
-        val index = tracks.indexOfFirst { it.uri == track.uri }
-        if (index < 0) return
-        c.seekTo(index, 0L)
-        c.prepare()
-        c.play()
-    }
-
-    private fun loadTrack(uri: Uri): Track {
-        val fileName = queryName(uri) ?: uri.lastPathSegment ?: "Unknown"
-        val fallbackTitle = fileName.substringBeforeLast('.')
-        val mmr = MediaMetadataRetriever()
-        return try {
-            mmr.setDataSource(this, uri)
-            val title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                ?.takeIf { it.isNotBlank() } ?: fallbackTitle
-            val artist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
-                ?.takeIf { it.isNotBlank() } ?: "Unknown Artist"
-            val duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                ?.toLongOrNull() ?: 0L
-            val cover = mmr.embeddedPicture?.let { bytes ->
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    ?.let { ThumbnailUtils.extractThumbnail(it, 192, 192) }
-            }
-            Track(uri, title, artist, duration, cover)
-        } catch (e: Exception) {
-            Track(uri, fallbackTitle)
-        } finally {
-            mmr.release()
-        }
-    }
-
-    private fun queryName(uri: Uri): String? {
-        contentResolver.query(uri, null, null, null, null)?.use { cur ->
-            val idx = cur.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            if (idx >= 0 && cur.moveToFirst()) return cur.getString(idx)
-        }
-        return null
-    }
-
-    private fun persistPermission(uris: List<Uri>) {
-        uris.forEach { uri ->
-            try {
-                contentResolver.takePersistableUriPermission(
-                    uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (_: SecurityException) {}
-        }
-    }
-
-    override fun onDestroy() {
-        controller?.removeListener(playerListener)
-        controllerFuture.addListener({
-            MediaController.releaseFuture(controllerFuture)
-        }, MoreExecutors.directExecutor())
-        super.onDestroy()
-    }
-}
