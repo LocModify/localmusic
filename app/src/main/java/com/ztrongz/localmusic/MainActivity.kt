@@ -70,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // KHỞI TẠO CHUẨN XÁC 2 THAM SỐ
         songAdapter = SongAdapter(
             songs = tracks,
             onSongClick = { position -> playSongAt(position) },
@@ -109,7 +108,7 @@ class MainActivity : AppCompatActivity() {
         val track = tracks[position]
 
         val favItem = popup.menu.findItem(R.id.action_favorite)
-        if (track.isFavorite) {
+        if (track.isFavorite) { // Lỗi ở đây nếu Track.kt chưa có isFavorite
             favItem.setIcon(R.drawable.ic_heart_filled)
             favItem.title = "Bỏ yêu thích"
         } else {
@@ -144,7 +143,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleFavorite(position: Int) {
         val track = tracks[position]
-        tracks[position] = track.copy(isFavorite = !track.isFavorite)
+        tracks[position] = track.copy(isFavorite = !track.isFavorite) // Lỗi ở đây nếu Track.kt chưa có isFavorite
         songAdapter.notifyItemChanged(position)
     }
 
