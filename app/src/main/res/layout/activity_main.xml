@@ -96,7 +96,7 @@
             android:textSize="15sp" />
     </LinearLayout>
 
-    <!-- CATEGORIES (Đã nới rộng padding và tăng size chữ) -->
+    <!-- CATEGORIES -->
     <HorizontalScrollView
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
@@ -205,21 +205,14 @@
         android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNav">
 
-        <!-- Ảnh bìa Mini Player bo góc -->
-        <androidx.cardview.widget.CardView
+        <!-- Ảnh bìa Mini Player -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivMiniCover"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/purple_light">
-
-            <ImageView
-                android:id="@+id/ivMiniCover"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/bg_cover_placeholder" />
-        </androidx.cardview.widget.CardView>
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_cover_placeholder"
+            app:shapeAppearanceOverlay="@style/RoundedCornerImage" />
 
         <LinearLayout
             android:layout_width="0dp"
