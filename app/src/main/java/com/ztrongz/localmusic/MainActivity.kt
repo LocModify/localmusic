@@ -6,15 +6,20 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -58,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
-            saveTracksToStorage() // Lưu lại vào bộ nhớ máy
+            saveTracksToStorage()
         }
     }
 
@@ -99,12 +104,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnNext.setOnClickListener { controller?.seekToNextMediaItem() }
         binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
 
-        // Load lại danh sách đã lưu khi mở app
         loadTracksFromStorage()
         connectController()
     }
 
-    // --- HÀM LƯU VÀ ĐỌC DỮ LIỆU TỪ BỘ NHỚ ---
     private fun saveTracksToStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonArray = JSONArray()
@@ -132,53 +135,54 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // --- HÀM HIỂN THỊ MENU TÙY CHỈNH ---
+    // SỬA LỖI: Dùng PopupWindow thay vì AlertDialog để bảng menu nhỏ gọn
     private fun showSongOptions(position: Int, view: View) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_song_options, null)
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
-
-        // Làm nền dialog trong suốt để hiện góc bo tròn của CardView
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        val popupView = LayoutInflater.from(this).inflate(R.layout.dialog_song_options, null)
+        val popupWindow = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        
+        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popupWindow.elevation = 15f
 
         val track = tracks[position]
 
-        // Ánh xạ view
-        val btnFavorite = dialogView.findViewById<View>(R.id.btnMenuFavorite)
-        val ivHeart = dialogView.findViewById<ImageView>(R.id.ivMenuHeart)
-        val tvFavorite = dialogView.findViewById<TextView>(R.id.tvMenuFavorite)
-        val btnRename = dialogView.findViewById<View>(R.id.btnMenuRename)
-        val btnDelete = dialogView.findViewById<View>(R.id.btnMenuDelete)
+        val btnFavorite = popupView.findViewById<View>(R.id.btnMenuFavorite)
+        val ivHeart = popupView.findViewById<ImageView>(R.id.ivMenuHeart)
+        val tvFavorite = popupView.findViewById<TextView>(R.id.tvMenuFavorite)
+        val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
+        val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
-        // Cập nhật trạng thái Yêu thích
         if (track.isFavorite) {
             ivHeart.setImageResource(R.drawable.ic_heart_filled)
             tvFavorite.text = "Bỏ yêu thích"
-            tvFavorite.setTextColor(android.graphics.Color.RED)
+            tvFavorite.setTextColor(Color.RED)
         } else {
             ivHeart.setImageResource(R.drawable.ic_heart_outline)
             tvFavorite.text = "Yêu thích"
-            tvFavorite.setTextColor(android.graphics.Color.parseColor("#1F1B2E"))
+            tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         }
 
-        // Gắn sự kiện
         btnFavorite.setOnClickListener {
             toggleFavorite(position)
-            dialog.dismiss()
+            popupWindow.dismiss()
         }
 
         btnRename.setOnClickListener {
-            dialog.dismiss()
+            popupWindow.dismiss()
             showRenameDialog(position)
         }
 
         btnDelete.setOnClickListener {
-            dialog.dismiss()
+            popupWindow.dismiss()
             deleteSong(position)
         }
 
-        dialog.show()
+        // Hiển thị menu ngay dưới nút 3 chấm, lùi sang trái một chút để không bị tràn màn hình
+        popupWindow.showAsDropDown(view, -350, 0)
     }
 
     private fun toggleFavorite(position: Int) {
@@ -212,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         songAdapter.notifyItemRemoved(position)
         songAdapter.notifyItemRangeChanged(position, tracks.size)
         updatePlayerPlaylist()
-        saveTracksToStorage() // Cập nhật lại bộ nhớ sau khi xóa
+        saveTracksToStorage()
     }
 
     private fun playSongAt(position: Int) {
@@ -229,8 +233,10 @@ class MainActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             songAdapter.updateData(tracks)
-            // Đẩy danh sách đã load từ bộ nhớ vào trình phát
-            if (tracks.isNotEmpty()) {
+            
+            // SỬA LỖI: Chỉ nạp danh sách nếu trình phát đang trống.
+            // Nếu nhạc đang phát dở, giữ nguyên trạng thái, không reset về bài 1.
+            if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
                 val items = tracks.map { t ->
                     MediaItem.Builder().setUri(t.uri).setMediaMetadata(
