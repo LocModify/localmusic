@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load // Thư viện load ảnh
+import coil.load
 
 class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
@@ -29,11 +29,12 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
         holder.tvArtist.text = "Unknown Artist" 
         holder.tvDuration.text = "--:--" 
 
-        // Load ảnh bìa bài hát bằng Coil (tự động crop và bo góc theo CardView)
+        // Load ảnh bìa bài hát bằng Coil
         holder.ivCover.load(song.uri) {
             placeholder(R.drawable.bg_cover_placeholder)
             error(R.drawable.bg_cover_placeholder)
             crossfade(true)
+            centerCrop() // DÒNG NÀY ÉP ẢNH TRÀN ĐẦY KHUNG VÀ CẮT PHẦN THỪA
         }
     }
 
