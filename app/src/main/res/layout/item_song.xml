@@ -22,16 +22,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/divider">
 
-        <!-- ĐÃ ĐỔI THÀNH ẢNH MỚI -->
         <ImageView
             android:id="@+id/ivCover"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:src="@drawable/bg_cover_default" />
-
     </androidx.cardview.widget.CardView>
 
+    <!-- Đã thêm fontFamily vào đây -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -56,6 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
+        android:fontFamily="sans-serif"
         android:maxLines="1"
         android:textColor="#8E8AA0"
         android:textSize="13sp"
@@ -70,6 +70,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
+        android:fontFamily="sans-serif"
         android:textColor="#6B6880"
         android:textSize="13sp"
         app:layout_constraintEnd_toStartOf="@id/btnMore"
