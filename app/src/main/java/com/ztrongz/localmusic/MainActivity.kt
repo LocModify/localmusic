@@ -179,7 +179,13 @@ class MainActivity : AppCompatActivity() {
             deleteSong(position)
         }
 
-        popupWindow.showAsDropDown(view, -350, 0)
+        // ĐO KÍCH THƯỚC POPUP ĐỂ CĂN CHỈNH SÁT MÉP PHẢI TỰ ĐỘNG
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popupWidth = popupView.measuredWidth
+        // Lấy tọa độ nút 3 chấm để tính toán
+        val offsetX = view.width - popupWidth - 16 // Căn lề phải thẳng hàng, trừ hao 16px cho đẹp
+
+        popupWindow.showAsDropDown(view, offsetX, 0)
     }
 
     private fun toggleFavorite(position: Int) {
@@ -231,7 +237,6 @@ class MainActivity : AppCompatActivity() {
             controller?.addListener(playerListener)
             songAdapter.updateData(tracks)
             
-            // Nếu trình phát đang trống (vừa mở app hoặc chưa play gì), nạp danh sách vào
             if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
                 val items = tracks.map { t ->
@@ -241,14 +246,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 c.setMediaItems(items)
             }
-            
-            // ĐỒNG BỘ GIAO DIỆN MINI PLAYER NGAY KHI MỞ APP
             updateMiniPlayerUI()
-            
         }, MoreExecutors.directExecutor())
     }
 
-    // HÀM MỚI: Cập nhật giao diện Mini Player dựa trên trạng thái thực tế của Controller
     private fun updateMiniPlayerUI() {
         val c = controller ?: return
         val currentMediaItem = c.currentMediaItem
