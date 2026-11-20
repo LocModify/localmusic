@@ -7,7 +7,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
+class SongAdapter(
+    private var songs: List<Track>,
+    private val onSongClick: (Int) -> Unit // Thêm sự kiện click
+) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvTitle)
@@ -25,14 +28,26 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
         val song = songs[position]
         
         holder.tvTitle.text = song.title
-        holder.tvArtist.text = song.artist
         holder.tvDuration.text = formatDuration(song.durationMs)
 
-        // Hiển thị ảnh bìa trực tiếp từ Bitmap (không cần dùng Coil)
+        // Ẩn tên ca sĩ nếu không có dữ liệu
+        if (song.artist.isBlank()) {
+            holder.tvArtist.visibility = View.GONE
+        } else {
+            holder.tvArtist.visibility = View.VISIBLE
+            holder.tvArtist.text = song.artist
+        }
+
+        // Hiển thị ảnh bìa
         if (song.cover != null) {
             holder.ivCover.setImageBitmap(song.cover)
         } else {
             holder.ivCover.setImageResource(R.drawable.bg_cover_placeholder)
+        }
+
+        // Bắt sự kiện click vào bài hát
+        holder.itemView.setOnClickListener {
+            onSongClick(position)
         }
     }
 
@@ -43,7 +58,6 @@ class SongAdapter(private var songs: List<Track>) : RecyclerView.Adapter<SongAda
         notifyDataSetChanged()
     }
 
-    // Hàm đổi mili giây thành định dạng mm:ss
     private fun formatDuration(durationMs: Long): String {
         val totalSeconds = durationMs / 1000
         val minutes = totalSeconds / 60
