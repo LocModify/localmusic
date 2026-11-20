@@ -45,10 +45,12 @@ class SongAdapter(
             holder.ivCover.setImageResource(R.drawable.bg_cover_default)
         }
 
+        // Bắt sự kiện click bài hát
         holder.itemView.setOnClickListener {
             onSongClick(position)
         }
 
+        // Bắt sự kiện click nút 3 chấm
         holder.btnMore.setOnClickListener { view ->
             onMoreClick(position, view)
         }
