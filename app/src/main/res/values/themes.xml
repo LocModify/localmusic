@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.LocalMusic" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:statusBarColor" tools:targetApi="l">#121212</item>
+        <item name="android:windowSplashScreenBackground">#121212</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo</item>
     </style>
 </resources>
