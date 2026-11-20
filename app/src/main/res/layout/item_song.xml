@@ -30,7 +30,6 @@
             android:src="@drawable/bg_cover_default" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Đã thêm fontFamily vào đây -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
