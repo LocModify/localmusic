@@ -205,7 +205,6 @@
         android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNav">
 
-        <!-- KHUNG ẢNH MINI PLAYER (Dùng CardView để vuông vức) -->
         <androidx.cardview.widget.CardView
             android:layout_width="50dp"
             android:layout_height="50dp"
@@ -213,12 +212,13 @@
             app:cardElevation="0dp"
             app:cardBackgroundColor="@color/bg_light">
 
+            <!-- ĐÃ ĐỔI THÀNH ẢNH MỚI -->
             <ImageView
                 android:id="@+id/ivMiniCover"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/bg_cover_placeholder" />
+                android:src="@drawable/bg_cover_default" />
         </androidx.cardview.widget.CardView>
 
         <LinearLayout
