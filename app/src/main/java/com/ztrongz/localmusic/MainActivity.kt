@@ -7,8 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.text.Editable
-import android.text.TextWatcher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -27,10 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
-    
-    // Danh sách gốc và danh sách hiển thị (để tìm kiếm)
     private val tracks = mutableListOf<Track>()
-    private val filteredTracks = mutableListOf<Track>() 
     private lateinit var songAdapter: SongAdapter
 
     private val pickFiles = registerForActivityResult(
@@ -54,8 +49,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Khởi tạo Adapter với danh sách rỗng ban đầu
-        songAdapter = SongAdapter(filteredTracks)
+        // Khởi tạo Adapter (Đã sửa để khớp 1 tham số)
+        songAdapter = SongAdapter(tracks)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
 
@@ -79,27 +74,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnNext.setOnClickListener { controller?.seekToNextMediaItem() }
         binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
 
-        // Xử lý tìm kiếm bài hát (Tính năng của Claude)
-        binding.etSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filter(s.toString())
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
         connectController()
-    }
-
-    // Hàm lọc bài hát khi gõ vào ô tìm kiếm
-    private fun filter(query: String) {
-        filteredTracks.clear()
-        if (query.isEmpty()) {
-            filteredTracks.addAll(tracks)
-        } else {
-            filteredTracks.addAll(tracks.filter { it.title.contains(query, ignoreCase = true) })
-        }
-        songAdapter.updateData(filteredTracks)
     }
 
     private fun connectController() {
@@ -137,11 +112,9 @@ class MainActivity : AppCompatActivity() {
                 .build()
         }
         c.setMediaItems(items)
-
-        // Reset lại danh sách hiển thị khi thêm nhạc mới
-        filteredTracks.clear()
-        filteredTracks.addAll(tracks)
-        songAdapter.updateData(filteredTracks)
+        
+        // Cập nhật lại danh sách (Đã sửa để khớp 1 tham số)
+        songAdapter.updateData(tracks)
     }
 
     private fun queryName(uri: Uri): String? {
