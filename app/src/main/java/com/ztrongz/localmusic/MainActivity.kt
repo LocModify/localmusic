@@ -5,13 +5,21 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.view.View
+import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -62,9 +70,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        songAdapter = SongAdapter(tracks) { position ->
-            playSongAt(position)
-        }
+        songAdapter = SongAdapter(
+            tracks,
+            onSongClick = { position -> playSongAt(position) },
+            onMoreClick = { position, view -> showSongOptions(position, view) }
+        )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
 
@@ -89,6 +99,79 @@ class MainActivity : AppCompatActivity() {
         binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
 
         connectController()
+    }
+
+    private fun showSongOptions(position: Int, view: View) {
+        val popup = PopupMenu(this, view)
+        popup.menuInflater.inflate(R.menu.song_options_menu, popup.menu)
+
+        val track = tracks[position]
+
+        val favItem = popup.menu.findItem(R.id.action_favorite)
+        if (track.isFavorite) {
+            favItem.setIcon(R.drawable.ic_heart_filled)
+            favItem.title = "Bỏ yêu thích"
+        } else {
+            favItem.setIcon(R.drawable.ic_heart_outline)
+            favItem.title = "Yêu thích"
+        }
+
+        val deleteItem = popup.menu.findItem(R.id.action_delete)
+        val spannable = SpannableString(deleteItem.title)
+        spannable.setSpan(ForegroundColorSpan(Color.RED), 0, spannable.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        deleteItem.title = spannable
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_favorite -> {
+                    toggleFavorite(position)
+                    true
+                }
+                R.id.action_rename -> {
+                    showRenameDialog(position)
+                    true
+                }
+                R.id.action_delete -> {
+                    deleteSong(position)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun toggleFavorite(position: Int) {
+        val track = tracks[position]
+        tracks[position] = track.copy(isFavorite = !track.isFavorite)
+        songAdapter.notifyItemChanged(position)
+    }
+
+    private fun showRenameDialog(position: Int) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Đổi tên bài hát")
+
+        val input = EditText(this)
+        input.setText(tracks[position].title)
+        builder.setView(input)
+
+        builder.setPositiveButton("Lưu") { _, _ ->
+            val newTitle = input.text.toString().trim()
+            if (newTitle.isNotEmpty()) {
+                tracks[position] = tracks[position].copy(title = newTitle)
+                songAdapter.notifyItemChanged(position)
+                updatePlayerPlaylist()
+            }
+        }
+        builder.setNegativeButton("Hủy") { dialog, _ -> dialog.cancel() }
+        builder.show()
+    }
+
+    private fun deleteSong(position: Int) {
+        tracks.removeAt(position)
+        songAdapter.notifyItemRemoved(position)
+        songAdapter.notifyItemRangeChanged(position, tracks.size)
+        updatePlayerPlaylist()
     }
 
     private fun playSongAt(position: Int) {
@@ -120,9 +203,9 @@ class MainActivity : AppCompatActivity() {
             
             val artistText = mediaItem?.mediaMetadata?.artist?.toString() ?: ""
             if (artistText.isBlank()) {
-                binding.tvMiniArtist.visibility = android.view.View.GONE
+                binding.tvMiniArtist.visibility = View.GONE
             } else {
-                binding.tvMiniArtist.visibility = android.view.View.VISIBLE
+                binding.tvMiniArtist.visibility = View.VISIBLE
                 binding.tvMiniArtist.text = artistText
             }
 
@@ -138,18 +221,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addTracksToPlaylist(newTracks: List<Track>) {
+    private fun updatePlayerPlaylist() {
         val c = controller ?: return
-        
-        // Lấy ảnh mặc định (đĩa CD) chuyển sang dạng mảng Byte để nhét vào Metadata
-        val defaultArtworkBytes = getDefaultArtworkBytes()
+        val wasPlaying = c.isPlaying
+        val currentPos = c.currentMediaItemIndex
+        val currentTime = c.currentPosition
 
-        val newItems = newTracks.map { t ->
+        val defaultArtworkBytes = getDefaultArtworkBytes()
+        val items = tracks.map { t ->
             val metadataBuilder = MediaMetadata.Builder()
                 .setTitle(t.title)
                 .setArtist(t.artist)
 
-            // NẾU BÀI HÁT CÓ ẢNH THÌ ĐƯA ẢNH VÀO, KHÔNG CÓ THÌ ĐƯA ẢNH MẶC ĐỊNH VÀO
             if (t.cover != null) {
                 val stream = ByteArrayOutputStream()
                 t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
@@ -158,10 +241,31 @@ class MainActivity : AppCompatActivity() {
                 metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
             }
 
-            MediaItem.Builder()
-                .setUri(t.uri)
-                .setMediaMetadata(metadataBuilder.build())
-                .build()
+            MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
+        }
+
+        c.setMediaItems(items, if (currentPos < items.size) currentPos else 0, currentTime)
+        if (wasPlaying) c.play()
+    }
+
+    private fun addTracksToPlaylist(newTracks: List<Track>) {
+        val c = controller ?: return
+        val defaultArtworkBytes = getDefaultArtworkBytes()
+
+        val newItems = newTracks.map { t ->
+            val metadataBuilder = MediaMetadata.Builder()
+                .setTitle(t.title)
+                .setArtist(t.artist)
+
+            if (t.cover != null) {
+                val stream = ByteArrayOutputStream()
+                t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+                metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            } else {
+                metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            }
+
+            MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
         }
 
         if (c.mediaItemCount == 0) {
@@ -173,7 +277,6 @@ class MainActivity : AppCompatActivity() {
         songAdapter.updateData(tracks)
     }
 
-    // Hàm chuyển ảnh Drawable (bg_cover_default) thành mảng Byte
     private fun getDefaultArtworkBytes(): ByteArray {
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
         val stream = ByteArrayOutputStream()
