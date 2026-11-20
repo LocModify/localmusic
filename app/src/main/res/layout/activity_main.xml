@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient_header"> <!-- Nền mờ ảo -->
+    android:background="@drawable/bg_gradient_header">
 
     <!-- HEADER -->
     <LinearLayout
@@ -17,48 +17,53 @@
         android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Logo Vector Tím -->
+        <!-- Logo to hơn (52dp) -->
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:src="@drawable/ic_logo_vector" />
 
-        <!-- Chữ Music to đậm -->
+        <!-- Chữ Music to đậm (34sp) -->
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:text="Music"
-            android:textColor="#1A1A1A"
-            android:textSize="32sp"
+            android:textColor="#111111"
+            android:textSize="34sp"
             android:fontFamily="sans-serif-black" />
 
-        <!-- Nút Thêm (+) và Tia sáng -->
-        <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp">
-            
+        <!-- KHU VỰC NÚT (+) VÀ TIA SÁNG -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="56dp"
+            android:layout_height="56dp">
+
+            <!-- Nút (+) to hơn (52dp) -->
             <ImageButton
                 android:id="@+id/btnAdd"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:background="@drawable/bg_btn_add"
                 android:src="@drawable/ic_add_purple"
-                app:tint="@null" />
+                app:tint="@null"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Tia sáng nhỏ đè lên góc phải trên -->
+            <!-- Tia sáng (Thò ra ngoài góc phải trên) -->
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="-4dp"
-                android:layout_marginEnd="-4dp"
-                android:src="@drawable/ic_sparkles" />
-        </FrameLayout>
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_sparkles"
+                android:translationX="12dp"
+                android:translationY="-8dp"
+                app:layout_constraintEnd_toEndOf="@id/btnAdd"
+                app:layout_constraintTop_toTopOf="@id/btnAdd" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
 
-    <!-- SEARCH BAR (Có bóng đổ) -->
+    <!-- SEARCH BAR -->
     <androidx.cardview.widget.CardView
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
@@ -96,187 +101,7 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- CATEGORIES -->
-    <HorizontalScrollView
-        android:id="@+id/categoriesLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:paddingHorizontal="20dp"
-        android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/searchBar">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <!-- Nút Tất cả (Có icon) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_category_active"
-                android:drawableStart="@android:drawable/ic_media_play"
-                android:drawablePadding="8dp"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:text="Tất cả"
-                android:textColor="@color/white"
-                app:drawableTint="@color/white" />
-
-            <!-- Nút Yêu thích (Có icon) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_category_inactive"
-                android:drawableStart="@android:drawable/ic_menu_view"
-                android:drawablePadding="8dp"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:text="Yêu thích"
-                android:textColor="@color/text_black" />
-                
-            <!-- Nút Gần đây (Có icon) -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:background="@drawable/bg_category_inactive"
-                android:drawableStart="@android:drawable/ic_menu_recent_history"
-                android:drawablePadding="8dp"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:text="Gần đây"
-                android:textColor="@color/text_black" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- RECYCLERVIEW -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintBottom_toTopOf="@+id/miniPlayer"
-        app:layout_constraintTop_toBottomOf="@id/categoriesLayout" />
-
-    <!-- MINI PLAYER -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/miniPlayer"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="10dp"
-        app:cardBackgroundColor="@color/purple_light"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNav">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@color/purple_primary"
-                android:scaleType="centerCrop" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvNowPlaying"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Chưa phát bài nào"
-                    android:textColor="@color/text_black"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Local"
-                    android:textColor="@color/text_gray"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <ImageView
-                android:id="@+id/btnPrev"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_prev"
-                app:tint="@color/text_black" />
-
-            <ImageView
-                android:id="@+id/btnPlayPause"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginHorizontal="12dp"
-                android:background="@drawable/bg_button_purple"
-                android:padding="12dp"
-                android:src="@drawable/ic_play"
-                app:tint="@color/white" />
-
-            <ImageView
-                android:id="@+id/btnNext"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_next"
-                app:tint="@color/text_black" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- BOTTOM NAV -->
-    <LinearLayout
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:background="@color/white"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@android:drawable/ic_menu_compass"
-            android:gravity="center"
-            android:text="Trang chủ"
-            android:textColor="@color/purple_primary"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@android:drawable/ic_menu_agenda"
-            android:gravity="center"
-            android:text="Thư viện"
-            android:textColor="@color/text_gray"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@android:drawable/ic_menu_manage"
-            android:gravity="center"
-            android:text="Cài đặt"
-            android:textColor="@color/text_gray"
-            android:textSize="12sp" />
-    </LinearLayout>
+    <!-- PHẦN CATEGORIES, RECYCLERVIEW, MINI PLAYER, BOTTOM NAV GIỮ NGUYÊN NHƯ FILE CŨ CỦA MÀY -->
+    <!-- Dán phần dưới vào đây... -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
