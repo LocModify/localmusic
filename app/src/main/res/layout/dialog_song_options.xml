@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="260dp" 
+    android:layout_width="220dp" 
     android:layout_height="wrap_content"
     app:cardCornerRadius="20dp"
     app:cardElevation="12dp"
@@ -20,7 +20,7 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="14dp">
+            android:padding="12dp">
 
             <ImageView
                 android:id="@+id/ivMenuHeart"
@@ -32,7 +32,7 @@
                 android:id="@+id/tvMenuFavorite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Yêu thích"
                 android:textColor="#1F1B2E"
@@ -46,7 +46,7 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="14dp">
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="22dp"
@@ -56,7 +56,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Đổi tên"
                 android:textColor="#1F1B2E"
@@ -70,7 +70,7 @@
             android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="14dp">
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="22dp"
@@ -80,7 +80,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
+                android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="Xóa bài hát"
                 android:textColor="#FF0000"
