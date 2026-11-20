@@ -1,13 +1,13 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Lớp bóng đổ (nằm dưới) -->
-    <item android:top="4dp" android:left="2dp" android:right="2dp" android:bottom="0dp">
+    <!-- Bóng đổ đều 4 phía -->
+    <item android:left="2dp" android:top="3dp" android:right="2dp" android:bottom="1dp">
         <shape android:shape="oval">
             <solid android:color="#338B5CF6" />
         </shape>
     </item>
     
-    <!-- Lớp nền chính (nằm trên) -->
-    <item android:bottom="4dp">
+    <!-- Nền chính Gradient -->
+    <item android:bottom="3dp" android:top="1dp" android:left="1dp" android:right="1dp">
         <shape android:shape="oval">
             <gradient
                 android:startColor="#FFFFFF"
