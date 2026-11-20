@@ -10,16 +10,18 @@
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="20dp"
         android:paddingTop="24dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="14dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:src="@drawable/ic_logo_vector" />
 
         <TextView
@@ -27,14 +29,16 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
+            android:fontFamily="sans-serif-black"
             android:text="Music"
             android:textColor="#111111"
-            android:textSize="34sp"
-            android:fontFamily="sans-serif-black" />
+            android:textSize="34sp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="56dp"
-            android:layout_height="56dp">
+            android:layout_height="56dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
             <ImageButton
                 android:id="@+id/btnAdd"
@@ -50,7 +54,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:src="@drawable/ic_sparkles"
-                android:translationX="12dp"
+                android:translationX="10dp"
                 android:translationY="-8dp"
                 app:layout_constraintEnd_toEndOf="@id/btnAdd"
                 app:layout_constraintTop_toTopOf="@id/btnAdd" />
@@ -62,9 +66,9 @@
     <LinearLayout
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="4dp"
+        android:layout_height="46dp"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginTop="2dp"
         android:background="@drawable/bg_search"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -89,7 +93,7 @@
             android:maxLines="1"
             android:textColor="@color/text_black"
             android:textColorHint="#8E8AA0"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <!-- CATEGORIES -->
@@ -97,15 +101,16 @@
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginTop="12dp"
         android:background="@drawable/bg_category_bar"
-        android:padding="6dp"
+        android:fillViewport="true"
+        android:padding="4dp"
         android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/searchBar">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
@@ -115,61 +120,61 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_category_active"
                 android:drawableStart="@drawable/ic_chip_music"
-                android:drawablePadding="6dp"
+                android:drawablePadding="3dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="9dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="8dp"
                 android:text="Tất cả"
-                android:textSize="14sp"
                 android:textColor="@color/white"
+                android:textSize="12sp"
                 app:drawableTint="@color/white" />
 
             <TextView
                 android:id="@+id/chipFav"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:background="@drawable/bg_category_inactive"
                 android:drawableStart="@drawable/ic_chip_heart"
-                android:drawablePadding="6dp"
+                android:drawablePadding="3dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="9dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="8dp"
                 android:text="Yêu thích"
-                android:textSize="14sp"
                 android:textColor="@color/text_black"
+                android:textSize="12sp"
                 app:drawableTint="@color/text_black" />
 
             <TextView
                 android:id="@+id/chipFolder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:background="@drawable/bg_category_inactive"
                 android:drawableStart="@drawable/ic_chip_folder"
-                android:drawablePadding="6dp"
+                android:drawablePadding="3dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="9dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="8dp"
                 android:text="Thư mục"
-                android:textSize="14sp"
                 android:textColor="@color/text_black"
+                android:textSize="12sp"
                 app:drawableTint="@color/text_black" />
 
             <TextView
                 android:id="@+id/chipRecent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:background="@drawable/bg_category_inactive"
                 android:drawableStart="@drawable/ic_chip_clock"
-                android:drawablePadding="6dp"
+                android:drawablePadding="3dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="9dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="8dp"
                 android:text="Gần đây"
-                android:textSize="14sp"
                 android:textColor="@color/text_black"
+                android:textSize="12sp"
                 app:drawableTint="@color/text_black" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -179,7 +184,7 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:clipToPadding="false"
         android:paddingBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/miniPlayer"
@@ -189,19 +194,19 @@
     <LinearLayout
         android:id="@+id/miniPlayer"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_height="68dp"
+        android:layout_marginHorizontal="10dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_mini_player"
         android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="10dp"
+        android:padding="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNav">
 
         <androidx.cardview.widget.CardView
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp">
 
@@ -225,11 +230,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:text="Chưa phát bài nào"
                 android:textColor="@color/text_black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tvMiniArtist"
@@ -246,16 +251,17 @@
             android:id="@+id/btnPrev"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_prev"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_prev"
             app:tint="#4C1D95" />
 
         <ImageView
             android:id="@+id/btnPlayPause"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="8dp"
             android:background="@drawable/bg_button_purple"
+            android:elevation="4dp"
             android:padding="12dp"
             android:src="@drawable/ic_play"
             app:tint="@color/white" />
@@ -264,8 +270,8 @@
             android:id="@+id/btnNext"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_next"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_next"
             app:tint="#4C1D95" />
     </LinearLayout>
 
@@ -273,48 +279,22 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="68dp"
+        android:layout_height="72dp"
         android:background="@color/white"
         android:elevation="12dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawableTop="@drawable/ic_nav_home"
-            android:drawablePadding="2dp"
-            android:gravity="center"
-            android:text="Trang chủ"
-            android:textColor="@color/purple_primary"
-            android:textSize="12sp"
-            app:drawableTint="@color/purple_primary" />
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@drawable/ic_nav_library"
-            android:drawablePadding="2dp"
-            android:gravity="center"
-            android:text="Thư viện"
-            android:textColor="#6B6880"
-            android:textSize="12sp"
-            app:drawableTint="#6B6880" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@drawable/ic_nav_settings"
-            android:drawablePadding="2dp"
-            android:gravity="center"
-            android:text="Cài đặt"
-            android:textColor="#6B6880"
-            android:textSize="12sp"
-            app:drawableTint="#6B6880" />
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/ic_nav_home"
+                android:drawablePadding="2dp"
