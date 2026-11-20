@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ztrongz.localmusic.databinding.ActivityMainBinding
+import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -128,7 +129,6 @@ class MainActivity : AppCompatActivity() {
             val currentIndex = controller?.currentMediaItemIndex ?: -1
             if (currentIndex in tracks.indices) {
                 val currentTrack = tracks[currentIndex]
-                // ĐÃ ĐỔI THÀNH ẢNH MỚI
                 if (currentTrack.cover != null) {
                     binding.ivMiniCover.setImageBitmap(currentTrack.cover)
                 } else {
@@ -141,15 +141,26 @@ class MainActivity : AppCompatActivity() {
     private fun addTracksToPlaylist(newTracks: List<Track>) {
         val c = controller ?: return
         
+        // Lấy ảnh mặc định (đĩa CD) chuyển sang dạng mảng Byte để nhét vào Metadata
+        val defaultArtworkBytes = getDefaultArtworkBytes()
+
         val newItems = newTracks.map { t ->
+            val metadataBuilder = MediaMetadata.Builder()
+                .setTitle(t.title)
+                .setArtist(t.artist)
+
+            // NẾU BÀI HÁT CÓ ẢNH THÌ ĐƯA ẢNH VÀO, KHÔNG CÓ THÌ ĐƯA ẢNH MẶC ĐỊNH VÀO
+            if (t.cover != null) {
+                val stream = ByteArrayOutputStream()
+                t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+                metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            } else {
+                metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            }
+
             MediaItem.Builder()
                 .setUri(t.uri)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(t.title)
-                        .setArtist(t.artist)
-                        .build()
-                )
+                .setMediaMetadata(metadataBuilder.build())
                 .build()
         }
 
@@ -160,6 +171,14 @@ class MainActivity : AppCompatActivity() {
         }
         
         songAdapter.updateData(tracks)
+    }
+
+    // Hàm chuyển ảnh Drawable (bg_cover_default) thành mảng Byte
+    private fun getDefaultArtworkBytes(): ByteArray {
+        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        return stream.toByteArray()
     }
 
     private fun extractTrackInfo(uri: Uri): Track? {
