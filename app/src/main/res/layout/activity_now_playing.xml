@@ -219,7 +219,7 @@
             android:text="00:00"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.04"
-            android:textColor="#6B4FA0"
+            android:textColor="#4B3A94"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
@@ -232,7 +232,7 @@
             android:text="00:00"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.04"
-            android:textColor="#6B4FA0"
+            android:textColor="#4B3A94"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -241,10 +241,10 @@
             android:id="@+id/seekBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:maxHeight="6dp"
-            android:minHeight="6dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:maxHeight="5dp"
+            android:minHeight="5dp"
             android:progressDrawable="@drawable/seekbar_progress"
             android:splitTrack="false"
             android:thumb="@drawable/seekbar_thumb"
@@ -267,12 +267,12 @@
 
             <ImageView
                 android:id="@+id/btnShuffle"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="11dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_shuffle"
-                app:tint="#B45CFF" />
+                app:tint="#7C3AED" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
@@ -281,34 +281,36 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_prev"
-                app:tint="#4B3A94" />
+                app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-            <!-- Nút Play/Pause kèm hào quang phát sáng -->
+            <!-- Nút Play/Pause kèm 1 vầng sáng tím mềm -->
             <FrameLayout
-                android:layout_width="112dp"
-                android:layout_height="112dp"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
                 android:clipChildren="false">
 
                 <View
                     android:id="@+id/vPlayGlow"
-                    android:layout_width="112dp"
-                    android:layout_height="112dp"
-                    android:background="@drawable/bg_play_glow" />
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_play_glow"
+                    android:translationY="4dp" />
 
                 <FrameLayout
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_button">
 
                     <ImageView
                         android:id="@+id/btnPlayPause"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_np_play" />
                 </FrameLayout>
@@ -321,20 +323,20 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_next"
-                app:tint="#4B3A94" />
+                app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnRepeat"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="11dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_repeat"
-                app:tint="#B45CFF" />
+                app:tint="#7C3AED" />
         </LinearLayout>
 
         <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
