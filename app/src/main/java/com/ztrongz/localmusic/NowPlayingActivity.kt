@@ -38,7 +38,6 @@ class NowPlayingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
 
-        // Ánh xạ View từ XML
         btnMinimize = findViewById(R.id.btnMinimize)
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnNext = findViewById(R.id.btnNext)
@@ -50,13 +49,11 @@ class NowPlayingActivity : AppCompatActivity() {
         txtTotalTime = findViewById(R.id.txtTotalTime)
         seekBar = findViewById(R.id.seekBar)
 
-        // Xử lý nút thu nhỏ (Mũi tên xuống góc trái)
         btnMinimize.setOnClickListener {
             finish()
             overridePendingTransition(R.anim.slide_down, R.anim.slide_up)
         }
 
-        // Kết nối với PlaybackService
         connectController()
     }
 
@@ -67,11 +64,8 @@ class NowPlayingActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             
-            // Cập nhật giao diện ngay khi kết nối thành công
             updateUI()
             startSeekBarUpdater()
-            
-            // Gắn sự kiện cho các nút điều khiển
             setupControlButtons()
         }, MoreExecutors.directExecutor())
     }
@@ -79,27 +73,20 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun setupControlButtons() {
         val c = controller ?: return
 
-        // Bấm Play/Pause
         btnPlayPause.setOnClickListener {
             if (c.isPlaying) c.pause() else c.play()
         }
 
-        // Chuyển bài
         btnNext.setOnClickListener { c.seekToNextMediaItem() }
         btnPrevious.setOnClickListener { c.seekToPreviousMediaItem() }
 
-        // Kéo thanh SeekBar để tua nhạc
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
                     txtCurrentTime.text = formatTime(progress.toLong())
                 }
             }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                isUserSeeking = true
-            }
-
+            override fun onStartTrackingTouch(seekBar: SeekBar?) { isUserSeeking = true }
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 isUserSeeking = false
                 controller?.seekTo(seekBar?.progress?.toLong() ?: 0L)
@@ -111,12 +98,10 @@ class NowPlayingActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseIcon(isPlaying)
         }
-
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             updateUI()
             startSeekBarUpdater()
         }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playbackState == Player.STATE_READY) {
                 updateUI()
@@ -130,11 +115,9 @@ class NowPlayingActivity : AppCompatActivity() {
         val mediaItem = c.currentMediaItem ?: return
         val metadata = mediaItem.mediaMetadata
 
-        // Cập nhật tên bài hát và nghệ sĩ
         txtSongTitle.text = metadata.title ?: "Unknown Title"
         txtArtist.text = metadata.artist ?: "Unknown Artist"
 
-        // Cập nhật ảnh bìa (từ artworkData)
         val artworkData = metadata.artworkData
         if (artworkData != null) {
             val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
@@ -143,7 +126,6 @@ class NowPlayingActivity : AppCompatActivity() {
             imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
         }
 
-        // Cập nhật tổng thời gian bài hát
         val duration = c.duration
         if (duration > 0) {
             txtTotalTime.text = formatTime(duration)
@@ -155,15 +137,14 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
         if (isPlaying) {
-            // Đang phát -> hiển thị icon Pause
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+            // Đã đổi sang icon custom
+            btnPlayPause.setImageResource(R.drawable.ic_pause)
         } else {
-            // Đang dừng -> hiển thị icon Play
-            btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+            // Đã đổi sang icon custom
+            btnPlayPause.setImageResource(R.drawable.ic_play)
         }
     }
 
-    // Tự động cập nhật thanh SeekBar mỗi 1 giây
     private val seekBarUpdater = object : Runnable {
         override fun run() {
             val c = controller
@@ -172,7 +153,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 seekBar.progress = currentPos.toInt()
                 txtCurrentTime.text = formatTime(currentPos)
             }
-            handler.postDelayed(this, 1000) // Lặp lại sau 1 giây
+            handler.postDelayed(this, 1000)
         }
     }
 
@@ -181,7 +162,6 @@ class NowPlayingActivity : AppCompatActivity() {
         handler.post(seekBarUpdater)
     }
 
-    // Hàm chuyển đổi mili-giây thành định dạng mm:ss
     private fun formatTime(millis: Long): String {
         val seconds = (millis / 1000) % 60
         val minutes = (millis / (1000 * 60)) % 60
