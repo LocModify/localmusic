@@ -1,8 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:angle="270"
-        android:endColor="#F1E6FF"
-        android:startColor="#FFFFFF"
-        android:type="linear" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Nền chuyển màu trắng -> tím neon rất nhạt -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="270"
+                android:endColor="#F6E8FF"
+                android:startColor="#FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím neon mờ góc trên trái -->
+    <item
+        android:width="380dp" android:height="300dp"
+        android:gravity="top|start"
+        android:top="-140dp" android:left="-170dp">
+        <shape android:shape="oval">
+            <solid android:color="#2AB45CFF" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím neon mờ góc trên phải -->
+    <item
+        android:width="300dp" android:height="240dp"
+        android:gravity="top|end"
+        android:top="-120dp" android:right="-130dp">
+        <shape android:shape="oval">
+            <solid android:color="#1FC77DFF" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím neon góc dưới phải -->
+    <item
+        android:width="420dp" android:height="300dp"
+        android:gravity="bottom|end"
+        android:bottom="-170dp" android:right="-150dp">
+        <shape android:shape="oval">
+            <solid android:color="#2EB45CFF" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím neon góc dưới trái -->
+    <item
+        android:width="360dp" android:height="260dp"
+        android:gravity="bottom|start"
+        android:bottom="-150dp" android:left="-160dp">
+        <shape android:shape="oval">
+            <solid android:color="#24C77DFF" />
+        </shape>
+    </item>
+</layer-list>
