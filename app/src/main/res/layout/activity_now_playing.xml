@@ -202,7 +202,7 @@
             android:background="@drawable/bg_icon_circle_light"
             android:padding="10dp"
             android:src="@drawable/ic_heart_outline"
-            app:tint="#8B3DFF"
+            app:tint="#B45CFF"
             app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
@@ -237,8 +237,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:progressTint="#8B3DFF"
-            android:thumbTint="#8B3DFF"
+            android:progressTint="#B45CFF"
+            android:thumbTint="#B45CFF"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toStartOf="@+id/txtTotalTime"
             app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
@@ -275,7 +275,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="76dp"
                 android:layout_height="76dp"
-                app:cardBackgroundColor="#8B3DFF"
+                app:cardBackgroundColor="#B45CFF"
                 app:cardCornerRadius="38dp"
                 app:cardElevation="0dp"> 
                 <ImageView
