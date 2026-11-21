@@ -3,6 +3,7 @@ package com.ztrongz.localmusic
 import android.Manifest
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -45,7 +46,7 @@ class MainActivity : AppCompatActivity() {
     private var controller: MediaController? = null
     private val tracks = mutableListOf<Track>()
     private lateinit var songAdapter: SongAdapter
-    
+
     private var isShowingFavorites = false
     private var currentQuery = ""
 
@@ -53,9 +54,9 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNullOrEmpty()) return@registerForActivityResult
-        
+
         val newlyAddedTracks = mutableListOf<Track>()
-        
+
         uris.forEach { uri ->
             val track = extractTrackInfo(uri)
             if (track != null && tracks.none { it.uri == uri }) {
@@ -64,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         persistPermission(uris)
-        
+
         if (newlyAddedTracks.isNotEmpty()) {
             addTracksToPlaylist(newlyAddedTracks)
             saveTracksToStorage()
@@ -97,6 +98,14 @@ class MainActivity : AppCompatActivity() {
 
         setupCategoryChips()
         setupSearchBar()
+
+        // BẮT SỰ KIỆN CLICK VÀO MINI PLAYER ĐỂ MỞ MÀN HÌNH NOW PLAYING
+        // LƯU Ý: Đảm bảo trong activity_main.xml, layout bao ngoài Mini Player có ID là miniPlayerLayout
+        binding.miniPlayerLayout.setOnClickListener {
+            val intent = Intent(this, NowPlayingActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_up, R.anim.slide_down)
+        }
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -157,21 +166,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ĐÃ SỬA LỖI TYPE MISMATCH Ở ĐÂY (Ép kiểu tường minh thành List<Track>)
     private fun filterAndShowSongs() {
         var displayList: List<Track> = tracks
-        
+
         if (isShowingFavorites) {
             displayList = displayList.filter { it.isFavorite }
         }
-        
+
         if (currentQuery.isNotEmpty()) {
             displayList = displayList.filter { 
                 it.title.contains(currentQuery, ignoreCase = true) || 
                 it.artist.contains(currentQuery, ignoreCase = true)
             }
         }
-        
+
         songAdapter.updateData(displayList)
     }
 
@@ -191,7 +199,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadTracksFromStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonString = prefs.getString("saved_tracks", null) ?: return
-        
+
         try {
             val jsonArray = JSONArray(jsonString)
             tracks.clear()
@@ -200,7 +208,7 @@ class MainActivity : AppCompatActivity() {
                 val uri = Uri.parse(obj.getString("uri"))
                 val isFav = obj.optBoolean("isFavorite", false)
                 val savedTitle = obj.optString("title", "")
-                
+
                 val track = extractTrackInfo(uri)
                 if (track != null) {
                     val finalTitle = removeAudioExtension(if (savedTitle.isNotEmpty()) savedTitle else track.title)
@@ -221,7 +229,7 @@ class MainActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         )
-        
+
         popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         popupWindow.elevation = 15f
 
@@ -234,7 +242,7 @@ class MainActivity : AppCompatActivity() {
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
-        
+
         fun updateFavoriteUI(isFav: Boolean) {
             if (isFav) {
                 ivHeart.setImageResource(R.drawable.ic_heart_filled)
@@ -280,7 +288,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
-            
+
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val edtTitle = dialogView.findViewById<EditText>(R.id.edtNewTitle)
@@ -329,7 +337,7 @@ class MainActivity : AppCompatActivity() {
         controllerFuture.addListener({
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
-            
+
             if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
                 val items = tracks.map { t ->
@@ -347,10 +355,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateMiniPlayerUI() {
         val c = controller ?: return
         val currentMediaItem = c.currentMediaItem
-        
+
         binding.tvNowPlaying.text = currentMediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
         val artistText = currentMediaItem?.mediaMetadata?.artist?.toString() ?: ""
-        
+
         if (artistText.isBlank()) {
             binding.tvMiniArtist.visibility = View.GONE
         } else {
@@ -442,7 +450,7 @@ class MainActivity : AppCompatActivity() {
             val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val duration = durationStr?.toLongOrNull() ?: 0L
-            
+
             val embeddedPicture = retriever.embeddedPicture
             var coverBitmap: Bitmap? = null
             if (embeddedPicture != null) {
@@ -457,7 +465,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Bỏ đuôi file âm thanh (.mp3, .m4a...) khỏi tên bài; chỉ cắt đuôi nhạc đã biết để không làm hỏng tên như "Mr. Brightside"
     private fun removeAudioExtension(name: String): String {
         val ext = name.substringAfterLast('.', "").lowercase()
         val known = setOf("mp3", "m4a", "wav", "flac", "ogg", "aac", "wma", "opus", "amr", "mp4", "3gp", "mka")
@@ -475,7 +482,7 @@ class MainActivity : AppCompatActivity() {
     private fun persistPermission(uris: List<Uri>) {
         uris.forEach { uri ->
             try {
-                contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } catch (_: SecurityException) {}
         }
     }
