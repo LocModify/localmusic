@@ -2,6 +2,7 @@ package com.ztrongz.localmusic
 
 import android.content.ComponentName
 import android.content.Context
+import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -9,6 +10,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -40,6 +43,10 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var btnFavoriteTop: ImageView
     private lateinit var btnFavoriteBottom: Button
 
+    // Hiệu ứng ảnh bìa
+    private val effectAnimators = mutableListOf<ObjectAnimator>()
+    private var coverSpinAnimator: ObjectAnimator? = null
+
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -65,6 +72,8 @@ class NowPlayingActivity : AppCompatActivity() {
         btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
         btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
 
+        setupCoverEffects()
+
         btnMinimize.setOnClickListener {
             closeActivity()
         }
@@ -84,6 +93,64 @@ class NowPlayingActivity : AppCompatActivity() {
 
         connectController()
     }
+
+    // Tạo các hiệu ứng: ảnh bìa xoay, quỹ đạo quay, vầng sáng nhấp nháy, nốt nhạc bay
+    private fun setupCoverEffects() {
+        val density = resources.displayMetrics.density
+
+        // Ảnh bìa xoay chậm (20 giây/vòng), tạm dừng khi nhạc dừng
+        coverSpinAnimator = ObjectAnimator.ofFloat(findViewById<View>(R.id.cardCoverInner), View.ROTATION, 0f, 360f).apply {
+            duration = 20000
+            interpolator = LinearInterpolator()
+            repeatCount = ObjectAnimator.INFINITE
+            start()
+            pause()
+        }
+        effectAnimators.add(coverSpinAnimator!!)
+
+        // 2 quỹ đạo quay ngược chiều nhau
+        val orbit1 = findViewById<View>(R.id.vOrbit1)
+        val orbit2 = findViewById<View>(R.id.vOrbit2)
+        effectAnimators.add(spin(orbit1, orbit1.rotation, orbit1.rotation + 360f, 40000))
+        effectAnimators.add(spin(orbit2, orbit2.rotation, orbit2.rotation - 360f, 55000))
+
+        // Vầng sáng phập phồng
+        val glow = findViewById<View>(R.id.vGlow)
+        for (prop in listOf(View.SCALE_X, View.SCALE_Y)) {
+            val a = ObjectAnimator.ofFloat(glow, prop, 1f, 1.06f).apply {
+                duration = 1800
+                interpolator = AccelerateDecelerateInterpolator()
+                repeatCount = ObjectAnimator.INFINITE
+                repeatMode = ObjectAnimator.REVERSE
+                start()
+            }
+            effectAnimators.add(a)
+        }
+
+        // Nốt nhạc bay lên xuống (mỗi nốt một nhịp khác nhau)
+        val notes = listOf(R.id.note1, R.id.note2, R.id.note3, R.id.note4)
+        val durations = listOf(2200L, 2600L, 3000L, 2400L)
+        notes.forEachIndexed { i, id ->
+            val v = findViewById<View>(id)
+            val baseY = v.translationY
+            val a = ObjectAnimator.ofFloat(v, View.TRANSLATION_Y, baseY, baseY - 14 * density).apply {
+                duration = durations[i]
+                interpolator = AccelerateDecelerateInterpolator()
+                repeatCount = ObjectAnimator.INFINITE
+                repeatMode = ObjectAnimator.REVERSE
+                start()
+            }
+            effectAnimators.add(a)
+        }
+    }
+
+    private fun spin(v: View, from: Float, to: Float, ms: Long): ObjectAnimator =
+        ObjectAnimator.ofFloat(v, View.ROTATION, from, to).apply {
+            duration = ms
+            interpolator = LinearInterpolator()
+            repeatCount = ObjectAnimator.INFINITE
+            start()
+        }
 
     private fun closeActivity() {
         finish()
@@ -154,8 +221,11 @@ class NowPlayingActivity : AppCompatActivity() {
 
         val artworkData = metadata.artworkData
         if (artworkData != null) {
-            val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            imgAlbumArt.setImageBitmap(bitmap)
+            val decoded = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+            // Cắt viền đen (nếu có) để ảnh vừa khít khung tròn
+            val bitmap = if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
+            if (bitmap != null) imgAlbumArt.setImageBitmap(bitmap)
+            else imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
         } else {
             imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
         }
@@ -171,6 +241,12 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
+        // Ảnh bìa chỉ xoay khi đang phát
+        val spin = coverSpinAnimator
+        if (spin != null) {
+            if (isPlaying && spin.isPaused) spin.resume()
+            if (!isPlaying && spin.isRunning && !spin.isPaused) spin.pause()
+        }
         if (isPlaying) {
             btnPlayPause.setImageResource(R.drawable.ic_pause)
         } else {
@@ -262,6 +338,9 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // Dừng các hiệu ứng lặp vô hạn để không rò rỉ bộ nhớ
+        effectAnimators.forEach { it.cancel() }
+        effectAnimators.clear()
         handler.removeCallbacks(seekBarUpdater)
         controller?.removeListener(playerListener)
         if (::controllerFuture.isInitialized) {
