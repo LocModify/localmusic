@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Tím trong suốt: 2 ký tự đầu là độ trong (AA ≈ 67%) -->
+    <!-- Tím neon trong suốt: 2 ký tự đầu là độ trong (B8 ≈ 72%) -->
     <gradient
         android:angle="0"
-        android:startColor="#B8EDE4FF"
-        android:endColor="#B8DCCBFB" />
+        android:startColor="#B8F3E6FF"
+        android:endColor="#B8E3C6FF" />
     <corners android:radius="22dp" />
-    <stroke android:width="1.2dp" android:color="#A6B79CF3" />
+    <stroke android:width="1.2dp" android:color="#B4B45CFF" />
 </shape>
