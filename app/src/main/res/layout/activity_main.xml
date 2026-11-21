@@ -61,7 +61,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
-    <!-- SEARCH BAR (Thu nhỏ chiều cao, màu nền trắng sáng) -->
+    <!-- SEARCH BAR -->
     <LinearLayout
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
@@ -69,7 +69,6 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
         android:background="@drawable/bg_search"
-        android:elevation="2dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -191,7 +190,7 @@
         app:layout_constraintBottom_toTopOf="@+id/miniPlayer"
         app:layout_constraintTop_toBottomOf="@id/categoriesLayout" />
 
-    <!-- MINI PLAYER (Thu nhỏ chiều cao xuống 60dp, ảnh 44dp) -->
+    <!-- MINI PLAYER -->
     <LinearLayout
         android:id="@+id/miniPlayer"
         android:layout_width="match_parent"
