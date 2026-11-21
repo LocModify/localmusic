@@ -24,7 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.widget.doAfterTextChanged // Thêm thư viện cho TextWatcher
+import androidx.core.widget.doAfterTextChanged
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var songAdapter: SongAdapter
     
     private var isShowingFavorites = false
-    private var currentQuery = "" // Biến lưu từ khóa tìm kiếm
+    private var currentQuery = ""
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = songAdapter
 
         setupCategoryChips()
-        setupSearchBar() // Kích hoạt thanh tìm kiếm
+        setupSearchBar()
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -122,7 +122,6 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
-    // HÀM XỬ LÝ TÌM KIẾM
     private fun setupSearchBar() {
         binding.etSearch.doAfterTextChanged { text ->
             currentQuery = text.toString().trim()
@@ -158,16 +157,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // HÀM LỌC KẾT HỢP CẢ TAB YÊU THÍCH VÀ THANH TÌM KIẾM
+    // ĐÃ SỬA LỖI TYPE MISMATCH Ở ĐÂY (Ép kiểu tường minh thành List<Track>)
     private fun filterAndShowSongs() {
-        var displayList = tracks
+        var displayList: List<Track> = tracks
         
-        // Lọc theo tab Yêu thích
         if (isShowingFavorites) {
             displayList = displayList.filter { it.isFavorite }
         }
         
-        // Lọc theo thanh tìm kiếm
         if (currentQuery.isNotEmpty()) {
             displayList = displayList.filter { 
                 it.title.contains(currentQuery, ignoreCase = true) || 
