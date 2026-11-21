@@ -3,37 +3,37 @@
     <!-- Nền gần trắng -->
     <item>
         <shape>
-            <solid android:color="#FDFCFF" />
+            <solid android:color="#FEFCFF" />
         </shape>
     </item>
 
-    <!-- Mảng tím rất nhạt góc trên trái -->
+    <!-- Mảng tím neon mờ góc trên trái -->
     <item
         android:width="380dp" android:height="280dp"
         android:gravity="top|start"
         android:top="-130dp" android:left="-160dp">
         <shape android:shape="oval">
-            <solid android:color="#22D8C8FB" />
+            <solid android:color="#26B45CFF" />
         </shape>
     </item>
 
-    <!-- Mảng tím rất nhạt góc trên phải -->
+    <!-- Mảng tím neon mờ góc trên phải -->
     <item
         android:width="300dp" android:height="230dp"
         android:gravity="top|end"
         android:top="-120dp" android:right="-130dp">
         <shape android:shape="oval">
-            <solid android:color="#1CE3D8FD" />
+            <solid android:color="#1FC77DFF" />
         </shape>
     </item>
 
-    <!-- Mảng tím rất nhạt góc dưới phải -->
+    <!-- Mảng tím neon mờ góc dưới phải -->
     <item
         android:width="340dp" android:height="280dp"
         android:gravity="bottom|end"
         android:bottom="-140dp" android:right="-150dp">
         <shape android:shape="oval">
-            <solid android:color="#1FD4C3F9" />
+            <solid android:color="#22B45CFF" />
         </shape>
     </item>
 </layer-list>
