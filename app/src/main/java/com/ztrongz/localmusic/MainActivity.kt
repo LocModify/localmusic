@@ -99,12 +99,13 @@ class MainActivity : AppCompatActivity() {
         setupCategoryChips()
         setupSearchBar()
 
-        // Sự kiện click Mini Player: Sử dụng Animation mới
+        // Sự kiện click Mini Player
         binding.miniPlayerLayout.setOnClickListener {
             if (controller?.currentMediaItem != null) {
                 val intent = Intent(this, NowPlayingActivity::class.java)
                 startActivity(intent)
-                overridePendingTransition(R.anim.slide_up, R.anim.fade_in)
+                // Sử dụng 0 cho hiệu ứng của MainActivity để nó đứng im, nhường sân khấu cho NowPlaying trượt lên
+                overridePendingTransition(R.anim.slide_up, 0)
             }
         }
 
@@ -147,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 val obj = jsonArray.getJSONObject(i)
                 val uri = obj.getString("uri")
                 val isFav = obj.optBoolean("isFavorite", false)
-                
+
                 val index = tracks.indexOfFirst { it.uri.toString() == uri }
                 if (index != -1 && tracks[index].isFavorite != isFav) {
                     tracks[index] = tracks[index].copy(isFavorite = isFav)
