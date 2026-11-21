@@ -5,6 +5,7 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
     <!-- Lớp nền mờ (Gradient) -->
@@ -18,7 +19,9 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <!-- 1. THANH TOP BAR -->
         <ImageView
@@ -53,24 +56,58 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
 
-        <!-- 2. ẢNH BÌA LỚN -->
-        <androidx.cardview.widget.CardView
+        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG (vầng sáng, quỹ đạo, nốt nhạc bay) -->
+        <FrameLayout
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:layout_marginTop="20dp"
-            app:cardBackgroundColor="#40FFFFFF" 
-            app:cardCornerRadius="150dp"
-            app:cardElevation="10dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="280dp"
-                android:layout_height="280dp"
+            <!-- Vầng sáng tím -->
+            <View
+                android:id="@+id/vGlow"
+                android:layout_width="340dp"
+                android:layout_height="340dp"
                 android:layout_gravity="center"
-                app:cardCornerRadius="140dp"
+                android:background="@drawable/bg_cover_glow" />
+
+            <!-- 2 quỹ đạo elip -->
+            <View
+                android:id="@+id/vOrbit1"
+                android:layout_width="330dp"
+                android:layout_height="150dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_orbit"
+                android:rotation="25" />
+
+            <View
+                android:id="@+id/vOrbit2"
+                android:layout_width="330dp"
+                android:layout_height="170dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_orbit"
+                android:rotation="-35" />
+
+            <!-- Vành trắng -->
+            <View
+                android:layout_width="292dp"
+                android:layout_height="292dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_cover_ring" />
+
+            <!-- Ảnh bìa tròn (xoay khi đang phát) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardCoverInner"
+                android:layout_width="272dp"
+                android:layout_height="272dp"
+                android:layout_gravity="center"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="136dp"
                 app:cardElevation="0dp">
 
                 <ImageView
@@ -80,7 +117,52 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
-        </androidx.cardview.widget.CardView>
+
+            <!-- Nốt nhạc bay -->
+            <ImageView
+                android:id="@+id/note1"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="top|start"
+                android:alpha="0.9"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="-16dp"
+                android:translationY="4dp"
+                app:tint="#C9A5FF" />
+
+            <ImageView
+                android:id="@+id/note2"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|end"
+                android:alpha="0.9"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="14dp"
+                android:translationY="-2dp"
+                app:tint="#C9A5FF" />
+
+            <ImageView
+                android:id="@+id/note3"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="bottom|start"
+                android:alpha="0.9"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="-12dp"
+                android:translationY="2dp"
+                app:tint="#C9A5FF" />
+
+            <ImageView
+                android:id="@+id/note4"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="bottom|end"
+                android:alpha="0.9"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="12dp"
+                android:translationY="-6dp"
+                app:tint="#C9A5FF" />
+        </FrameLayout>
 
         <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
         <com.ztrongz.localmusic.MarqueeTextView
