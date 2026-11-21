@@ -1,24 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hào quang tím neon quanh nút Play: nhiều vòng mờ dần ra ngoài -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="oval">
-            <solid android:color="#14B45CFF" />
-        </shape>
-    </item>
-    <item android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp">
-        <shape android:shape="oval">
-            <solid android:color="#22B45CFF" />
-        </shape>
-    </item>
-    <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
-        <shape android:shape="oval">
-            <solid android:color="#38B45CFF" />
-        </shape>
-    </item>
-    <item android:left="13dp" android:top="13dp" android:right="13dp" android:bottom="13dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DC98BFF" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Hào quang: CHỈ 1 vầng sáng tím mềm (đậm ở giữa, mờ dần ra ngoài), không còn nhiều vòng -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%"
+        android:startColor="#CC7B2FF7"
+        android:centerColor="#667B2FF7"
+        android:endColor="#007B2FF7" />
+</shape>
