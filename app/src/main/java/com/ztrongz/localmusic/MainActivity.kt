@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity() {
                 
                 val track = extractTrackInfo(uri)
                 if (track != null) {
-                    val finalTitle = if (savedTitle.isNotEmpty()) savedTitle else track.title
+                    val finalTitle = removeAudioExtension(if (savedTitle.isNotEmpty()) savedTitle else track.title)
                     tracks.add(track.copy(title = finalTitle, isFavorite = isFav))
                 }
             }
@@ -288,11 +288,7 @@ class MainActivity : AppCompatActivity() {
         val btnSave = dialogView.findViewById<TextView>(R.id.btnSave)
 
         val currentTitle = tracks[position].title
-        val titleWithoutExtension = if (currentTitle.contains(".")) {
-            currentTitle.substringBeforeLast(".")
-        } else {
-            currentTitle
-        }
+        val titleWithoutExtension = removeAudioExtension(currentTitle)
 
         edtTitle.setText(titleWithoutExtension)
         edtTitle.setSelection(edtTitle.text.length)
@@ -442,7 +438,7 @@ class MainActivity : AppCompatActivity() {
         val retriever = MediaMetadataRetriever()
         return try {
             retriever.setDataSource(this, uri)
-            val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: queryName(uri) ?: "Unknown Title"
+            val title = removeAudioExtension(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: queryName(uri) ?: "Unknown Title")
             val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
             val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             val duration = durationStr?.toLongOrNull() ?: 0L
@@ -459,6 +455,13 @@ class MainActivity : AppCompatActivity() {
         } finally {
             retriever.release()
         }
+    }
+
+    // Bỏ đuôi file âm thanh (.mp3, .m4a...) khỏi tên bài; chỉ cắt đuôi nhạc đã biết để không làm hỏng tên như "Mr. Brightside"
+    private fun removeAudioExtension(name: String): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        val known = setOf("mp3", "m4a", "wav", "flac", "ogg", "aac", "wma", "opus", "amr", "mp4", "3gp", "mka")
+        return if (ext in known) name.substringBeforeLast('.') else name
     }
 
     private fun queryName(uri: Uri): String? {
