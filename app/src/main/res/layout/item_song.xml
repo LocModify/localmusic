@@ -5,17 +5,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="20dp"
+    android:paddingStart="16dp"
     android:paddingEnd="12dp"
     android:background="?attr/selectableItemBackground">
 
+    <!-- Thu nhỏ ảnh bìa từ 56dp xuống 52dp cho thanh thoát -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardCover"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        app:cardCornerRadius="14dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:cardBackgroundColor="@color/bg_light"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,17 +31,18 @@
             android:src="@drawable/bg_cover_default" />
     </androidx.cardview.widget.CardView>
 
+    <!-- Giảm size chữ từ 16sp xuống 15sp -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="14dp"
         android:layout_marginEnd="8dp"
         android:ellipsize="end"
         android:fontFamily="sans-serif-medium"
         android:maxLines="1"
         android:textColor="#1F1B2E"
-        android:textSize="16sp"
+        android:textSize="15sp"
         app:layout_constraintStart_toEndOf="@id/cardCover"
         app:layout_constraintEnd_toStartOf="@id/tvDuration"
         app:layout_constraintTop_toTopOf="@id/cardCover"
@@ -48,16 +50,17 @@
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Tên bài hát" />
 
+    <!-- Giảm size chữ từ 13sp xuống 12sp -->
     <TextView
         android:id="@+id/tvArtist"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:ellipsize="end"
         android:fontFamily="sans-serif"
         android:maxLines="1"
         android:textColor="#8E8AA0"
-        android:textSize="13sp"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
         app:layout_constraintEnd_toEndOf="@id/tvTitle"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
@@ -71,7 +74,7 @@
         android:layout_marginEnd="8dp"
         android:fontFamily="sans-serif"
         android:textColor="#6B6880"
-        android:textSize="13sp"
+        android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@id/btnMore"
         app:layout_constraintTop_toTopOf="@id/cardCover"
         app:layout_constraintBottom_toBottomOf="@id/cardCover"
@@ -79,8 +82,8 @@
 
     <ImageView
         android:id="@+id/btnMore"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="4dp"
         android:src="@drawable/ic_more_vert"
