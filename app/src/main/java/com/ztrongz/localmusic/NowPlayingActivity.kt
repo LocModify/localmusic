@@ -3,6 +3,7 @@ package com.ztrongz.localmusic
 import android.content.ComponentName
 import android.content.Context
 import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -48,6 +49,7 @@ class NowPlayingActivity : AppCompatActivity() {
     // Hiệu ứng ảnh bìa
     private val effectAnimators = mutableListOf<ObjectAnimator>()
     private var coverSpinAnimator: ObjectAnimator? = null
+    private var playGlowAnimator: ObjectAnimator? = null
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
@@ -117,6 +119,22 @@ class NowPlayingActivity : AppCompatActivity() {
             pause()
         }
         effectAnimators.add(coverSpinAnimator!!)
+
+        // Hào quang quanh nút Play: phập phồng sáng-mờ khi đang phát
+        playGlowAnimator = ObjectAnimator.ofPropertyValuesHolder(
+            findViewById<View>(R.id.vPlayGlow),
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.12f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.12f),
+            PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.55f)
+        ).apply {
+            duration = 1400
+            interpolator = AccelerateDecelerateInterpolator()
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+            start()
+            pause()
+        }
+        effectAnimators.add(playGlowAnimator!!)
 
         // 2 quỹ đạo quay ngược chiều nhau
         val orbit1 = findViewById<View>(R.id.vOrbit1)
@@ -258,10 +276,18 @@ class NowPlayingActivity : AppCompatActivity() {
             if (isPlaying && spin.isPaused) spin.resume()
             if (!isPlaying && spin.isRunning && !spin.isPaused) spin.pause()
         }
+        // Hào quang quanh nút Play chỉ phập phồng khi đang phát
+        val glow = playGlowAnimator
+        if (glow != null) {
+            if (isPlaying && glow.isPaused) glow.resume()
+            if (!isPlaying && glow.isRunning && !glow.isPaused) {
+                glow.pause()
+            }
+        }
         if (isPlaying) {
-            btnPlayPause.setImageResource(R.drawable.ic_pause)
+            btnPlayPause.setImageResource(R.drawable.ic_np_pause)
         } else {
-            btnPlayPause.setImageResource(R.drawable.ic_play)
+            btnPlayPause.setImageResource(R.drawable.ic_np_play)
         }
     }
 
@@ -288,12 +314,12 @@ class NowPlayingActivity : AppCompatActivity() {
 
         if (isFav) {
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_filled)
-            btnFavoriteTop.setColorFilter(Color.parseColor("#B45CFF"))
+            btnFavoriteTop.setColorFilter(Color.parseColor("#FF3B5C"))
             
             btnFavoriteBottom.setText("Đã thích")
             btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_filled, 0, 0, 0)
-            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#B45CFF"))
-            btnFavoriteBottom.setTextColor(Color.parseColor("#B45CFF"))
+            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF3B5C"))
+            btnFavoriteBottom.setTextColor(Color.parseColor("#FF3B5C"))
         } else {
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_outline)
             btnFavoriteTop.setColorFilter(Color.parseColor("#B45CFF"))
