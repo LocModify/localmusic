@@ -78,7 +78,7 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_search"
-            app:tint="#6B6880" />
+            app:tint="#B45CFF" />
 
         <EditText
             android:id="@+id/etSearch"
@@ -255,7 +255,7 @@
             android:layout_height="26dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_prev"
-            app:tint="#5B3FA8" />
+            app:tint="#9A3CE8" />
 
         <ImageView
             android:id="@+id/btnPlayPause"
@@ -274,7 +274,7 @@
             android:layout_height="26dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_next"
-            app:tint="#5B3FA8" />
+            app:tint="#9A3CE8" />
     </LinearLayout>
 
     <!-- BOTTOM NAV -->
