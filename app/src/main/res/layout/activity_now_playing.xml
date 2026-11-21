@@ -46,7 +46,7 @@
         android:id="@+id/cardAlbumArt"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="30dp"
         app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="150dp"
         app:cardElevation="15dp"
@@ -59,16 +59,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery" />
+            android:src="@drawable/bg_cover_default" /> <!-- Dùng ảnh mặc định của bạn -->
     </androidx.cardview.widget.CardView>
 
     <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
     <TextView
         android:id="@+id/txtSongTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Dreaming"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:gravity="center"
+        android:text="Chưa phát bài nào"
         android:textColor="#000000"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -78,9 +81,12 @@
 
     <TextView
         android:id="@+id/txtArtist"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:gravity="center"
         android:text="Unknown Artist"
         android:textColor="#555555"
         android:textSize="16sp"
@@ -107,8 +113,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="30dp"
-        android:text="00:45"
+        android:layout_marginTop="20dp"
+        android:text="00:00"
         android:textColor="#333333"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
@@ -118,7 +124,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        android:text="03:24"
+        android:text="00:00"
         android:textColor="#333333"
         app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -141,7 +147,7 @@
         android:id="@+id/controlsLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="24dp"
@@ -176,7 +182,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:src="@android:drawable/ic_media_pause"
+                android:src="@android:drawable/ic_media_play"
                 app:tint="#FFFFFF" />
         </androidx.cardview.widget.CardView>
 
@@ -203,49 +209,66 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="20dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
             android:id="@+id/btnFavoriteBottom"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="45dp"
             android:layout_weight="1"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_pill_button"
             android:drawableStart="@android:drawable/ic_menu_myplaces"
-            android:drawablePadding="8dp"
+            android:drawablePadding="4dp"
             android:text="Yêu thích"
             android:textAllCaps="false"
-            android:textColor="#333333"
-            app:iconTint="#5E35B1" />
+            android:textSize="12sp"
+            android:textColor="#333333" />
 
         <Button
             android:id="@+id/btnAddTo"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="45dp"
             android:layout_weight="1"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:background="@drawable/bg_pill_button"
             android:drawableStart="@android:drawable/ic_menu_add"
-            android:drawablePadding="8dp"
+            android:drawablePadding="4dp"
             android:text="Thêm vào"
             android:textAllCaps="false"
+            android:textSize="12sp"
+            android:textColor="#333333" />
+
+        <!-- Nút Tải xuống mới thêm -->
+        <Button
+            android:id="@+id/btnDownload"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_pill_button"
+            android:drawableStart="@android:drawable/stat_sys_download"
+            android:drawablePadding="4dp"
+            android:text="Tải xuống"
+            android:textAllCaps="false"
+            android:textSize="12sp"
             android:textColor="#333333" />
 
         <Button
             android:id="@+id/btnInfo"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="45dp"
             android:layout_weight="1"
             android:background="@drawable/bg_pill_button"
             android:drawableStart="@android:drawable/ic_menu_info_details"
-            android:drawablePadding="8dp"
+            android:drawablePadding="4dp"
             android:text="Thông tin"
             android:textAllCaps="false"
+            android:textSize="12sp"
             android:textColor="#333333" />
     </LinearLayout>
 
