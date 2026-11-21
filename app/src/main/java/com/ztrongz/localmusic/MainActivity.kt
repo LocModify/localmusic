@@ -156,7 +156,6 @@ class MainActivity : AppCompatActivity() {
         songAdapter.updateData(displayList)
     }
 
-    // LƯU THÊM TÊN BÀI HÁT VÀO BỘ NHỚ
     private fun saveTracksToStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonArray = JSONArray()
@@ -164,13 +163,12 @@ class MainActivity : AppCompatActivity() {
             val obj = JSONObject()
             obj.put("uri", it.uri.toString())
             obj.put("isFavorite", it.isFavorite)
-            obj.put("title", it.title) // Lưu tên mới
+            obj.put("title", it.title)
             jsonArray.put(obj) 
         }
         prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
     }
 
-    // ĐỌC TÊN TỪ BỘ NHỚ (NẾU CÓ)
     private fun loadTracksFromStorage() {
         val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
         val jsonString = prefs.getString("saved_tracks", null) ?: return
@@ -186,7 +184,6 @@ class MainActivity : AppCompatActivity() {
                 
                 val track = extractTrackInfo(uri)
                 if (track != null) {
-                    // Nếu có tên đã lưu thì dùng, không thì dùng tên gốc
                     val finalTitle = if (savedTitle.isNotEmpty()) savedTitle else track.title
                     tracks.add(track.copy(title = finalTitle, isFavorite = isFav))
                 }
@@ -218,17 +215,25 @@ class MainActivity : AppCompatActivity() {
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
-        if (track.isFavorite) {
-            ivHeart.setImageResource(R.drawable.ic_heart_filled)
-            tvFavorite.text = "Bỏ yêu thích"
-        } else {
-            ivHeart.setImageResource(R.drawable.ic_heart_outline)
-            tvFavorite.text = "Yêu thích"
+        
+        // Hàm phụ để cập nhật giao diện icon và chữ
+        fun updateFavoriteUI(isFav: Boolean) {
+            if (isFav) {
+                ivHeart.setImageResource(R.drawable.ic_heart_filled)
+                tvFavorite.text = "Bỏ yêu thích"
+            } else {
+                ivHeart.setImageResource(R.drawable.ic_heart_outline)
+                tvFavorite.text = "Yêu thích"
+            }
         }
+
+        // Khởi tạo trạng thái ban đầu
+        updateFavoriteUI(track.isFavorite)
 
         btnFavorite.setOnClickListener {
             toggleFavorite(position)
-            popupWindow.dismiss()
+            // Cập nhật lại UI ngay tại chỗ, KHÔNG gọi popupWindow.dismiss()
+            updateFavoriteUI(tracks[position].isFavorite)
         }
 
         btnRename.setOnClickListener {
@@ -251,10 +256,11 @@ class MainActivity : AppCompatActivity() {
         val track = tracks[position]
         tracks[position] = track.copy(isFavorite = !track.isFavorite)
         saveTracksToStorage()
-        filterAndShowSongs()
+        filterAndShowSongs() 
+        // Lưu ý: Hàm filterAndShowSongs sẽ làm mới danh sách bên dưới,
+        // nhưng menu Popup vẫn đang mở và hiển thị đúng trạng thái mới nhờ hàm updateFavoriteUI ở trên.
     }
 
-    // HÀM ĐỔI TÊN MỚI (BỎ ĐUÔI .MP3, GIAO DIỆN BO GÓC)
     private fun showRenameDialog(position: Int) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_rename, null)
         val dialog = AlertDialog.Builder(this)
@@ -267,7 +273,6 @@ class MainActivity : AppCompatActivity() {
         val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
         val btnSave = dialogView.findViewById<TextView>(R.id.btnSave)
 
-        // Cắt bỏ đuôi file (ví dụ: .mp3)
         val currentTitle = tracks[position].title
         val titleWithoutExtension = if (currentTitle.contains(".")) {
             currentTitle.substringBeforeLast(".")
@@ -276,7 +281,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         edtTitle.setText(titleWithoutExtension)
-        edtTitle.setSelection(edtTitle.text.length) // Đưa con trỏ chuột về cuối chữ
+        edtTitle.setSelection(edtTitle.text.length)
 
         btnCancel.setOnClickListener { dialog.dismiss() }
 
@@ -284,9 +289,9 @@ class MainActivity : AppCompatActivity() {
             val newTitle = edtTitle.text.toString().trim()
             if (newTitle.isNotEmpty()) {
                 tracks[position] = tracks[position].copy(title = newTitle)
-                saveTracksToStorage() // Lưu ngay lập tức vào bộ nhớ
+                saveTracksToStorage()
                 filterAndShowSongs()
-                updatePlayerPlaylist() // Cập nhật tên trên thanh thông báo / Mini Player
+                updatePlayerPlaylist()
                 dialog.dismiss()
             }
         }
