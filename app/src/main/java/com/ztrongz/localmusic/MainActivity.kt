@@ -21,6 +21,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -99,12 +100,15 @@ class MainActivity : AppCompatActivity() {
         setupCategoryChips()
         setupSearchBar()
 
-        // BẮT SỰ KIỆN CLICK VÀO MINI PLAYER ĐỂ MỞ MÀN HÌNH NOW PLAYING
-        // LƯU Ý: Đảm bảo trong activity_main.xml, layout bao ngoài Mini Player có ID là miniPlayerLayout
+        // KIỂM TRA: Chỉ mở Now Playing nếu đã có bài hát được chọn
         binding.miniPlayerLayout.setOnClickListener {
-            val intent = Intent(this, NowPlayingActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(R.anim.slide_up, R.anim.slide_down)
+            if (controller?.currentMediaItem != null) {
+                val intent = Intent(this, NowPlayingActivity::class.java)
+                startActivity(intent)
+                overridePendingTransition(R.anim.slide_up, R.anim.slide_down)
+            } else {
+                Toast.makeText(this, "Vui lòng chọn một bài hát để phát!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         if (Build.VERSION.SDK_INT >= 33 &&
