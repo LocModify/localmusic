@@ -13,7 +13,6 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -59,12 +58,12 @@ class NowPlayingActivity : AppCompatActivity() {
         btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
         btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
 
+        // Sự kiện đóng màn hình: Sử dụng Animation mới
         btnMinimize.setOnClickListener {
             finish()
-            overridePendingTransition(R.anim.slide_down, R.anim.slide_up)
+            overridePendingTransition(R.anim.fade_out, R.anim.slide_down)
         }
 
-        // Sự kiện cho 2 nút Yêu thích
         btnFavoriteTop.setOnClickListener { toggleFavorite() }
         btnFavoriteBottom.setOnClickListener { toggleFavorite() }
 
@@ -147,7 +146,7 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         updatePlayPauseIcon(c.isPlaying)
-        updateFavoriteUI() // Gọi cập nhật trạng thái trái tim
+        updateFavoriteUI()
     }
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
@@ -158,7 +157,6 @@ class NowPlayingActivity : AppCompatActivity() {
         }
     }
 
-    // === XỬ LÝ YÊU THÍCH ===
     private fun getCurrentTrackUri(): String? {
         return controller?.currentMediaItem?.localConfiguration?.uri?.toString()
     }
@@ -181,7 +179,6 @@ class NowPlayingActivity : AppCompatActivity() {
         } catch (e: Exception) { e.printStackTrace() }
 
         if (isFav) {
-            // Hiển thị trái tim ĐỎ
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_filled)
             btnFavoriteTop.setColorFilter(Color.parseColor("#FF0000"))
             
@@ -190,7 +187,6 @@ class NowPlayingActivity : AppCompatActivity() {
             btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF0000"))
             btnFavoriteBottom.setTextColor(Color.parseColor("#FF0000"))
         } else {
-            // Hiển thị trái tim TÍM (Outline)
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_outline)
             btnFavoriteTop.setColorFilter(Color.parseColor("#8B3DFF"))
             
@@ -220,7 +216,6 @@ class NowPlayingActivity : AppCompatActivity() {
             updateFavoriteUI()
         } catch (e: Exception) { e.printStackTrace() }
     }
-    // ========================
 
     private val seekBarUpdater = object : Runnable {
         override fun run() {
