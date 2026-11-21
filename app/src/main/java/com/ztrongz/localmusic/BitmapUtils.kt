@@ -6,8 +6,8 @@ import android.graphics.Color
 object BitmapUtils {
 
     // Cắt bỏ viền đen (letterbox) ở 4 cạnh của ảnh bìa, ví dụ thumbnail video 16:9 có 2 dải đen trên/dưới.
-    // threshold: độ sáng (0-255) dưới mức này coi là "đen". Tăng lên nếu viền đen chưa bị cắt hết.
-    fun trimBlackBars(src: Bitmap, threshold: Int = 30): Bitmap {
+    // threshold: độ sáng (0-255) dưới mức này coi là "đen". Giữ thấp (10-15) để không cắt nhầm nền tối của ảnh; tăng nếu viền đen chưa bị cắt hết.
+    fun trimBlackBars(src: Bitmap, threshold: Int = 12): Bitmap {
         val w = src.width
         val h = src.height
         if (w < 16 || h < 16) return src
