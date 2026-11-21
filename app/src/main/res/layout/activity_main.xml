@@ -226,24 +226,20 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
+            <com.ztrongz.localmusic.MarqueeTextView
                 android:id="@+id/tvNowPlaying"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
-                android:maxLines="1"
                 android:text="Chưa phát bài nào"
                 android:textColor="@color/text_black"
                 android:textSize="13sp" />
 
-            <TextView
+            <com.ztrongz.localmusic.MarqueeTextView
                 android:id="@+id/tvMiniArtist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
                 android:fontFamily="sans-serif"
-                android:maxLines="1"
                 android:text="Local"
                 android:textColor="#7C7894"
                 android:textSize="11sp" />
