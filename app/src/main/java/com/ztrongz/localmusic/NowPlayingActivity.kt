@@ -288,20 +288,20 @@ class NowPlayingActivity : AppCompatActivity() {
 
         if (isFav) {
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_filled)
-            btnFavoriteTop.setColorFilter(Color.parseColor("#FF0000"))
+            btnFavoriteTop.setColorFilter(Color.parseColor("#B45CFF"))
             
             btnFavoriteBottom.setText("Đã thích")
             btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_filled, 0, 0, 0)
-            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF0000"))
-            btnFavoriteBottom.setTextColor(Color.parseColor("#FF0000"))
+            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#B45CFF"))
+            btnFavoriteBottom.setTextColor(Color.parseColor("#B45CFF"))
         } else {
             btnFavoriteTop.setImageResource(R.drawable.ic_heart_outline)
-            btnFavoriteTop.setColorFilter(Color.parseColor("#8B3DFF"))
+            btnFavoriteTop.setColorFilter(Color.parseColor("#B45CFF"))
             
             btnFavoriteBottom.setText("Yêu thích")
             btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_outline, 0, 0, 0)
-            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#5E35B1"))
-            btnFavoriteBottom.setTextColor(Color.parseColor("#333333"))
+            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#B45CFF"))
+            btnFavoriteBottom.setTextColor(Color.parseColor("#4A2A7A"))
         }
     }
 
@@ -342,11 +342,7 @@ class NowPlayingActivity : AppCompatActivity() {
         handler.post(seekBarUpdater)
     }
 
-    private fun formatTime(millis: Long): String {
-        val seconds = (millis / 1000) % 60
-        val minutes = (millis / (1000 * 60)) % 60
-        return String.format("%02d:%02d", minutes, seconds)
-    }
+    private fun formatTime(millis: Long): String = TimeUtils.format(millis)
 
     override fun onDestroy() {
         // Dừng các hiệu ứng lặp vô hạn để không rò rỉ bộ nhớ
