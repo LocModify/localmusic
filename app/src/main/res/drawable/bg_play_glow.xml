@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hào quang: CHỈ 1 vầng sáng tím mềm (đậm ở giữa, mờ dần ra ngoài), không còn nhiều vòng -->
+<!-- Hào quang nhỏ: chỉ 1 vòng tím mỏng quanh nút Play -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <gradient
-        android:type="radial"
-        android:gradientRadius="50%"
-        android:startColor="#CC7B2FF7"
-        android:centerColor="#667B2FF7"
-        android:endColor="#007B2FF7" />
+    <solid android:color="#447C3AED" />
 </shape>
