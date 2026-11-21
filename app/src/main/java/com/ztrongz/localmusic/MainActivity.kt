@@ -21,7 +21,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -100,14 +99,12 @@ class MainActivity : AppCompatActivity() {
         setupCategoryChips()
         setupSearchBar()
 
-        // KIỂM TRA: Chỉ mở Now Playing nếu đã có bài hát được chọn
+        // Sự kiện click Mini Player: Chỉ mở khi có bài hát, không hiện Toast
         binding.miniPlayerLayout.setOnClickListener {
             if (controller?.currentMediaItem != null) {
                 val intent = Intent(this, NowPlayingActivity::class.java)
                 startActivity(intent)
                 overridePendingTransition(R.anim.slide_up, R.anim.slide_down)
-            } else {
-                Toast.makeText(this, "Vui lòng chọn một bài hát để phát!", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -133,6 +130,37 @@ class MainActivity : AppCompatActivity() {
 
         loadTracksFromStorage()
         connectController()
+    }
+
+    // Cập nhật lại danh sách khi từ NowPlayingActivity quay về
+    override fun onResume() {
+        super.onResume()
+        refreshFavoriteStatus()
+    }
+
+    private fun refreshFavoriteStatus() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+        try {
+            val jsonArray = JSONArray(jsonString)
+            var changed = false
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val uri = obj.getString("uri")
+                val isFav = obj.optBoolean("isFavorite", false)
+                
+                val index = tracks.indexOfFirst { it.uri.toString() == uri }
+                if (index != -1 && tracks[index].isFavorite != isFav) {
+                    tracks[index] = tracks[index].copy(isFavorite = isFav)
+                    changed = true
+                }
+            }
+            if (changed) {
+                filterAndShowSongs()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupSearchBar() {
