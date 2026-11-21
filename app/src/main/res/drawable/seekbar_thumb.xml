@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nút kéo nhỏ gọn: chấm tím đậm + viền mờ mỏng bên ngoài -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="oval">
-            <solid android:color="#337C3AED" />
-            <size android:width="22dp" android:height="22dp" />
-        </shape>
-    </item>
-    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
-        <shape android:shape="oval">
-            <solid android:color="#7C3AED" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Nút kéo: chấm tím đặc 20dp, không còn vành sáng -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#7C3AED" />
+    <size android:width="20dp" android:height="20dp" />
+</shape>
