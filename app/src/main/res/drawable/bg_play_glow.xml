@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Vầng sáng tím neon quanh nút Play -->
+<!-- Hào quang tím neon quanh nút Play: nhiều vòng mờ dần ra ngoài -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <solid android:color="#18B45CFF" />
+            <solid android:color="#14B45CFF" />
         </shape>
     </item>
-    <item android:left="5dp" android:top="5dp" android:right="5dp" android:bottom="5dp">
+    <item android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp">
         <shape android:shape="oval">
-            <solid android:color="#26B45CFF" />
+            <solid android:color="#22B45CFF" />
         </shape>
     </item>
-    <item android:left="9dp" android:top="9dp" android:right="9dp" android:bottom="9dp">
+    <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="10dp">
         <shape android:shape="oval">
-            <solid android:color="#40B45CFF" />
+            <solid android:color="#38B45CFF" />
+        </shape>
+    </item>
+    <item android:left="13dp" android:top="13dp" android:right="13dp" android:bottom="13dp">
+        <shape android:shape="oval">
+            <solid android:color="#4DC98BFF" />
         </shape>
     </item>
 </layer-list>
