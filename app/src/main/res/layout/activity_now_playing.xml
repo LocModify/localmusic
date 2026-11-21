@@ -267,10 +267,10 @@
 
             <ImageView
                 android:id="@+id/btnShuffle"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="10dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_shuffle"
                 app:tint="#7C3AED" />
 
@@ -278,63 +278,57 @@
 
             <ImageView
                 android:id="@+id/btnPrevious"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="11dp"
-                android:src="@drawable/ic_prev"
+                android:padding="8dp"
+                android:src="@drawable/ic_np_prev"
                 app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-            <!-- Nút Play/Pause kèm 1 vầng sáng tím mềm -->
+            <!-- Nút Play/Pause: cả vòng tím là nút bấm, kèm 1 hào quang nhỏ phía sau -->
             <FrameLayout
-                android:layout_width="96dp"
-                android:layout_height="96dp"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
                 android:clipChildren="false">
 
                 <View
                     android:id="@+id/vPlayGlow"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_play_glow"
-                    android:translationY="4dp" />
+                    android:background="@drawable/bg_play_glow" />
 
-                <FrameLayout
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                <ImageView
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_play_button">
-
-                    <ImageView
-                        android:id="@+id/btnPlayPause"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_np_play" />
-                </FrameLayout>
+                    android:background="@drawable/bg_play_button"
+                    android:padding="21dp"
+                    android:src="@drawable/ic_np_play" />
             </FrameLayout>
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnNext"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="11dp"
-                android:src="@drawable/ic_next"
+                android:padding="8dp"
+                android:src="@drawable/ic_np_next"
                 app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnRepeat"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="10dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_repeat"
                 app:tint="#7C3AED" />
         </LinearLayout>
