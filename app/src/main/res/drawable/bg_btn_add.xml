@@ -1,20 +1,20 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Bóng tím nhẹ phía dưới -->
+    <!-- Bóng tím neon nhẹ phía dưới -->
     <item android:left="2dp" android:top="4dp" android:right="2dp" android:bottom="0dp">
         <shape android:shape="oval">
-            <solid android:color="#308B5CF6" />
+            <solid android:color="#40B45CFF" />
         </shape>
     </item>
 
-    <!-- Nền chính gradient tím rất nhạt -->
+    <!-- Nền chính gradient tím neon rất nhạt -->
     <item android:bottom="3dp" android:top="1dp" android:left="1dp" android:right="1dp">
         <shape android:shape="oval">
             <gradient
-                android:startColor="#FBF7FF"
-                android:centerColor="#EFE3FE"
-                android:endColor="#E0CEFC"
+                android:startColor="#FBF3FF"
+                android:centerColor="#F0DEFF"
+                android:endColor="#E3C4FF"
                 android:angle="270" />
-            <stroke android:width="1dp" android:color="#E6D8FD" />
+            <stroke android:width="1dp" android:color="#E6CFFF" />
         </shape>
     </item>
 </layer-list>
