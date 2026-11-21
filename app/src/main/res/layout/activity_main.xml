@@ -15,13 +15,13 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="20dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="14dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:src="@drawable/ic_logo_vector" />
 
         <TextView
@@ -32,18 +32,18 @@
             android:fontFamily="sans-serif-black"
             android:text="Music"
             android:textColor="#111111"
-            android:textSize="34sp" />
+            android:textSize="30sp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:clipChildren="false"
             android:clipToPadding="false">
 
             <ImageButton
                 android:id="@+id/btnAdd"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@drawable/bg_btn_add"
                 android:src="@drawable/ic_add_purple"
                 app:tint="@null"
@@ -51,48 +51,49 @@
                 app:layout_constraintEnd_toEndOf="parent" />
 
             <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:src="@drawable/ic_sparkles"
-                android:translationX="10dp"
-                android:translationY="-8dp"
+                android:translationX="8dp"
+                android:translationY="-6dp"
                 app:layout_constraintEnd_toEndOf="@id/btnAdd"
                 app:layout_constraintTop_toTopOf="@id/btnAdd" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
-    <!-- SEARCH BAR -->
+    <!-- SEARCH BAR (Thu nhỏ chiều cao, màu nền trắng sáng) -->
     <LinearLayout
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginHorizontal="14dp"
-        android:layout_marginTop="2dp"
+        android:layout_height="42dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/bg_search"
+        android:elevation="2dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="18dp"
+        android:paddingHorizontal="16dp"
         app:layout_constraintTop_toBottomOf="@id/headerLayout">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:src="@drawable/ic_search"
-            app:tint="#4B4760" />
+            app:tint="#6B6880" />
 
         <EditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:background="@null"
             android:hint="Tìm kiếm bài hát..."
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
             android:textColor="@color/text_black"
-            android:textColorHint="#8E8AA0"
-            android:textSize="15sp" />
+            android:textColorHint="#A09CAB"
+            android:textSize="14sp" />
     </LinearLayout>
 
     <!-- CATEGORIES -->
@@ -100,7 +101,7 @@
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="14dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_category_bar"
         android:fillViewport="true"
@@ -122,11 +123,11 @@
                 android:drawableStart="@drawable/ic_chip_music"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="10dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
                 android:text="Tất cả"
                 android:textColor="@color/white"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 app:drawableTint="@color/white" />
 
             <TextView
@@ -138,11 +139,11 @@
                 android:drawableStart="@drawable/ic_chip_heart"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="10dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
                 android:text="Yêu thích"
                 android:textColor="@color/text_black"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 app:drawableTint="@color/text_black" />
 
             <TextView
@@ -154,11 +155,11 @@
                 android:drawableStart="@drawable/ic_chip_folder"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="10dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
                 android:text="Thư mục"
                 android:textColor="@color/text_black"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 app:drawableTint="@color/text_black" />
 
             <TextView
@@ -170,11 +171,11 @@
                 android:drawableStart="@drawable/ic_chip_clock"
                 android:drawablePadding="6dp"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="10dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
                 android:text="Gần đây"
                 android:textColor="@color/text_black"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 app:drawableTint="@color/text_black" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -190,24 +191,24 @@
         app:layout_constraintBottom_toTopOf="@+id/miniPlayer"
         app:layout_constraintTop_toBottomOf="@id/categoriesLayout" />
 
-    <!-- MINI PLAYER (Đã thu hẹp margin để sát mép hơn) -->
+    <!-- MINI PLAYER (Thu nhỏ chiều cao xuống 60dp, ảnh 44dp) -->
     <LinearLayout
         android:id="@+id/miniPlayer"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_marginHorizontal="8dp"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="12dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_mini_player"
-        android:elevation="8dp"
+        android:elevation="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="10dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNav">
 
         <androidx.cardview.widget.CardView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:cardCornerRadius="12dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            app:cardCornerRadius="10dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@color/bg_light">
 
@@ -222,7 +223,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -235,7 +236,7 @@
                 android:maxLines="1"
                 android:text="Chưa phát bài nào"
                 android:textColor="@color/text_black"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvMiniArtist"
@@ -246,32 +247,32 @@
                 android:maxLines="1"
                 android:text="Local"
                 android:textColor="#8E8AA0"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/btnPrev"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_prev"
             app:tint="#4C1D95" />
 
         <ImageView
             android:id="@+id/btnPlayPause"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginHorizontal="6dp"
             android:background="@drawable/bg_button_purple"
-            android:elevation="4dp"
-            android:padding="12dp"
+            android:elevation="2dp"
+            android:padding="10dp"
             android:src="@drawable/ic_play"
             app:tint="@color/white" />
 
         <ImageView
             android:id="@+id/btnNext"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_next"
             app:tint="#4C1D95" />
@@ -281,9 +282,9 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="68dp"
         android:background="@color/white"
-        android:elevation="12dp"
+        android:elevation="10dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent">
@@ -303,12 +304,12 @@
                 android:gravity="center"
                 android:text="Trang chủ"
                 android:textColor="@color/purple_primary"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
                 app:drawableTint="@color/purple_primary" />
 
             <View
-                android:layout_width="32dp"
+                android:layout_width="24dp"
                 android:layout_height="3dp"
                 android:layout_marginTop="4dp"
                 android:background="@color/purple_primary" />
@@ -329,11 +330,11 @@
                 android:gravity="center"
                 android:text="Thư viện"
                 android:textColor="#6B6880"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 app:drawableTint="#6B6880" />
 
             <View
-                android:layout_width="32dp"
+                android:layout_width="24dp"
                 android:layout_height="3dp"
                 android:layout_marginTop="4dp"
                 android:visibility="invisible" />
@@ -354,11 +355,11 @@
                 android:gravity="center"
                 android:text="Cài đặt"
                 android:textColor="#6B6880"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 app:drawableTint="#6B6880" />
 
             <View
-                android:layout_width="32dp"
+                android:layout_width="24dp"
                 android:layout_height="3dp"
                 android:layout_marginTop="4dp"
                 android:visibility="invisible" />
