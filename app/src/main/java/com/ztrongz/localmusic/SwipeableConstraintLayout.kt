@@ -22,55 +22,41 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
     private val minFlingVelocity = ViewConfiguration.get(context).scaledMinimumFlingVelocity
 
     var onSwipeDownListener: (() -> Unit)? = null
-    // Callback trả về % độ mờ (từ 1.0 giảm về 0.0)
     var onDragProgressListener: ((Float) -> Unit)? = null
 
-    init {
-        // Đảm bảo layout có thể nhận sự kiện chạm
-        isClickable = true
-        isFocusable = true
-    }
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (velocityTracker == null) {
+            velocityTracker = VelocityTracker.obtain()
+        }
+        velocityTracker?.addMovement(ev)
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 startY = ev.rawY
                 startX = ev.rawX
                 isDragging = false
-                velocityTracker?.recycle()
-                velocityTracker = VelocityTracker.obtain()
-                velocityTracker?.addMovement(ev)
             }
             MotionEvent.ACTION_MOVE -> {
-                velocityTracker?.addMovement(ev)
                 val deltaY = ev.rawY - startY
                 val deltaX = ev.rawX - startX
 
-                // Phát hiện thao tác kéo xuống (DeltaY > 0 và hướng dọc > hướng ngang)
+                // Phát hiện thao tác vuốt xuống (DeltaY > 0 và hướng dọc > hướng ngang)
                 if (deltaY > touchSlop && deltaY > abs(deltaX)) {
-                    isDragging = true
-                    // Trả về true để "cướp" sự kiện từ các View con (như ảnh bìa, nút bấm)
-                    return true
-                }
-            }
-        }
-        return super.onInterceptTouchEvent(ev)
-    }
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        velocityTracker?.addMovement(event)
-
-        when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> {
-                if (isDragging) {
-                    val deltaY = event.rawY - startY
-                    if (deltaY > 0) {
-                        translationY = deltaY // Kéo màn hình xuống theo tay
-                        
-                        // Tính toán độ mờ
-                        val progress = (1f - (deltaY / height)).coerceIn(0f, 1f)
-                        onDragProgressListener?.invoke(progress)
+                    if (!isDragging) {
+                        isDragging = true
+                        // Gửi sự kiện HỦY đến các View con để chúng không xử lý tiếp (như SeekBar)
+                        val cancelEvent = MotionEvent.obtain(ev)
+                        cancelEvent.action = MotionEvent.ACTION_CANCEL
+                        super.dispatchTouchEvent(cancelEvent)
+                        cancelEvent.recycle()
                     }
+                    
+                    translationY = deltaY
+                    
+                    val progress = (1f - (deltaY / height)).coerceIn(0f, 1f)
+                    onDragProgressListener?.invoke(progress)
+                    
+                    return true // Chặn các view con không cho chúng nhận sự kiện nữa
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -78,9 +64,9 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
                     isDragging = false
                     velocityTracker?.computeCurrentVelocity(1000)
                     val velocityY = velocityTracker?.yVelocity ?: 0f
-                    val deltaY = event.rawY - startY
+                    val deltaY = ev.rawY - startY
 
-                    // Nếu kéo quá 1/4 màn hình HOẶC vuốt với tốc độ đủ mạnh
+                    // Nếu kéo quá 1/4 màn hình hoặc vuốt mạnh
                     if (deltaY > height / 4f || velocityY > minFlingVelocity) {
                         animate()
                             .translationY(height.toFloat())
@@ -90,7 +76,7 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
                             .withEndAction { onSwipeDownListener?.invoke() }
                             .start()
                     } else {
-                        // Kéo chưa đủ xa -> Bật ngược trở lại vị trí cũ
+                        // Bật ngược lại
                         animate()
                             .translationY(0f)
                             .alpha(1f)
@@ -104,6 +90,6 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
                 }
             }
         }
-        return super.onTouchEvent(event)
+        return super.dispatchTouchEvent(ev)
     }
 }
