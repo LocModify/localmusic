@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Thanh tua: nền lavender bo tròn + phần đã chạy chuyển màu tím neon -->
+<!-- Thanh tua mảnh 5dp: nền lavender nhạt + phần đã chạy tím neon đậm -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape android:shape="rectangle">
-            <corners android:radius="4dp" />
-            <solid android:color="#E3D1FB" />
-            <size android:height="6dp" />
+            <corners android:radius="3dp" />
+            <solid android:color="#E9DFFB" />
+            <size android:height="5dp" />
         </shape>
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape android:shape="rectangle">
-                <corners android:radius="4dp" />
+                <corners android:radius="3dp" />
                 <gradient
                     android:angle="0"
-                    android:startColor="#C98BFF"
-                    android:endColor="#B45CFF" />
-                <size android:height="6dp" />
+                    android:startColor="#9D5CFF"
+                    android:endColor="#7C3AED" />
+                <size android:height="5dp" />
             </shape>
         </clip>
     </item>
