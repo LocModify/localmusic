@@ -205,7 +205,6 @@
             android:background="@drawable/bg_icon_circle_light"
             android:padding="10dp"
             android:src="@drawable/ic_heart_outline"
-            app:tint="#B45CFF"
             app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
@@ -218,8 +217,10 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="20dp"
             android:text="00:00"
-            android:textColor="#7A5BA8"
-            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:textColor="#6B4FA0"
+            android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
 
@@ -229,8 +230,10 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
             android:text="00:00"
-            android:textColor="#7A5BA8"
-            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:textColor="#6B4FA0"
+            android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -240,9 +243,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:progressTint="#B45CFF"
-            android:progressBackgroundTint="#E9D5FF"
-            android:thumbTint="#B45CFF"
+            android:maxHeight="6dp"
+            android:minHeight="6dp"
+            android:progressDrawable="@drawable/seekbar_progress"
+            android:splitTrack="false"
+            android:thumb="@drawable/seekbar_thumb"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toStartOf="@+id/txtTotalTime"
             app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
@@ -253,7 +258,8 @@
             android:id="@+id/controlsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
+            android:clipChildren="false"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="20dp"
@@ -261,9 +267,10 @@
 
             <ImageView
                 android:id="@+id/btnShuffle"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="4dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_ctrl_square"
+                android:padding="11dp"
                 android:src="@drawable/ic_shuffle"
                 app:tint="#B45CFF" />
 
@@ -271,32 +278,39 @@
 
             <ImageView
                 android:id="@+id/btnPrevious"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
                 android:src="@drawable/ic_prev"
-                app:tint="#9A3CE8" />
+                app:tint="#4B3A94" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-            <!-- Nút Play tím neon có vầng sáng -->
+            <!-- Nút Play/Pause kèm hào quang phát sáng -->
             <FrameLayout
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:background="@drawable/bg_play_glow">
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:clipChildren="false">
+
+                <View
+                    android:id="@+id/vPlayGlow"
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:background="@drawable/bg_play_glow" />
 
                 <FrameLayout
-                    android:layout_width="76dp"
-                    android:layout_height="76dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_button_purple"
-                    android:elevation="4dp">
+                    android:background="@drawable/bg_play_button">
 
                     <ImageView
                         android:id="@+id/btnPlayPause"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_play" />
+                        android:src="@drawable/ic_np_play" />
                 </FrameLayout>
             </FrameLayout>
 
@@ -304,18 +318,21 @@
 
             <ImageView
                 android:id="@+id/btnNext"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
                 android:src="@drawable/ic_next"
-                app:tint="#9A3CE8" />
+                app:tint="#4B3A94" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnRepeat"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="4dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_ctrl_square"
+                android:padding="11dp"
                 android:src="@drawable/ic_repeat"
                 app:tint="#B45CFF" />
         </LinearLayout>
