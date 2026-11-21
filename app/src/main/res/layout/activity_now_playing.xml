@@ -110,7 +110,7 @@
         android:layout_marginEnd="24dp"
         android:background="@drawable/bg_icon_circle_light"
         android:padding="10dp"
-        android:src="@drawable/ic_heart_filled"
+        android:src="@drawable/ic_heart_outline"
         app:tint="#8B3DFF"
         app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
         app:layout_constraintEnd_toEndOf="parent"
@@ -181,7 +181,6 @@
 
         <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-        <!-- ĐÃ XÓA cardElevation ĐỂ HẾT BỊ BÓNG MỜ KỲ LẠ -->
         <androidx.cardview.widget.CardView
             android:layout_width="76dp"
             android:layout_height="76dp"
