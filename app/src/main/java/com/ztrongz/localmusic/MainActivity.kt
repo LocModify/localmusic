@@ -99,12 +99,12 @@ class MainActivity : AppCompatActivity() {
         setupCategoryChips()
         setupSearchBar()
 
-        // Sự kiện click Mini Player: Chỉ mở khi có bài hát, không hiện Toast
+        // Sự kiện click Mini Player: Sử dụng Animation mới
         binding.miniPlayerLayout.setOnClickListener {
             if (controller?.currentMediaItem != null) {
                 val intent = Intent(this, NowPlayingActivity::class.java)
                 startActivity(intent)
-                overridePendingTransition(R.anim.slide_up, R.anim.slide_down)
+                overridePendingTransition(R.anim.slide_up, R.anim.fade_in)
             }
         }
 
@@ -132,7 +132,6 @@ class MainActivity : AppCompatActivity() {
         connectController()
     }
 
-    // Cập nhật lại danh sách khi từ NowPlayingActivity quay về
     override fun onResume() {
         super.onResume()
         refreshFavoriteStatus()
