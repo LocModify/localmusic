@@ -1,20 +1,26 @@
 package com.ztrongz.localmusic
 
 import android.content.ComponentName
+import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import org.json.JSONArray
 
 class NowPlayingActivity : AppCompatActivity() {
 
@@ -28,6 +34,8 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var txtCurrentTime: TextView
     private lateinit var txtTotalTime: TextView
     private lateinit var seekBar: SeekBar
+    private lateinit var btnFavoriteTop: ImageView
+    private lateinit var btnFavoriteBottom: Button
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
@@ -48,11 +56,17 @@ class NowPlayingActivity : AppCompatActivity() {
         txtCurrentTime = findViewById(R.id.txtCurrentTime)
         txtTotalTime = findViewById(R.id.txtTotalTime)
         seekBar = findViewById(R.id.seekBar)
+        btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
+        btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
 
         btnMinimize.setOnClickListener {
             finish()
             overridePendingTransition(R.anim.slide_down, R.anim.slide_up)
         }
+
+        // Sự kiện cho 2 nút Yêu thích
+        btnFavoriteTop.setOnClickListener { toggleFavorite() }
+        btnFavoriteBottom.setOnClickListener { toggleFavorite() }
 
         connectController()
     }
@@ -133,17 +147,80 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         updatePlayPauseIcon(c.isPlaying)
+        updateFavoriteUI() // Gọi cập nhật trạng thái trái tim
     }
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
         if (isPlaying) {
-            // Đã đổi sang icon custom
             btnPlayPause.setImageResource(R.drawable.ic_pause)
         } else {
-            // Đã đổi sang icon custom
             btnPlayPause.setImageResource(R.drawable.ic_play)
         }
     }
+
+    // === XỬ LÝ YÊU THÍCH ===
+    private fun getCurrentTrackUri(): String? {
+        return controller?.currentMediaItem?.localConfiguration?.uri?.toString()
+    }
+
+    private fun updateFavoriteUI() {
+        val currentUri = getCurrentTrackUri() ?: return
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+        var isFav = false
+
+        try {
+            val jsonArray = JSONArray(jsonString)
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                if (obj.getString("uri") == currentUri) {
+                    isFav = obj.optBoolean("isFavorite", false)
+                    break
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+
+        if (isFav) {
+            // Hiển thị trái tim ĐỎ
+            btnFavoriteTop.setImageResource(R.drawable.ic_heart_filled)
+            btnFavoriteTop.setColorFilter(Color.parseColor("#FF0000"))
+            
+            btnFavoriteBottom.setText("Đã thích")
+            btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_filled, 0, 0, 0)
+            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF0000"))
+            btnFavoriteBottom.setTextColor(Color.parseColor("#FF0000"))
+        } else {
+            // Hiển thị trái tim TÍM (Outline)
+            btnFavoriteTop.setImageResource(R.drawable.ic_heart_outline)
+            btnFavoriteTop.setColorFilter(Color.parseColor("#8B3DFF"))
+            
+            btnFavoriteBottom.setText("Yêu thích")
+            btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_outline, 0, 0, 0)
+            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#5E35B1"))
+            btnFavoriteBottom.setTextColor(Color.parseColor("#333333"))
+        }
+    }
+
+    private fun toggleFavorite() {
+        val currentUri = getCurrentTrackUri() ?: return
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+
+        try {
+            val jsonArray = JSONArray(jsonString)
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                if (obj.getString("uri") == currentUri) {
+                    val currentFav = obj.optBoolean("isFavorite", false)
+                    obj.put("isFavorite", !currentFav)
+                    break
+                }
+            }
+            prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
+            updateFavoriteUI()
+        } catch (e: Exception) { e.printStackTrace() }
+    }
+    // ========================
 
     private val seekBarUpdater = object : Runnable {
         override fun run() {
