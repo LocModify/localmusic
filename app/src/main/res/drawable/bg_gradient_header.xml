@@ -1,31 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Nền trắng cơ bản -->
+    <!-- Nền trắng ngả tím -->
     <item>
         <shape>
-            <solid android:color="#FAFAFC" />
-        </shape>
-    </item>
-    
-    <!-- Vệt mờ góc trên trái -->
-    <item android:top="-100dp" android:left="-100dp">
-        <shape android:shape="oval">
-            <gradient
-                android:startColor="#33C88CFF"
-                android:endColor="#00C88CFF"
-                android:type="radial"
-                android:gradientRadius="300dp" />
+            <solid android:color="#FBFAFF" />
         </shape>
     </item>
 
-    <!-- Vệt mờ góc trên phải -->
-    <item android:top="-150dp" android:right="-100dp">
+    <!-- Mảng tím mờ góc trên trái -->
+    <item
+        android:width="380dp" android:height="280dp"
+        android:gravity="top|start"
+        android:top="-120dp" android:left="-150dp">
         <shape android:shape="oval">
-            <gradient
-                android:startColor="#4DEDE9FE"
-                android:endColor="#00EDE9FE"
-                android:type="radial"
-                android:gradientRadius="350dp" />
+            <solid android:color="#40D8C8FB" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím mờ góc trên phải -->
+    <item
+        android:width="320dp" android:height="250dp"
+        android:gravity="top|end"
+        android:top="-110dp" android:right="-120dp">
+        <shape android:shape="oval">
+            <solid android:color="#33E3D8FD" />
+        </shape>
+    </item>
+
+    <!-- Mảng tím mờ góc dưới phải -->
+    <item
+        android:width="340dp" android:height="280dp"
+        android:gravity="bottom|end"
+        android:bottom="-130dp" android:right="-140dp">
+        <shape android:shape="oval">
+            <solid android:color="#2ED4C3F9" />
         </shape>
     </item>
 </layer-list>
