@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Tam giác trỏ trái, góc bo tròn -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M9,12 L18.5,6.5 L18.5,17.5 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+    <!-- Thanh dọc, đầu bo tròn -->
+    <path
+        android:pathData="M5.5,6.5 L5.5,17.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round" />
+</vector>
