@@ -23,6 +23,7 @@ import org.json.JSONArray
 
 class NowPlayingActivity : AppCompatActivity() {
 
+    private lateinit var rootLayout: SwipeableConstraintLayout
     private lateinit var btnMinimize: ImageView
     private lateinit var btnPlayPause: ImageView
     private lateinit var btnNext: ImageView
@@ -45,6 +46,7 @@ class NowPlayingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_now_playing)
 
+        rootLayout = findViewById(R.id.rootLayout)
         btnMinimize = findViewById(R.id.btnMinimize)
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnNext = findViewById(R.id.btnNext)
@@ -58,16 +60,25 @@ class NowPlayingActivity : AppCompatActivity() {
         btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
         btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
 
-        // Sự kiện đóng màn hình: Sử dụng Animation mới
+        // Sự kiện đóng màn hình khi bấm nút mũi tên
         btnMinimize.setOnClickListener {
-            finish()
-            overridePendingTransition(R.anim.fade_out, R.anim.slide_down)
+            closeActivity()
+        }
+
+        // Sự kiện đóng màn hình khi vuốt xuống (từ Custom View)
+        rootLayout.onSwipeDownListener = {
+            closeActivity()
         }
 
         btnFavoriteTop.setOnClickListener { toggleFavorite() }
         btnFavoriteBottom.setOnClickListener { toggleFavorite() }
 
         connectController()
+    }
+
+    private fun closeActivity() {
+        finish()
+        overridePendingTransition(R.anim.fade_out, R.anim.slide_down)
     }
 
     private fun connectController() {
