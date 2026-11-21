@@ -1,19 +1,31 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Theme chính của App (Material 3) -->
     <style name="Theme.LocalMusic" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:statusBarColor">@color/white</item>
-        <item name="android:windowLightStatusBar">true</item> <!-- Chữ status bar màu đen -->
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowSplashScreenBackground">#000000</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo</item>
     </style>
-<style name="RoundedCornerImage" parent="">
-    <item name="cornerFamily">rounded</item>
-    <item name="cornerSize">12dp</item>
-</style>
-<style name="Theme.LocalMusic.Transparent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-    <item name="android:windowIsTranslucent">true</item>
-    <item name="android:windowBackground">@android:color/transparent</item>
-    <item name="android:windowContentOverlay">@null</item>
-    <item name="android:windowNoTitle">true</item>
-    <item name="android:backgroundDimEnabled">false</item>
-</style>
+
+    <style name="RoundedCornerImage" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <!-- Theme trong suốt cho NowPlaying (Đã đồng bộ sang Material 3) -->
+    <style name="Theme.LocalMusic.Transparent" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        
+        <!-- Làm trong suốt thanh trạng thái và thanh điều hướng để thấy màn hình chính -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        
+        <!-- Giữ icon thanh trạng thái màu tối (đen) để dễ nhìn trên nền sáng -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+    </style>
 </resources>
