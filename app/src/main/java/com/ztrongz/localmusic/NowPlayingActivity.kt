@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -24,6 +25,8 @@ import org.json.JSONArray
 class NowPlayingActivity : AppCompatActivity() {
 
     private lateinit var rootLayout: SwipeableConstraintLayout
+    private lateinit var bgOverlay: View
+    private lateinit var contentContainer: View
     private lateinit var btnMinimize: ImageView
     private lateinit var btnPlayPause: ImageView
     private lateinit var btnNext: ImageView
@@ -47,6 +50,8 @@ class NowPlayingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_now_playing)
 
         rootLayout = findViewById(R.id.rootLayout)
+        bgOverlay = findViewById(R.id.bg_overlay)
+        contentContainer = findViewById(R.id.content_container)
         btnMinimize = findViewById(R.id.btnMinimize)
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnNext = findViewById(R.id.btnNext)
@@ -60,14 +65,18 @@ class NowPlayingActivity : AppCompatActivity() {
         btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
         btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
 
-        // Sự kiện đóng màn hình khi bấm nút mũi tên
         btnMinimize.setOnClickListener {
             closeActivity()
         }
 
-        // Sự kiện đóng màn hình khi vuốt xuống (từ Custom View)
         rootLayout.onSwipeDownListener = {
             closeActivity()
+        }
+
+        // Làm mờ cả nền và nội dung khi kéo xuống để lộ màn hình chính
+        rootLayout.onDragProgressListener = { progress ->
+            bgOverlay.alpha = progress
+            contentContainer.alpha = progress
         }
 
         btnFavoriteTop.setOnClickListener { toggleFavorite() }
@@ -78,7 +87,8 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun closeActivity() {
         finish()
-        overridePendingTransition(R.anim.fade_out, R.anim.slide_down)
+        // Hiệu ứng đóng: Trượt xuống, MainActivity hiện ra ngay lập tức
+        overridePendingTransition(0, R.anim.slide_down)
     }
 
     private fun connectController() {
