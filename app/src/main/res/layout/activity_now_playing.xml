@@ -1,285 +1,297 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Thay thế ConstraintLayout thường bằng SwipeableConstraintLayout -->
 <com.ztrongz.localmusic.SwipeableConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_now_playing"
     tools:context=".NowPlayingActivity">
 
-    <!-- 1. THANH TOP BAR -->
-    <ImageView
-        android:id="@+id/btnMinimize"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_margin="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_arrow_down"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/btnPlaylistTop"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginEnd="20dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_playlist"
-        app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
-        app:layout_constraintEnd_toStartOf="@+id/btnMoreTop"
-        app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
-
-    <ImageView
-        android:id="@+id/btnMoreTop"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginEnd="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_more_vert"
-        app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
-
-    <!-- 2. ẢNH BÌA LỚN -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardAlbumArt"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_marginTop="20dp"
-        app:cardBackgroundColor="#40FFFFFF" 
-        app:cardCornerRadius="150dp"
-        app:cardElevation="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="280dp"
-            android:layout_height="280dp"
-            android:layout_gravity="center"
-            app:cardCornerRadius="140dp"
-            app:cardElevation="0dp">
-
-            <ImageView
-                android:id="@+id/imgAlbumArt"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/bg_cover_default" />
-        </androidx.cardview.widget.CardView>
-    </androidx.cardview.widget.CardView>
-
-    <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
-    <TextView
-        android:id="@+id/txtSongTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="16dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="Dreaming"
-        android:textColor="#111111"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardAlbumArt" />
-
-    <TextView
-        android:id="@+id/txtArtist"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="16dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="Unknown Artist"
-        android:textColor="#555555"
-        android:textSize="15sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtSongTitle" />
-
-    <ImageView
-        android:id="@+id/btnFavoriteTop"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginEnd="24dp"
-        android:background="@drawable/bg_icon_circle_light"
-        android:padding="10dp"
-        android:src="@drawable/ic_heart_outline"
-        app:tint="#8B3DFF"
-        app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
-
-    <!-- 4. THANH TIẾN TRÌNH (SEEK BAR) -->
-    <TextView
-        android:id="@+id/txtCurrentTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="20dp"
-        android:text="00:00"
-        android:textColor="#333333"
-        android:textSize="13sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
-
-    <TextView
-        android:id="@+id/txtTotalTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:text="00:00"
-        android:textColor="#333333"
-        android:textSize="13sp"
-        app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:progressTint="#8B3DFF"
-        android:thumbTint="#8B3DFF"
-        app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
-        app:layout_constraintEnd_toStartOf="@+id/txtTotalTime"
-        app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
-        app:layout_constraintTop_toTopOf="@+id/txtCurrentTime" />
-
-    <!-- 5. CỤM NÚT ĐIỀU KHIỂN -->
-    <LinearLayout
-        android:id="@+id/controlsLayout"
+    <!-- Lớp nền mờ (Gradient) -->
+    <View
+        android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintTop_toBottomOf="@+id/seekBar">
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_now_playing" />
 
+    <!-- Container chứa toàn bộ nội dung -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 1. THANH TOP BAR -->
         <ImageView
-            android:id="@+id/btnShuffle"
+            android:id="@+id/btnMinimize"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:padding="4dp"
-            android:src="@drawable/ic_shuffle" />
-
-        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+            android:layout_margin="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_down"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/btnPrevious"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_prev" />
+            android:id="@+id/btnPlaylistTop"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_playlist"
+            app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
+            app:layout_constraintEnd_toStartOf="@+id/btnMoreTop"
+            app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
 
-        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+        <ImageView
+            android:id="@+id/btnMoreTop"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
 
+        <!-- 2. ẢNH BÌA LỚN -->
         <androidx.cardview.widget.CardView
-            android:layout_width="76dp"
-            android:layout_height="76dp"
-            app:cardBackgroundColor="#8B3DFF"
-            app:cardCornerRadius="38dp"
-            app:cardElevation="0dp"> 
-            <ImageView
-                android:id="@+id/btnPlayPause"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+            android:id="@+id/cardAlbumArt"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="#40FFFFFF" 
+            app:cardCornerRadius="150dp"
+            app:cardElevation="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="280dp"
+                android:layout_height="280dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_play" />
+                app:cardCornerRadius="140dp"
+                app:cardElevation="0dp">
+
+                <ImageView
+                    android:id="@+id/imgAlbumArt"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_cover_default" />
+            </androidx.cardview.widget.CardView>
         </androidx.cardview.widget.CardView>
 
-        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
-
-        <ImageView
-            android:id="@+id/btnNext"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@drawable/ic_next" />
-
-        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
-
-        <ImageView
-            android:id="@+id/btnRepeat"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
-            android:src="@drawable/ic_repeat" />
-    </LinearLayout>
-
-    <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <Button
-            android:id="@+id/btnFavoriteBottom"
+        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
+        <TextView
+            android:id="@+id/txtSongTitle"
             android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_pill_button"
-            android:drawableStart="@drawable/ic_heart_outline"
-            android:drawablePadding="6dp"
-            android:text="Yêu thích"
-            android:textAllCaps="false"
-            android:textSize="12sp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Dreaming"
+            android:textColor="#111111"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardAlbumArt" />
+
+        <TextView
+            android:id="@+id/txtArtist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Unknown Artist"
+            android:textColor="#555555"
+            android:textSize="15sp"
+            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtSongTitle" />
+
+        <ImageView
+            android:id="@+id/btnFavoriteTop"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_icon_circle_light"
+            android:padding="10dp"
+            android:src="@drawable/ic_heart_outline"
+            app:tint="#8B3DFF"
+            app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
+
+        <!-- 4. THANH TIẾN TRÌNH (SEEK BAR) -->
+        <TextView
+            android:id="@+id/txtCurrentTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:text="00:00"
             android:textColor="#333333"
-            app:iconTint="#5E35B1" />
+            android:textSize="13sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
 
-        <Button
-            android:id="@+id/btnAddTo"
+        <TextView
+            android:id="@+id/txtTotalTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:text="00:00"
+            android:textColor="#333333"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <SeekBar
+            android:id="@+id/seekBar"
             android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_pill_button"
-            android:drawableStart="@drawable/ic_add_purple"
-            android:drawablePadding="6dp"
-            android:text="Thêm vào"
-            android:textAllCaps="false"
-            android:textSize="12sp"
-            android:textColor="#333333" />
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:progressTint="#8B3DFF"
+            android:thumbTint="#8B3DFF"
+            app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
+            app:layout_constraintEnd_toStartOf="@+id/txtTotalTime"
+            app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
+            app:layout_constraintTop_toTopOf="@+id/txtCurrentTime" />
 
-        <Button
-            android:id="@+id/btnDownload"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_pill_button"
-            android:drawableStart="@android:drawable/stat_sys_download"
-            android:drawablePadding="6dp"
-            android:text="Tải xuống"
-            android:textAllCaps="false"
-            android:textSize="12sp"
-            android:textColor="#333333" />
+        <!-- 5. CỤM NÚT ĐIỀU KHIỂN -->
+        <LinearLayout
+            android:id="@+id/controlsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/seekBar">
 
-        <Button
-            android:id="@+id/btnInfo"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_pill_button"
-            android:drawableStart="@android:drawable/ic_menu_info_details"
-            android:drawablePadding="6dp"
-            android:text="Thông tin"
-            android:textAllCaps="false"
-            android:textSize="12sp"
-            android:textColor="#333333" />
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/btnShuffle"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_shuffle" />
 
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/btnPrevious"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_prev" />
+
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                app:cardBackgroundColor="#8B3DFF"
+                app:cardCornerRadius="38dp"
+                app:cardElevation="0dp"> 
+                <ImageView
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_play" />
+            </androidx.cardview.widget.CardView>
+
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/btnNext"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_next" />
+
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/btnRepeat"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_repeat" />
+        </LinearLayout>
+
+        <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <Button
+                android:id="@+id/btnFavoriteBottom"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_pill_button"
+                android:drawableStart="@drawable/ic_heart_outline"
+                android:drawablePadding="6dp"
+                android:text="Yêu thích"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:textColor="#333333"
+                app:iconTint="#5E35B1" />
+
+            <Button
+                android:id="@+id/btnAddTo"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_pill_button"
+                android:drawableStart="@drawable/ic_add_purple"
+                android:drawablePadding="6dp"
+                android:text="Thêm vào"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:textColor="#333333" />
+
+            <Button
+                android:id="@+id/btnDownload"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_pill_button"
+                android:drawableStart="@android:drawable/stat_sys_download"
+                android:drawablePadding="6dp"
+                android:text="Tải xuống"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:textColor="#333333" />
+
+            <Button
+                android:id="@+id/btnInfo"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_pill_button"
+                android:drawableStart="@android:drawable/ic_menu_info_details"
+                android:drawablePadding="6dp"
+                android:text="Thông tin"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:textColor="#333333" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.ztrongz.localmusic.SwipeableConstraintLayout>
