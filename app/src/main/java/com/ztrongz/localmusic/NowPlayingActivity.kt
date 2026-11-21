@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
@@ -24,6 +25,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import org.json.JSONArray
+import java.io.ByteArrayOutputStream
 
 class NowPlayingActivity : AppCompatActivity() {
 
@@ -51,6 +53,14 @@ class NowPlayingActivity : AppCompatActivity() {
     private var controller: MediaController? = null
     private val handler = Handler(Looper.getMainLooper())
     private var isUserSeeking = false
+
+    // Dữ liệu ảnh mặc định (tạo giống hệt cách MainActivity tạo) để nhận biết bài chưa có ảnh bìa riêng
+    private val defaultArtworkBytes: ByteArray by lazy {
+        val bmp = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
+        val stream = ByteArrayOutputStream()
+        bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        stream.toByteArray()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -220,14 +230,15 @@ class NowPlayingActivity : AppCompatActivity() {
         txtArtist.text = metadata.artist ?: "Unknown Artist"
 
         val artworkData = metadata.artworkData
-        if (artworkData != null) {
+        if (artworkData == null || artworkData.contentEquals(defaultArtworkBytes)) {
+            // Ảnh mặc định: giữ nguyên, KHÔNG cắt viền (nền tối của ảnh không phải viền đen)
+            imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
+        } else {
             val decoded = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
             // Cắt viền đen (nếu có) để ảnh vừa khít khung tròn
             val bitmap = if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
             if (bitmap != null) imgAlbumArt.setImageBitmap(bitmap)
             else imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
-        } else {
-            imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
         }
 
         val duration = c.duration
