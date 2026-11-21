@@ -24,6 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged // Thêm thư viện cho TextWatcher
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var songAdapter: SongAdapter
     
     private var isShowingFavorites = false
+    private var currentQuery = "" // Biến lưu từ khóa tìm kiếm
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -94,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = songAdapter
 
         setupCategoryChips()
+        setupSearchBar() // Kích hoạt thanh tìm kiếm
 
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -117,6 +120,14 @@ class MainActivity : AppCompatActivity() {
 
         loadTracksFromStorage()
         connectController()
+    }
+
+    // HÀM XỬ LÝ TÌM KIẾM
+    private fun setupSearchBar() {
+        binding.etSearch.doAfterTextChanged { text ->
+            currentQuery = text.toString().trim()
+            filterAndShowSongs()
+        }
     }
 
     private fun setupCategoryChips() {
@@ -147,12 +158,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // HÀM LỌC KẾT HỢP CẢ TAB YÊU THÍCH VÀ THANH TÌM KIẾM
     private fun filterAndShowSongs() {
-        val displayList = if (isShowingFavorites) {
-            tracks.filter { it.isFavorite }
-        } else {
-            tracks
+        var displayList = tracks
+        
+        // Lọc theo tab Yêu thích
+        if (isShowingFavorites) {
+            displayList = displayList.filter { it.isFavorite }
         }
+        
+        // Lọc theo thanh tìm kiếm
+        if (currentQuery.isNotEmpty()) {
+            displayList = displayList.filter { 
+                it.title.contains(currentQuery, ignoreCase = true) || 
+                it.artist.contains(currentQuery, ignoreCase = true)
+            }
+        }
+        
         songAdapter.updateData(displayList)
     }
 
@@ -216,7 +238,6 @@ class MainActivity : AppCompatActivity() {
 
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
         
-        // Hàm phụ để cập nhật giao diện icon và chữ
         fun updateFavoriteUI(isFav: Boolean) {
             if (isFav) {
                 ivHeart.setImageResource(R.drawable.ic_heart_filled)
@@ -227,12 +248,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Khởi tạo trạng thái ban đầu
         updateFavoriteUI(track.isFavorite)
 
         btnFavorite.setOnClickListener {
             toggleFavorite(position)
-            // Cập nhật lại UI ngay tại chỗ, KHÔNG gọi popupWindow.dismiss()
             updateFavoriteUI(tracks[position].isFavorite)
         }
 
@@ -257,8 +276,6 @@ class MainActivity : AppCompatActivity() {
         tracks[position] = track.copy(isFavorite = !track.isFavorite)
         saveTracksToStorage()
         filterAndShowSongs() 
-        // Lưu ý: Hàm filterAndShowSongs sẽ làm mới danh sách bên dưới,
-        // nhưng menu Popup vẫn đang mở và hiển thị đúng trạng thái mới nhờ hàm updateFavoriteUI ở trên.
     }
 
     private fun showRenameDialog(position: Int) {
