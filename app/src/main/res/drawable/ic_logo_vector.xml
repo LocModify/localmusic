@@ -4,23 +4,23 @@
     <!-- Vòng cung tai nghe -->
     <path
         android:pathData="M4,14 v-2 a8,8 0 0,1 16,0 v2"
-        android:strokeColor="#A78BFA"
+        android:strokeColor="#CC8BFF"
         android:strokeWidth="2.2"
         android:strokeLineCap="round" />
-    
+
     <!-- Tai nghe trái (bo tròn) -->
     <path
         android:pathData="M4.5,12.5 h1.5 a1.5,1.5 0 0,1 1.5,1.5 v3 a1.5,1.5 0 0,1 -1.5,1.5 h-1.5 z"
-        android:fillColor="#8B5CF6" />
-        
+        android:fillColor="#B45CFF" />
+
     <!-- Tai nghe phải (bo tròn) -->
     <path
         android:pathData="M19.5,12.5 h-1.5 a1.5,1.5 0 0,0 -1.5,1.5 v3 a1.5,1.5 0 0,0 1.5,1.5 h1.5 z"
-        android:fillColor="#8B5CF6" />
+        android:fillColor="#B45CFF" />
 
     <!-- Sóng âm thanh -->
-    <path android:pathData="M8.5,14.5 v1" android:strokeColor="#C4B5FD" android:strokeWidth="1.8" android:strokeLineCap="round"/>
-    <path android:pathData="M10.8,12.5 v5" android:strokeColor="#8B5CF6" android:strokeWidth="1.8" android:strokeLineCap="round"/>
-    <path android:pathData="M13.2,13.5 v3" android:strokeColor="#8B5CF6" android:strokeWidth="1.8" android:strokeLineCap="round"/>
-    <path android:pathData="M15.5,11.5 v7" android:strokeColor="#8B5CF6" android:strokeWidth="1.8" android:strokeLineCap="round"/>
+    <path android:pathData="M8.5,14.5 v1" android:strokeColor="#DDB4FF" android:strokeWidth="1.8" android:strokeLineCap="round"/>
+    <path android:pathData="M10.8,12.5 v5" android:strokeColor="#B45CFF" android:strokeWidth="1.8" android:strokeLineCap="round"/>
+    <path android:pathData="M13.2,13.5 v3" android:strokeColor="#B45CFF" android:strokeWidth="1.8" android:strokeLineCap="round"/>
+    <path android:pathData="M15.5,11.5 v7" android:strokeColor="#B45CFF" android:strokeWidth="1.8" android:strokeLineCap="round"/>
 </vector>
