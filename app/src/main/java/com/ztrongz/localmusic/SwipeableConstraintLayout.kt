@@ -3,6 +3,7 @@ package com.ztrongz.localmusic
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.VelocityTracker
 import android.view.ViewConfiguration
 import android.view.animation.AccelerateInterpolator
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -15,13 +16,21 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
     private var startY = 0f
     private var startX = 0f
     private var isDragging = false
-    
+    private var velocityTracker: VelocityTracker? = null
+
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private val minFlingVelocity = ViewConfiguration.get(context).scaledMinimumFlingVelocity
 
     var onSwipeDownListener: (() -> Unit)? = null
+    // Callback trả về % độ mờ (từ 1.0 giảm về 0.0)
+    var onDragProgressListener: ((Float) -> Unit)? = null
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (velocityTracker == null) {
+            velocityTracker = VelocityTracker.obtain()
+        }
+        velocityTracker?.addMovement(ev)
+
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 startY = ev.rawY
@@ -31,53 +40,57 @@ class SwipeableConstraintLayout @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 val deltaY = ev.rawY - startY
                 val deltaX = ev.rawX - startX
-                
-                // Chỉ kích hoạt kéo nếu vuốt xuống và hướng dọc nhiều hơn hướng ngang
-                if (deltaY > touchSlop && deltaY > abs(deltaX)) {
-                    isDragging = true
-                    return true
-                }
-            }
-        }
-        return super.onInterceptTouchEvent(ev)
-    }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> {
-                if (isDragging) {
-                    val deltaY = event.rawY - startY
-                    if (deltaY > 0) {
-                        translationY = deltaY // Di chuyển view theo ngón tay
+                // Nếu vuốt xuống (deltaY > 0) và hướng dọc nhiều hơn ngang
+                if (deltaY > touchSlop && deltaY > abs(deltaX)) {
+                    if (!isDragging) {
+                        isDragging = true
+                        // Hủy sự kiện của view con (như SeekBar) để không bị dính chùm
+                        val cancelEvent = MotionEvent.obtain(ev)
+                        cancelEvent.action = MotionEvent.ACTION_CANCEL
+                        super.dispatchTouchEvent(cancelEvent)
+                        cancelEvent.recycle()
                     }
+                    
+                    translationY = deltaY
+                    
+                    // Tính toán độ mờ: Càng kéo xuống càng mờ
+                    val progress = (1f - (deltaY / height)).coerceIn(0f, 1f)
+                    onDragProgressListener?.invoke(progress)
+                    return true
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (isDragging) {
                     isDragging = false
-                    val deltaY = event.rawY - startY
-                    val velocityY = event.y - startY // Ước lượng vận tốc
+                    velocityTracker?.computeCurrentVelocity(1000)
+                    val velocityY = velocityTracker?.yVelocity ?: 0f
+                    val deltaY = ev.rawY - startY
 
-                    // Nếu kéo xuống quá 1/4 màn hình hoặc vuốt đủ mạnh
+                    // Nếu kéo quá 1/4 màn hình hoặc vuốt đủ mạnh
                     if (deltaY > height / 4f || velocityY > minFlingVelocity) {
-                        // Trượt xuống và đóng
                         animate()
                             .translationY(height.toFloat())
+                            .alpha(0f)
                             .setDuration(250)
                             .setInterpolator(AccelerateInterpolator())
                             .withEndAction { onSwipeDownListener?.invoke() }
                             .start()
                     } else {
-                        // Kéo chưa đủ xa -> Bật ngược trở lại vị trí cũ
+                        // Bật ngược lại
                         animate()
                             .translationY(0f)
+                            .alpha(1f)
                             .setDuration(200)
+                            .withEndAction { onDragProgressListener?.invoke(1f) }
                             .start()
                     }
+                    velocityTracker?.recycle()
+                    velocityTracker = null
                     return true
                 }
             }
         }
-        return super.onTouchEvent(event)
+        return super.dispatchTouchEvent(ev)
     }
 }
