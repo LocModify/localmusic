@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.media3.common.MediaItem
@@ -37,7 +36,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var tvPlaylistTitle: TextView
     private lateinit var tvPlaylistSubtitle: TextView
 
-    // View cho chế độ chọn
     private lateinit var layoutNormalHeader: View
     private lateinit var layoutSelectionHeader: View
     private lateinit var tvSelectedCount: TextView
@@ -119,20 +117,20 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-        0 // 0 = TẮT TÍNH NĂNG VUỐT ĐỂ XÓA
+        0 // TẮT VUỐT ĐỂ XÓA
     ) {
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
         ): Boolean {
-            if (adapter.isSelectionMode) return false // Không cho kéo thả khi đang chọn
+            if (adapter.isSelectionMode) return false
             adapter.onItemMove(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
             return true
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            // Không làm gì vì đã tắt vuốt
+            // Không làm gì
         }
 
         override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
@@ -160,14 +158,12 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val itemsToDelete = adapter.getSelectedItems()
             val c = controller ?: return@setOnClickListener
             if (itemsToDelete.isNotEmpty()) {
-                // Xóa các bài đã chọn khỏi Player
                 val indicesToRemove = mutableListOf<Int>()
                 for (i in 0 until c.mediaItemCount) {
                     if (itemsToDelete.contains(c.getMediaItemAt(i))) {
                         indicesToRemove.add(i)
                     }
                 }
-                // Sắp xếp giảm dần để xóa không bị lệch index
                 indicesToRemove.sortDescending()
                 for (idx in indicesToRemove) {
                     c.removeMediaItem(idx)
@@ -186,7 +182,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             layoutSelectionHeader.visibility = View.VISIBLE
             tvSelectedCount.text = "Đã chọn ${adapter.selectedUris.size}"
 
-            // Cập nhật trạng thái nút "Tất cả"
             if (adapter.selectedUris.size == adapter.itemCount && adapter.itemCount > 0) {
                 ivSelectAllIcon.setColorFilter(Color.parseColor("#7C3AED"))
             } else {
