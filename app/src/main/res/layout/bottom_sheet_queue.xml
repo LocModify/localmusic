@@ -85,23 +85,25 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/dragHandle">
 
-        <!-- Bên trái: Tất cả -->
+        <!-- Bên trái: Tất cả (ĐÃ SỬA LẠI CHO GỌN) -->
         <LinearLayout
             android:id="@+id/btnSelectAll"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
-            android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <!-- Hiệu ứng chạm được chuyển vào đây, bao phủ vừa vặn nút tròn -->
             <ImageView
                 android:id="@+id/ivSelectAllIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
                 android:src="@drawable/ic_check_circle_outline"
                 app:tint="#7A5BA8" />
 
