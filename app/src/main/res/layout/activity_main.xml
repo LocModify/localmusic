@@ -95,93 +95,94 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- CATEGORIES: cắt theo góc bo của thanh + mờ dần ở hai mép khi vuốt ngang -->
-    <HorizontalScrollView
+    <!-- CATEGORIES: 4 nút chia đều chiều rộng, không cuộn ngang nên không bị cắt góc -->
+    <LinearLayout
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_category_bar"
-        android:clipToOutline="true"
-        android:clipToPadding="false"
-        android:fadingEdgeLength="24dp"
-        android:fillViewport="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:padding="4dp"
-        android:requiresFadingEdge="horizontal"
-        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/searchBar">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/chipAll"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:background="@drawable/bg_category_active"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="9dp"
+            android:text="Tất cả"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            app:autoSizeMaxTextSize="13sp"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform" />
 
-            <TextView
-                android:id="@+id/chipAll"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_category_active"
-                android:drawableStart="@drawable/ic_chip_music"
-                android:drawablePadding="6dp"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="Tất cả"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                app:drawableTint="@color/white" />
+        <TextView
+            android:id="@+id/chipFav"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_category_inactive"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="9dp"
+            android:text="Yêu thích"
+            android:textColor="@color/text_black"
+            android:textSize="13sp"
+            app:autoSizeMaxTextSize="13sp"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform" />
 
-            <TextView
-                android:id="@+id/chipFav"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_category_inactive"
-                android:drawableStart="@drawable/ic_chip_heart"
-                android:drawablePadding="6dp"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="Yêu thích"
-                android:textColor="@color/text_black"
-                android:textSize="13sp"
-                app:drawableTint="@color/text_black" />
+        <TextView
+            android:id="@+id/chipFolder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_category_inactive"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="9dp"
+            android:text="Thư mục"
+            android:textColor="@color/text_black"
+            android:textSize="13sp"
+            app:autoSizeMaxTextSize="13sp"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform" />
 
-            <TextView
-                android:id="@+id/chipFolder"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_category_inactive"
-                android:drawableStart="@drawable/ic_chip_folder"
-                android:drawablePadding="6dp"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="Thư mục"
-                android:textColor="@color/text_black"
-                android:textSize="13sp"
-                app:drawableTint="@color/text_black" />
-
-            <TextView
-                android:id="@+id/chipRecent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:background="@drawable/bg_category_inactive"
-                android:drawableStart="@drawable/ic_chip_clock"
-                android:drawablePadding="6dp"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="Gần đây"
-                android:textColor="@color/text_black"
-                android:textSize="13sp"
-                app:drawableTint="@color/text_black" />
-        </LinearLayout>
-    </HorizontalScrollView>
+        <TextView
+            android:id="@+id/chipRecent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_category_inactive"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="9dp"
+            android:text="Gần đây"
+            android:textColor="@color/text_black"
+            android:textSize="13sp"
+            app:autoSizeMaxTextSize="13sp"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform" />
+    </LinearLayout>
 
     <!-- RECYCLERVIEW -->
     <androidx.recyclerview.widget.RecyclerView
