@@ -193,6 +193,9 @@ class NowPlayingActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             
+            // Đặt chế độ mặc định dựa trên trạng thái hiện tại
+            controller?.pauseAtEndOfMediaItems = (controller?.repeatMode == Player.REPEAT_MODE_OFF)
+            
             updateUI()
             startSeekBarUpdater()
             setupControlButtons()
@@ -219,7 +222,7 @@ class NowPlayingActivity : AppCompatActivity() {
             showCustomPopup(msg)
         }
 
-        // Xử lý nút Repeat (Xoay vòng 3 trạng thái: Tắt -> Tất cả -> 1 bài -> Tắt)
+        // Xử lý nút Repeat (Xoay vòng 3 trạng thái)
         btnRepeat.setOnClickListener {
             val nextMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -227,6 +230,10 @@ class NowPlayingActivity : AppCompatActivity() {
                 else -> Player.REPEAT_MODE_OFF
             }
             c.repeatMode = nextMode
+            
+            // BẬT TÍNH NĂNG DỪNG CUỐI BÀI NẾU LÀ REPEAT OFF
+            c.pauseAtEndOfMediaItems = (nextMode == Player.REPEAT_MODE_OFF)
+            
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
 
             val msg = when (nextMode) {
@@ -254,9 +261,8 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // Hàm hiển thị Popup thông báo (không bị đè)
     private fun showCustomPopup(message: String) {
-        customPopup?.dismiss() // Đóng popup cũ nếu đang hiện
+        customPopup?.dismiss() 
 
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val layout = inflater.inflate(R.layout.toast_layout, null)
@@ -271,7 +277,6 @@ class NowPlayingActivity : AppCompatActivity() {
         customPopup?.elevation = 10f
         customPopup?.showAtLocation(rootLayout, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 250)
 
-        // Tự động đóng sau 1.5 giây
         Handler(Looper.getMainLooper()).postDelayed({ 
             customPopup?.dismiss() 
         }, 1500)
@@ -304,7 +309,6 @@ class NowPlayingActivity : AppCompatActivity() {
             updatePlayPauseIcon(isPlaying)
         }
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            // Đã xóa đoạn hack pause() ở đây để nhạc tự nhiên chuyển bài
             updateUI()
             startSeekBarUpdater()
         }
@@ -454,7 +458,7 @@ class NowPlayingActivity : AppCompatActivity() {
         effectAnimators.forEach { it.cancel() }
         effectAnimators.clear()
         handler.removeCallbacks(seekBarUpdater)
-        customPopup?.dismiss() // Đảm bảo đóng popup khi thoát
+        customPopup?.dismiss()
         controller?.removeListener(playerListener)
         if (::controllerFuture.isInitialized) {
             controllerFuture.addListener({
