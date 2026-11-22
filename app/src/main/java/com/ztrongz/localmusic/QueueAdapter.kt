@@ -1,5 +1,6 @@
 package com.ztrongz.localmusic
 
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +12,8 @@ import java.util.Collections
 
 class QueueAdapter(
     private var items: List<MediaItem>,
-    private val onItemClick: (Int) -> Unit
+    private val onItemClick: (Int) -> Unit,
+    private val onMoreClick: (Int, View) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
@@ -20,7 +22,8 @@ class QueueAdapter(
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvQueueItemTitle)
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
-        val ivPlaying: ImageView = view.findViewById(R.id.ivQueueItemPlaying)
+        val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
+        val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
@@ -34,12 +37,33 @@ class QueueAdapter(
         val metadata = mediaItem.mediaMetadata
 
         holder.tvTitle.text = metadata.title ?: "Unknown Title"
-        holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
+        
+        // Hiển thị trạng thái bài đang phát
+        if (position == currentPlayingIndex) {
+            holder.tvArtist.text = "Đang phát"
+            holder.tvArtist.setTextColor(android.graphics.Color.parseColor("#7C3AED"))
+            holder.tvTitle.setTextColor(android.graphics.Color.parseColor("#7C3AED"))
+        } else {
+            holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
+            holder.tvArtist.setTextColor(android.graphics.Color.parseColor("#7A5BA8"))
+            holder.tvTitle.setTextColor(android.graphics.Color.parseColor("#1F1B2E"))
+        }
 
-        holder.ivPlaying.visibility = if (position == currentPlayingIndex) View.VISIBLE else View.INVISIBLE
+        // Load ảnh bìa
+        val artworkData = metadata.artworkData
+        if (artworkData != null) {
+            val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+            holder.ivThumbnail.setImageBitmap(bitmap)
+        } else {
+            holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
+        }
 
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)
+        }
+        
+        holder.btnMore.setOnClickListener {
+            onMoreClick(holder.bindingAdapterPosition, it)
         }
     }
 
