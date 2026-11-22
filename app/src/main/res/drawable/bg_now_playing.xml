@@ -7,47 +7,55 @@
         </shape>
     </item>
 
-    <!-- Mảng mây tím nhạt góc trên trái -->
-    <item android:top="-10%p" android:left="-20%p">
-        <shape android:shape="oval">
+    <!-- Mây tím nhạt góc trên trái -->
+    <item>
+        <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
-                android:gradientRadius="80%p"
-                android:startColor="#60E8D5FF"
-                android:endColor="#00E8D5FF" />
+                android:gradientRadius="350dp"
+                android:centerX="0.1"
+                android:centerY="0.1"
+                android:startColor="#80E8D5FF"
+                android:endColor="#00FAFAFF" />
         </shape>
     </item>
 
-    <!-- Mảng mây xanh nhạt góc trên phải -->
-    <item android:top="-15%p" android:right="-20%p">
-        <shape android:shape="oval">
+    <!-- Mây xanh nhạt góc trên phải -->
+    <item>
+        <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
-                android:gradientRadius="80%p"
-                android:startColor="#50D5EEFF"
-                android:endColor="#00D5EEFF" />
+                android:gradientRadius="350dp"
+                android:centerX="0.9"
+                android:centerY="0.15"
+                android:startColor="#70D5EEFF"
+                android:endColor="#00FAFAFF" />
         </shape>
     </item>
 
-    <!-- Mảng mây hồng nhạt góc dưới trái -->
-    <item android:bottom="-20%p" android:left="-10%p">
-        <shape android:shape="oval">
+    <!-- Mây hồng nhạt góc dưới trái -->
+    <item>
+        <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
-                android:gradientRadius="80%p"
-                android:startColor="#60FFE5F1"
-                android:endColor="#00FFE5F1" />
+                android:gradientRadius="350dp"
+                android:centerX="0.1"
+                android:centerY="0.9"
+                android:startColor="#70FFE5F1"
+                android:endColor="#00FAFAFF" />
         </shape>
     </item>
 
-    <!-- Mảng mây tím đậm hơn góc dưới phải -->
-    <item android:bottom="-15%p" android:right="-20%p">
-        <shape android:shape="oval">
+    <!-- Mây tím đậm góc dưới phải -->
+    <item>
+        <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
-                android:gradientRadius="70%p"
-                android:startColor="#50DCC6FF"
-                android:endColor="#00DCC6FF" />
+                android:gradientRadius="400dp"
+                android:centerX="0.9"
+                android:centerY="0.85"
+                android:startColor="#80DCC6FF"
+                android:endColor="#00FAFAFF" />
         </shape>
     </item>
 </layer-list>
