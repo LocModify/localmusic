@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nút Play/Pause 72dp: tím neon đậm chuyển màu từ trên xuống, vệt bóng nhẹ phía trên -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="oval">
-            <gradient
-                android:angle="270"
-                android:startColor="#A56BFF"
-                android:endColor="#6D28E8"
-                android:type="linear" />
-        </shape>
-    </item>
-    <!-- Vệt sáng bóng kính nửa trên -->
-    <item android:left="12dp" android:top="3dp" android:right="12dp" android:bottom="38dp">
-        <shape android:shape="oval">
-            <gradient
-                android:angle="270"
-                android:startColor="#55FFFFFF"
-                android:endColor="#00FFFFFF" />
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient
+        android:angle="270"
+        android:startColor="#D0A2FF"
+        android:endColor="#B45CFF" />
+</shape>
