@@ -1,29 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Vầng sáng tím tỏa quanh ảnh bìa: nhiều lớp oval chồng nhau, càng vào trong càng đậm -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape android:shape="oval">
-            <solid android:color="#12B45CFF" />
-        </shape>
-    </item>
-    <item android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp">
-        <shape android:shape="oval">
-            <solid android:color="#1AB45CFF" />
-        </shape>
-    </item>
-    <item android:left="14dp" android:top="14dp" android:right="14dp" android:bottom="14dp">
-        <shape android:shape="oval">
-            <solid android:color="#26B45CFF" />
-        </shape>
-    </item>
-    <item android:left="19dp" android:top="19dp" android:right="19dp" android:bottom="19dp">
-        <shape android:shape="oval">
-            <solid android:color="#38B45CFF" />
-        </shape>
-    </item>
-    <item android:left="22dp" android:top="22dp" android:right="22dp" android:bottom="22dp">
-        <shape android:shape="oval">
-            <solid android:color="#4DB45CFF" />
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%p"
+        android:startColor="#80B45CFF"
+        android:centerColor="#20B45CFF"
+        android:endColor="#00B45CFF" />
+</shape>
