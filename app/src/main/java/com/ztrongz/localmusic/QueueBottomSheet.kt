@@ -10,8 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.media3.common.MediaItem
@@ -22,6 +20,8 @@ import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -40,6 +40,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnRepeatBottom: ImageView
     private lateinit var tvPlaylistSubtitle: TextView
 
+    private lateinit var layoutNormalHeader: View // Đã thêm biến này để ẩn/hiện
     private lateinit var layoutSelectionHeader: View
     private lateinit var tvSelectedCount: TextView
     private lateinit var ivSelectAllIcon: ImageView
@@ -48,6 +49,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private var playerListener: Player.Listener? = null
     private var isDragging = false
+    private var lastSelectionMode = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +66,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
         tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
+        
+        layoutNormalHeader = view.findViewById(R.id.layoutNormalHeader) // Ánh xạ thanh Danh sách phát
         layoutSelectionHeader = view.findViewById(R.id.layoutSelectionHeader)
         tvSelectedCount = view.findViewById(R.id.tvSelectedCount)
         ivSelectAllIcon = view.findViewById(R.id.ivSelectAllIcon)
@@ -89,7 +93,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onStart()
         val d = dialog as? BottomSheetDialog ?: return
 
-        // === Làm sheet phủ TOÀN MÀN HÌNH (sửa lỗi sheet chỉ cao một đoạn) ===
+        // === Làm sheet phủ TOÀN MÀN HÌNH ===
         val sheet = d.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
         if (sheet != null) {
             val lp = sheet.layoutParams
@@ -210,8 +214,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private var lastSelectionMode = false
-
     private fun updateSelectionUI() {
         if (!::adapter.isInitialized) return
 
@@ -225,7 +227,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
 
         if (adapter.isSelectionMode) {
-            layoutSelectionHeader.visibility = View.VISIBLE
+            layoutNormalHeader.visibility = View.GONE // Ẩn thanh Danh sách phát
+            layoutSelectionHeader.visibility = View.VISIBLE // Hiện thanh Chọn
+            
             tvSelectedCount.text = "Đã chọn ${adapter.selectedUris.size}"
             val color = if (adapter.isAllSelected()) "#7C3AED" else "#7A5BA8"
             ivSelectAllIcon.setImageResource(
@@ -234,7 +238,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             ivSelectAllIcon.imageTintList =
                 if (adapter.isAllSelected()) null else ColorStateList.valueOf(Color.parseColor(color))
         } else {
-            layoutSelectionHeader.visibility = View.GONE
+            layoutNormalHeader.visibility = View.VISIBLE // Hiện lại thanh Danh sách phát
+            layoutSelectionHeader.visibility = View.GONE // Ẩn thanh Chọn
         }
     }
 
@@ -257,7 +262,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
 
         // Xóa hàng đợi: chỉ xóa các bài PHÍA SAU bài đang phát
-        rootView.findViewById<View>(R.id.btnClearQueue).setOnClickListener {
+        rootView.findViewById<View>(R.id.btnClearQueue)?.setOnClickListener {
             val currentIndex = c.currentMediaItemIndex
             if (currentIndex + 1 < c.mediaItemCount) {
                 adapter.exitSelection()
