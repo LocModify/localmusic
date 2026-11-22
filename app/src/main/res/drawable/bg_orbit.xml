@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="@android:color/transparent" />
-    <stroke
-        android:width="1dp"
-        android:color="#40DCC6FF" />
-</shape>
+<!-- Quỹ đạo elip mảnh: 1 nét mảnh rõ + 1 nét rộng mờ phía dưới tạo cảm giác phát sáng -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#00FFFFFF" />
+            <stroke android:width="5dp" android:color="#1FB07DFF" />
+        </shape>
+    </item>
+    <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+        <shape android:shape="oval">
+            <solid android:color="#00FFFFFF" />
+            <stroke android:width="1.5dp" android:color="#B3B07DFF" />
+        </shape>
+    </item>
+</layer-list>
