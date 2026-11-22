@@ -40,7 +40,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnRepeatBottom: ImageView
     private lateinit var tvPlaylistSubtitle: TextView
 
-    private lateinit var layoutNormalHeader: View // Đã thêm biến này để ẩn/hiện
+    private lateinit var layoutNormalHeader: View
     private lateinit var layoutSelectionHeader: View
     private lateinit var tvSelectedCount: TextView
     private lateinit var ivSelectAllIcon: ImageView
@@ -67,7 +67,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
         tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
         
-        layoutNormalHeader = view.findViewById(R.id.layoutNormalHeader) // Ánh xạ thanh Danh sách phát
+        layoutNormalHeader = view.findViewById(R.id.layoutNormalHeader)
         layoutSelectionHeader = view.findViewById(R.id.layoutSelectionHeader)
         tvSelectedCount = view.findViewById(R.id.tvSelectedCount)
         ivSelectAllIcon = view.findViewById(R.id.ivSelectAllIcon)
@@ -99,7 +99,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val lp = sheet.layoutParams
             lp.height = ViewGroup.LayoutParams.MATCH_PARENT
             sheet.layoutParams = lp
-            sheet.setBackgroundColor(Color.TRANSPARENT) // nền bo góc do layout tự vẽ
+            sheet.setBackgroundColor(Color.TRANSPARENT)
         }
         d.behavior.apply {
             skipCollapsed = true
@@ -110,7 +110,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
         d.window?.setDimAmount(0.4f)
 
-        // Nhấn Back: đang chọn nhiều thì thoát chế độ chọn trước, chưa đóng sheet
         d.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP &&
                 ::adapter.isInitialized && adapter.isSelectionMode
@@ -126,7 +125,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         return if (id > 0) resources.getDimensionPixelSize(id) else 0
     }
 
-    // ================= Danh sách =================
     private fun setupRecyclerView() {
         val c = controller ?: return
 
@@ -149,7 +147,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         itemTouchHelper.attachToRecyclerView(rvQueue)
     }
 
-    // Chỉ kéo thả đổi vị trí, KHÔNG còn vuốt để xóa
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
     ) {
@@ -167,7 +164,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
             isDragging = true
             adapter.onItemMove(from, to)
-            controller?.moveMediaItem(from, to) // đổi vị trí ngay trong Player
+            controller?.moveMediaItem(from, to) 
             return true
         }
 
@@ -176,30 +173,25 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
             super.clearView(recyclerView, viewHolder)
             isDragging = false
-            updateUI(scrollToCurrent = false) // đồng bộ lại số thứ tự
+            updateUI(scrollToCurrent = false) 
         }
     })
 
-    // ================= Chế độ chọn nhiều =================
     private fun setupSelectionHeader() {
-        // "Tất cả": chọn tất cả / bỏ tick hết (vẫn ở chế độ chọn nhiều)
         btnSelectAll.setOnClickListener {
             if (adapter.isAllSelected()) adapter.clearSelection() else adapter.selectAll()
         }
 
-        // Nút X: thoát chế độ chọn nhiều
         rootView.findViewById<View>(R.id.btnExitSelection).setOnClickListener {
             adapter.exitSelection()
         }
 
-        // Thùng rác đỏ: xóa các bài đã chọn khỏi hàng đợi
         rootView.findViewById<View>(R.id.btnDeleteSelected).setOnClickListener {
             val c = controller ?: return@setOnClickListener
             val selected = adapter.selectedUris.toSet()
             if (selected.isEmpty()) return@setOnClickListener
 
             var removed = 0
-            // Xóa từ cuối lên đầu để không lệch chỉ số; bỏ qua bài đang phát
             for (i in c.mediaItemCount - 1 downTo 0) {
                 if (i == c.currentMediaItemIndex) continue
                 val uri = c.getMediaItemAt(i).localConfiguration?.uri.toString()
@@ -217,7 +209,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private fun updateSelectionUI() {
         if (!::adapter.isInitialized) return
 
-        // Hiệu ứng trượt mượt khi thanh chọn hiện/ẩn (chỉ khi đổi chế độ)
         if (adapter.isSelectionMode != lastSelectionMode) {
             lastSelectionMode = adapter.isSelectionMode
             TransitionManager.beginDelayedTransition(
@@ -227,8 +218,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
 
         if (adapter.isSelectionMode) {
-            layoutNormalHeader.visibility = View.GONE // Ẩn thanh Danh sách phát
-            layoutSelectionHeader.visibility = View.VISIBLE // Hiện thanh Chọn
+            layoutNormalHeader.visibility = View.GONE
+            layoutSelectionHeader.visibility = View.VISIBLE
             
             tvSelectedCount.text = "Đã chọn ${adapter.selectedUris.size}"
             val color = if (adapter.isAllSelected()) "#7C3AED" else "#7A5BA8"
@@ -238,12 +229,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             ivSelectAllIcon.imageTintList =
                 if (adapter.isAllSelected()) null else ColorStateList.valueOf(Color.parseColor(color))
         } else {
-            layoutNormalHeader.visibility = View.VISIBLE // Hiện lại thanh Danh sách phát
-            layoutSelectionHeader.visibility = View.GONE // Ẩn thanh Chọn
+            layoutNormalHeader.visibility = View.VISIBLE
+            layoutSelectionHeader.visibility = View.GONE
         }
     }
 
-    // ================= Thanh dưới =================
     private fun setupBottomBar() {
         val c = controller ?: return
 
@@ -261,18 +251,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             updateHeaderUI()
         }
 
-        // Xóa hàng đợi: chỉ xóa các bài PHÍA SAU bài đang phát
-        rootView.findViewById<View>(R.id.btnClearQueue)?.setOnClickListener {
-            val currentIndex = c.currentMediaItemIndex
-            if (currentIndex + 1 < c.mediaItemCount) {
-                adapter.exitSelection()
-                c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
-                updateUI(scrollToCurrent = false)
-                Toast.makeText(requireContext(), "Đã xóa toàn bộ hàng đợi", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Hàng đợi đang trống", Toast.LENGTH_SHORT).show()
-            }
-        }
+        // ĐÃ XÓA ĐOẠN CODE XỬ LÝ NÚT XÓA HÀNG ĐỢI Ở ĐÂY
 
         updateHeaderUI()
     }
@@ -316,7 +295,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         c.addListener(listener)
     }
 
-    // ================= Cập nhật giao diện =================
     private fun updateUI(scrollToCurrent: Boolean) {
         val c = controller ?: return
         if (!::adapter.isInitialized || isDragging) return
@@ -333,7 +311,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    // "1h 00:30" nếu từ 1 giờ trở lên, ngược lại "MM:SS"
     private fun formatTotalDuration(ms: Long): String {
         val totalSec = ms / 1000
         val h = totalSec / 3600
