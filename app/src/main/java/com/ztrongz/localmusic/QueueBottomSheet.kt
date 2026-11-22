@@ -82,9 +82,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         dialog?.behavior?.apply {
             state = BottomSheetBehavior.STATE_EXPANDED
             skipCollapsed = true
-            peekHeight = ViewGroup.LayoutParams.MATCH_PARENT
+            isFitToContents = false
+            expandedOffset = 0
+            peekHeight = resources.displayMetrics.heightPixels
         }
         dialog?.window?.setDimAmount(0.4f)
+        
+        // Đảm bảo dữ liệu được cập nhật lại sau khi mở rộng
+        updateUI()
     }
 
     private fun setupRecyclerView() {
@@ -117,7 +122,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-        0 // TẮT VUỐT ĐỂ XÓA
+        0
     ) {
         override fun onMove(
             recyclerView: RecyclerView,
@@ -129,9 +134,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             return true
         }
 
-        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            // Không làm gì
-        }
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
 
         override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
             super.clearView(recyclerView, viewHolder)
