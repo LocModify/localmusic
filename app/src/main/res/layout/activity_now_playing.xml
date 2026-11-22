@@ -8,14 +8,14 @@
     android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
-    <!-- Background mới: Trắng + mây pastel -->
+    <!-- Lớp nền mờ (Gradient) -->
     <View
         android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_now_playing" />
 
-    <!-- Container nội dung -->
+    <!-- Container chứa toàn bộ nội dung -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
@@ -23,7 +23,7 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <!-- TOP BAR -->
+        <!-- 1. THANH TOP BAR -->
         <ImageView
             android:id="@+id/btnMinimize"
             android:layout_width="32dp"
@@ -59,7 +59,7 @@
             app:layout_constraintTop_toTopOf="@+id/btnMinimize"
             app:tint="#B45CFF" />
 
-        <!-- ẢNH BÌA & HIỆU ỨNG -->
+        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG -->
         <FrameLayout
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
@@ -117,7 +117,6 @@
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Các nốt nhạc mờ hơn một chút -->
             <ImageView
                 android:id="@+id/note1"
                 android:layout_width="34dp"
@@ -163,7 +162,7 @@
                 app:tint="#C9A5FF" />
         </FrameLayout>
 
-        <!-- TÊN BÀI HÁT & NGHỆ SĨ -->
+        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ (Đã thêm gravity="center") -->
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtSongTitle"
             android:layout_width="0dp"
@@ -171,6 +170,7 @@
             android:layout_marginTop="24dp"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="16dp"
+            android:gravity="center"
             android:text="Dreaming"
             android:textColor="#111111"
             android:textSize="26sp"
@@ -186,6 +186,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="16dp"
+            android:gravity="center"
             android:text="Unknown Artist"
             android:textColor="#7A5BA8"
             android:textSize="15sp"
@@ -205,7 +206,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
 
-        <!-- THANH TIẾN TRÌNH -->
+        <!-- 4. THANH TIẾN TRÌNH (SEEK BAR) -->
         <TextView
             android:id="@+id/txtCurrentTime"
             android:layout_width="wrap_content"
@@ -249,7 +250,7 @@
             app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
             app:layout_constraintTop_toTopOf="@+id/txtCurrentTime" />
 
-        <!-- CỤM NÚT ĐIỀU KHIỂN -->
+        <!-- 5. CỤM NÚT ĐIỀU KHIỂN -->
         <LinearLayout
             android:id="@+id/controlsLayout"
             android:layout_width="match_parent"
@@ -331,7 +332,7 @@
                 app:tint="#7C3AED" />
         </LinearLayout>
 
-        <!-- HÀNG CHỨC NĂNG DƯỚI CÙNG -->
+        <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
