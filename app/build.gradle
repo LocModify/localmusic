@@ -48,11 +48,10 @@ dependencies {
 
     implementation 'androidx.activity:activity-ktx:1.9.2'
     
-    // Thư viện Coil (nếu mày đang dùng để load ảnh)
+    // Thư viện Coil (load ảnh)
     implementation("io.coil-kt:coil:2.6.0")
 
     // --- CÁC THƯ VIỆN MỚI CHO GIAO DIỆN ---
-    implementation("com.scwang.wave:MultiWaveHeader:1.0.0-alpha-1") // Hiệu ứng sóng nền
-    implementation("com.github.andremion:musiccoverview:1.0.0") // Đĩa nhạc quay
-    implementation("com.airbnb.android:lottie:6.1.0") // Hiệu ứng Lottie (nếu cần)
+    implementation 'com.scwang.wave:MultiWaveHeader:1.0.0-andx' // Đã sửa thành -andx
+    implementation 'com.airbnb.android:lottie:6.1.0'
 }
