@@ -8,14 +8,13 @@
     android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
-    <!-- Background mới: Vector với mây và sóng -->
+    <!-- Background Mesh Gradient -->
     <View
         android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_now_playing" />
 
-    <!-- Container nội dung -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
@@ -23,14 +22,13 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <!-- THÊM NỐT NHẠC BAY XUNG QUANH MÀN HÌNH (Giống demo) -->
+        <!-- NỐT NHẠC BAY XUNG QUANH (Tạo chiều sâu) -->
         <ImageView
-            android:id="@+id/noteTop1"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginStart="40dp"
-            android:layout_marginTop="80dp"
-            android:alpha="0.5"
+            android:layout_marginTop="100dp"
+            android:alpha="0.4"
             android:src="@drawable/ic_chip_music"
             android:rotation="-15"
             app:tint="#C9A5FF"
@@ -38,24 +36,22 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/noteTop2"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="120dp"
-            android:layout_marginEnd="40dp"
-            android:alpha="0.6"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginTop="150dp"
+            android:layout_marginEnd="30dp"
+            android:alpha="0.5"
             android:src="@drawable/ic_chip_music"
-            android:rotation="20"
+            android:rotation="25"
             app:tint="#C9A5FF"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/noteSide1"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="30dp"
-            android:alpha="0.5"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="20dp"
+            android:alpha="0.4"
             android:src="@drawable/ic_chip_music"
             android:rotation="10"
             app:tint="#C9A5FF"
@@ -64,18 +60,16 @@
             app:layout_constraintTop_toTopOf="@+id/cardAlbumArt" />
 
         <ImageView
-            android:id="@+id/noteSide2"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_marginEnd="30dp"
-            android:alpha="0.6"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="20dp"
+            android:alpha="0.5"
             android:src="@drawable/ic_chip_music"
             android:rotation="-20"
             app:tint="#C9A5FF"
             app:layout_constraintBottom_toBottomOf="@+id/cardAlbumArt"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/cardAlbumArt" />
-        <!-- KẾT THÚC NỐT NHẠC BAY -->
 
         <!-- 1. THANH TOP BAR -->
         <ImageView
@@ -113,7 +107,7 @@
             app:layout_constraintTop_toTopOf="@+id/btnMinimize"
             app:tint="#B45CFF" />
 
-        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG -->
+        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG SÁNG RỰC RỠ -->
         <FrameLayout
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
@@ -125,28 +119,30 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
 
+            <!-- Hào quang phát sáng mạnh hơn -->
             <View
                 android:id="@+id/vGlow"
-                android:layout_width="320dp"
-                android:layout_height="320dp"
+                android:layout_width="360dp"
+                android:layout_height="360dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_cover_glow" />
 
+            <!-- Vòng quỹ đạo đậm hơn -->
             <View
                 android:id="@+id/vOrbit1"
-                android:layout_width="330dp"
-                android:layout_height="150dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_orbit"
-                android:rotation="25" />
-
-            <View
-                android:id="@+id/vOrbit2"
-                android:layout_width="330dp"
+                android:layout_width="350dp"
                 android:layout_height="170dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_orbit"
-                android:rotation="-35" />
+                android:rotation="20" />
+
+            <View
+                android:id="@+id/vOrbit2"
+                android:layout_width="350dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_orbit"
+                android:rotation="-30" />
 
             <View
                 android:layout_width="292dp"
@@ -171,53 +167,52 @@
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Nốt nhạc sát ảnh bìa -->
             <ImageView
                 android:id="@+id/note1"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:layout_gravity="top|start"
-                android:alpha="0.8"
+                android:alpha="0.9"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="-16dp"
                 android:translationY="4dp"
-                app:tint="#DCC6FF" />
+                app:tint="#C9A5FF" />
 
             <ImageView
                 android:id="@+id/note2"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_gravity="top|end"
-                android:alpha="0.8"
+                android:alpha="0.9"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="14dp"
                 android:translationY="-2dp"
-                app:tint="#DCC6FF" />
+                app:tint="#C9A5FF" />
 
             <ImageView
                 android:id="@+id/note3"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="bottom|start"
-                android:alpha="0.8"
+                android:alpha="0.9"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="-12dp"
                 android:translationY="2dp"
-                app:tint="#DCC6FF" />
+                app:tint="#C9A5FF" />
 
             <ImageView
                 android:id="@+id/note4"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:layout_gravity="bottom|end"
-                android:alpha="0.8"
+                android:alpha="0.9"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="12dp"
                 android:translationY="-6dp"
-                app:tint="#DCC6FF" />
+                app:tint="#C9A5FF" />
         </FrameLayout>
 
-        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ (CĂN GIỮA) -->
+        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtSongTitle"
             android:layout_width="match_parent"
@@ -228,7 +223,7 @@
             android:gravity="center"
             android:text="Dreaming"
             android:textColor="#111111"
-            android:textSize="26sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -238,7 +233,7 @@
             android:id="@+id/txtArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:paddingStart="60dp"
             android:paddingEnd="60dp"
             android:gravity="center"
@@ -267,7 +262,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
             android:text="00:00"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.04"
