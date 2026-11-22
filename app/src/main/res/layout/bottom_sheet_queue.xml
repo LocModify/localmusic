@@ -3,38 +3,72 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:background="#FFFFFF">
 
-    <View
-        android:id="@+id/dragHandle"
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_marginTop="12dp"
-        android:background="#D1C4E9"
-        app:layout_constraintEnd_toEndOf="parent"
+    <!-- Thanh Header -->
+    <ImageView
+        android:id="@+id/btnCloseQueue"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_close"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#1F1B2E" />
 
     <TextView
         android:id="@+id/tvQueueTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Hàng đợi"
+        android:text="Next up"
         android:textColor="#1F1B2E"
         android:textSize="20sp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCloseQueue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dragHandle" />
+        app:layout_constraintTop_toTopOf="@+id/btnCloseQueue" />
+
+    <ImageView
+        android:id="@+id/btnQueueShuffle"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_shuffle"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCloseQueue"
+        app:layout_constraintEnd_toStartOf="@+id/btnQueueRepeat"
+        app:layout_constraintTop_toTopOf="@+id/btnCloseQueue"
+        app:tint="#9E9E9E" />
+
+    <ImageView
+        android:id="@+id/btnQueueRepeat"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_repeat"
+        app:layout_constraintBottom_toBottomOf="@+id/btnCloseQueue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnCloseQueue"
+        app:tint="#9E9E9E" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="#F0F0F0"
+        app:layout_constraintTop_toBottomOf="@+id/btnCloseQueue" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQueue"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvQueueTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/divider" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
