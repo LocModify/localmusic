@@ -7,13 +7,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -24,7 +23,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
@@ -32,21 +31,18 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private var controller: MediaController? = null
     private lateinit var adapter: QueueAdapter
     private lateinit var rvQueue: RecyclerView
-
+    
     private lateinit var btnShuffleBottom: ImageView
     private lateinit var btnRepeatBottom: ImageView
+    private lateinit var tvPlaylistTitle: TextView
     private lateinit var tvPlaylistSubtitle: TextView
 
-    private var playerListener: Player.Listener? = null
-
-    // Vị trí bắt đầu / kết thúc của lần kéo thả hiện tại (-1 = không kéo)
-    private var dragFrom = -1
-    private var dragTo = -1
-
-    private companion object {
-        const val COLOR_ON = "#7C3AED"
-        const val COLOR_OFF = "#A892D8"
-    }
+    // View cho chế độ chọn
+    private lateinit var layoutNormalHeader: View
+    private lateinit var layoutSelectionHeader: View
+    private lateinit var tvSelectedCount: TextView
+    private lateinit var ivSelectAllIcon: ImageView
+    private lateinit var btnSelectAll: View
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,66 +57,58 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         rvQueue = view.findViewById(R.id.rvQueue)
         btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
+        tvPlaylistTitle = view.findViewById(R.id.tvPlaylistTitle)
         tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
-
-        // Bảng chiếm toàn màn hình: chừa chỗ cho thanh trạng thái phía trên
-        val resId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        val statusBarHeight = if (resId > 0) resources.getDimensionPixelSize(resId) else 0
-        view.setPadding(0, statusBarHeight, 0, 0)
+        
+        layoutNormalHeader = view.findViewById(R.id.layoutNormalHeader)
+        layoutSelectionHeader = view.findViewById(R.id.layoutSelectionHeader)
+        tvSelectedCount = view.findViewById(R.id.tvSelectedCount)
+        ivSelectAllIcon = view.findViewById(R.id.ivSelectAllIcon)
+        btnSelectAll = view.findViewById(R.id.btnSelectAll)
 
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
         controllerFuture.addListener({
-            if (!isAdded || view.parent == null) return@addListener
             controller = controllerFuture.get()
             setupRecyclerView()
             setupBottomBar()
+            setupSelectionHeader(view)
             observePlayer()
             updateUI()
-            scrollToCurrent()
         }, MoreExecutors.directExecutor())
     }
 
     override fun onStart() {
         super.onStart()
-        val bsDialog = dialog as? BottomSheetDialog ?: return
-
-        // Bảng cao bằng toàn bộ màn hình
-        val sheet = bsDialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
-        if (sheet != null) {
-            sheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            // Bỏ nền mặc định của Material để thấy nền kính mờ của mình
-            sheet.setBackgroundColor(Color.TRANSPARENT)
-            sheet.requestLayout()
-        }
-
-        bsDialog.behavior.apply {
-            peekHeight = resources.displayMetrics.heightPixels
-            skipCollapsed = true
+        val dialog = dialog as? BottomSheetDialog
+        dialog?.behavior?.apply {
             state = BottomSheetBehavior.STATE_EXPANDED
+            skipCollapsed = true
+            peekHeight = ViewGroup.LayoutParams.MATCH_PARENT
         }
+        dialog?.window?.setDimAmount(0.4f)
     }
 
     private fun setupRecyclerView() {
-        adapter = QueueAdapter(
-            items = emptyList(),
-            onItemClick = { position ->
-                val c = controller
-                if (c != null) {
-                    if (position == adapter.currentPlayingIndex) {
-                        // Bấm vào bài đang phát: bật / tạm dừng
-                        if (c.isPlaying) c.pause() else c.play()
-                    } else if (position < c.mediaItemCount) {
-                        c.seekTo(position, 0L)
-                        c.play()
-                    }
+        val c = controller ?: return
+        val startIndex = c.currentMediaItemIndex + 2
+
+        adapter = QueueAdapter(emptyList(), startIndex,
+            onItemClick = { index ->
+                val actualIndex = c.currentMediaItemIndex + 1 + index
+                if (actualIndex < c.mediaItemCount) {
+                    c.seekTo(actualIndex, 0L)
+                    c.play()
                 }
             },
             onStartDrag = { viewHolder ->
                 itemTouchHelper.startDrag(viewHolder)
             },
-            onMoreClick = { _, _ ->
+            onMoreClick = { index, _ ->
                 Toast.makeText(requireContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show()
+            },
+            onSelectionChanged = {
+                updateSelectionUI()
             }
         )
 
@@ -131,84 +119,125 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-        ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        0 // 0 = TẮT TÍNH NĂNG VUỐT ĐỂ XÓA
     ) {
-        // Bài đang phát không cho kéo hay vuốt xóa
-        override fun getMovementFlags(
-            recyclerView: RecyclerView,
-            viewHolder: RecyclerView.ViewHolder
-        ): Int {
-            val pos = viewHolder.bindingAdapterPosition
-            if (pos == RecyclerView.NO_POSITION || pos == adapter.currentPlayingIndex) return 0
-            return super.getMovementFlags(recyclerView, viewHolder)
-        }
-
-        // Kéo thả bắt đầu bằng nhấn giữ (đã gắn trong adapter)
-        override fun isLongPressDragEnabled(): Boolean = false
-
         override fun onMove(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
         ): Boolean {
-            val from = viewHolder.bindingAdapterPosition
-            val to = target.bindingAdapterPosition
-            if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
-
-            // Không cho kéo bài vượt qua bài đang phát (tránh lệch vị trí tô nền)
-            val cur = adapter.currentPlayingIndex
-            if (to == cur) return false
-            if ((from < cur && to > cur) || (from > cur && to < cur)) return false
-
-            if (dragFrom == -1) dragFrom = from
-            dragTo = to
-            adapter.onItemMove(from, to)
+            if (adapter.isSelectionMode) return false // Không cho kéo thả khi đang chọn
+            adapter.onItemMove(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
             return true
         }
 
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            val position = viewHolder.bindingAdapterPosition
-            val c = controller
-            if (c == null || position == RecyclerView.NO_POSITION) return
-            if (position < c.mediaItemCount) {
-                adapter.removeItem(position)
-                c.removeMediaItem(position)
-                Toast.makeText(requireContext(), "Đã xóa bài hát", Toast.LENGTH_SHORT).show()
-            }
+            // Không làm gì vì đã tắt vuốt
         }
 
-        // Thả tay: đồng bộ thứ tự mới sang trình phát (di chuyển 1 bài, không làm ngắt nhạc)
         override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
             super.clearView(recyclerView, viewHolder)
-            val c = controller
-            if (c != null && dragFrom != -1 && dragTo != -1 && dragFrom != dragTo) {
-                c.moveMediaItem(dragFrom, dragTo)
+            if (viewHolder.bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                syncPlayerQueue()
             }
-            dragFrom = -1
-            dragTo = -1
         }
     })
 
-    private fun setupBottomBar() {
-        val c = controller ?: return
-        val root = view ?: return
-
-        root.findViewById<View>(R.id.groupShuffle).setOnClickListener {
-            c.shuffleModeEnabled = !c.shuffleModeEnabled
-            updateHeaderUI()
+    private fun setupSelectionHeader(view: View) {
+        view.findViewById<View>(R.id.btnCancelSelection).setOnClickListener {
+            adapter.deselectAll()
         }
 
-        root.findViewById<View>(R.id.groupRepeat).setOnClickListener {
-            c.repeatMode = when (c.repeatMode) {
+        btnSelectAll.setOnClickListener {
+            if (adapter.selectedUris.size == adapter.itemCount && adapter.itemCount > 0) {
+                adapter.deselectAll()
+            } else {
+                adapter.selectAll()
+            }
+        }
+
+        view.findViewById<View>(R.id.btnDeleteSelected).setOnClickListener {
+            val itemsToDelete = adapter.getSelectedItems()
+            val c = controller ?: return@setOnClickListener
+            if (itemsToDelete.isNotEmpty()) {
+                // Xóa các bài đã chọn khỏi Player
+                val indicesToRemove = mutableListOf<Int>()
+                for (i in 0 until c.mediaItemCount) {
+                    if (itemsToDelete.contains(c.getMediaItemAt(i))) {
+                        indicesToRemove.add(i)
+                    }
+                }
+                // Sắp xếp giảm dần để xóa không bị lệch index
+                indicesToRemove.sortDescending()
+                for (idx in indicesToRemove) {
+                    c.removeMediaItem(idx)
+                }
+                
+                adapter.deselectAll()
+                updateUI()
+                Toast.makeText(requireContext(), "Đã xóa ${itemsToDelete.size} bài hát", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun updateSelectionUI() {
+        if (adapter.isSelectionMode) {
+            layoutNormalHeader.visibility = View.GONE
+            layoutSelectionHeader.visibility = View.VISIBLE
+            tvSelectedCount.text = "Đã chọn ${adapter.selectedUris.size}"
+
+            // Cập nhật trạng thái nút "Tất cả"
+            if (adapter.selectedUris.size == adapter.itemCount && adapter.itemCount > 0) {
+                ivSelectAllIcon.setColorFilter(Color.parseColor("#7C3AED"))
+            } else {
+                ivSelectAllIcon.setColorFilter(Color.parseColor("#7A5BA8"))
+            }
+        } else {
+            layoutNormalHeader.visibility = View.VISIBLE
+            layoutSelectionHeader.visibility = View.GONE
+        }
+    }
+
+    private fun syncPlayerQueue() {
+        val c = controller ?: return
+        val newList = adapter.getCurrentList()
+        val currentIndex = c.currentMediaItemIndex
+        
+        val itemsToKeep = mutableListOf<MediaItem>()
+        for (i in 0..currentIndex) {
+            itemsToKeep.add(c.getMediaItemAt(i))
+        }
+        
+        val wasPlaying = c.isPlaying
+        val currentPos = c.currentPosition
+        
+        c.clearMediaItems()
+        c.addMediaItems(itemsToKeep)
+        c.addMediaItems(newList)
+        c.seekTo(currentIndex, currentPos)
+        if (wasPlaying) c.play() else c.pause()
+    }
+
+    private fun setupBottomBar() {
+        val c = controller ?: return
+
+        btnShuffleBottom.setOnClickListener {
+            c.shuffleModeEnabled = !c.shuffleModeEnabled
+            updateHeaderUI()
+            updateUI()
+        }
+
+        btnRepeatBottom.setOnClickListener {
+            val nextMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
                 Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
                 else -> Player.REPEAT_MODE_OFF
             }
+            c.repeatMode = nextMode
             updateHeaderUI()
         }
 
-        // Xóa hàng đợi: chỉ xóa các bài SAU bài đang phát (các bài đã nghe vẫn giữ)
-        root.findViewById<View>(R.id.btnClearQueue).setOnClickListener {
+        view?.findViewById<View>(R.id.btnClearQueue)?.setOnClickListener {
             val currentIndex = c.currentMediaItemIndex
             if (currentIndex + 1 < c.mediaItemCount) {
                 c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
@@ -222,26 +251,25 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         updateHeaderUI()
     }
 
-    // Biểu tượng ngẫu nhiên / lặp lại: tím đậm khi bật, tím nhạt khi tắt
     private fun updateHeaderUI() {
         val c = controller ?: return
-        val onColor = ColorStateList.valueOf(Color.parseColor(COLOR_ON))
-        val offColor = ColorStateList.valueOf(Color.parseColor(COLOR_OFF))
+        val grayColor = Color.parseColor("#9E9E9E")
+        val purpleColor = Color.parseColor("#7C3AED")
 
-        btnShuffleBottom.imageTintList = if (c.shuffleModeEnabled) onColor else offColor
+        btnShuffleBottom.imageTintList = ColorStateList.valueOf(if (c.shuffleModeEnabled) purpleColor else grayColor)
 
         when (c.repeatMode) {
             Player.REPEAT_MODE_OFF -> {
                 btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
-                btnRepeatBottom.imageTintList = offColor
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(grayColor)
             }
             Player.REPEAT_MODE_ALL -> {
                 btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
-                btnRepeatBottom.imageTintList = onColor
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purpleColor)
             }
-            else -> {
+            Player.REPEAT_MODE_ONE -> {
                 btnRepeatBottom.setImageResource(R.drawable.ic_repeat_one)
-                btnRepeatBottom.imageTintList = onColor
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purpleColor)
             }
         }
     }
@@ -251,69 +279,40 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateUI()
-                // Sang bài mới thì cuộn tới bài đang phát
-                scrollToCurrent()
             }
-            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
                 updateUI()
-            }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (::adapter.isInitialized) adapter.setPlaying(isPlaying)
             }
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateHeaderUI()
+                updateUI() 
             }
             override fun onRepeatModeChanged(repeatMode: Int) {
                 updateHeaderUI()
             }
         }
-        playerListener = listener
         c.addListener(listener)
     }
 
-    // Hiển thị TOÀN BỘ hàng đợi; bài đang phát được tô nền tím ở đúng vị trí của nó
     private fun updateUI() {
         val c = controller ?: return
-        if (!::adapter.isInitialized) return
 
-        val items = mutableListOf<MediaItem>()
         var totalDurationMs = 0L
         for (i in 0 until c.mediaItemCount) {
-            val item = c.getMediaItemAt(i)
-            items.add(item)
-            totalDurationMs += item.mediaMetadata.durationMs ?: 0L
+            totalDurationMs += (c.getMediaItemAt(i).mediaMetadata.durationMs ?: 0L)
         }
+        val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(totalDurationMs)
+        tvPlaylistSubtitle.text = "${c.mediaItemCount} bài hát • $totalMinutes phút"
 
-        tvPlaylistSubtitle.text = "${items.size} bài hát • ${formatTotalDuration(totalDurationMs)}"
-
-        adapter.updateItems(items, c.currentMediaItemIndex)
-        adapter.setPlaying(c.isPlaying)
-    }
-
-    // Đưa bài đang phát lên đầu vùng nhìn thấy
-    private fun scrollToCurrent() {
-        if (!::adapter.isInitialized) return
-        val lm = rvQueue.layoutManager as? LinearLayoutManager ?: return
-        val pos = adapter.currentPlayingIndex
-        if (pos >= 0) lm.scrollToPositionWithOffset(pos, 0)
-    }
-
-    // Dưới 1 giờ: "42:30". Từ 1 giờ trở lên: "1h 00:30"
-    private fun formatTotalDuration(millis: Long): String {
-        val totalSeconds = (millis.coerceAtLeast(0L)) / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        return if (hours > 0) {
-            String.format(Locale.US, "%dh %02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format(Locale.US, "%02d:%02d", minutes, seconds)
+        val upcomingItems = mutableListOf<MediaItem>()
+        for (i in (c.currentMediaItemIndex + 1) until c.mediaItemCount) {
+            upcomingItems.add(c.getMediaItemAt(i))
         }
+        
+        adapter.updateItems(upcomingItems, -1)
     }
 
     override fun onDestroyView() {
-        playerListener?.let { controller?.removeListener(it) }
-        playerListener = null
         if (::controllerFuture.isInitialized) {
             MediaController.releaseFuture(controllerFuture)
         }
