@@ -33,7 +33,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnShuffle: ImageView
     private lateinit var btnRepeat: ImageView
 
-    // View cho phần Current Track
     private lateinit var ivCurrentThumbnail: ImageView
     private lateinit var tvCurrentTitle: TextView
     private lateinit var tvCurrentArtist: TextView
@@ -67,14 +66,20 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             setupRecyclerView()
             setupHeaderButtons()
             observePlayer()
-            updateUI()
+            
+            // Đảm bảo UI được cập nhật ngay khi controller sẵn sàng
+            view.post {
+                updateUI()
+            }
         }, MoreExecutors.directExecutor())
     }
 
     override fun onStart() {
         super.onStart()
         val dialog = dialog as? BottomSheetDialog
+        // Ép BottomSheet mở rộng toàn màn hình ngay lập tức
         dialog?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog?.behavior?.skipCollapsed = true
     }
 
     private fun setupRecyclerView() {
@@ -128,7 +133,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
         override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
             super.clearView(recyclerView, viewHolder)
-            // Khi thả tay sau khi kéo thả, cập nhật lại danh sách trong Player
             if (viewHolder.bindingAdapterPosition != RecyclerView.NO_POSITION) {
                 syncPlayerQueue()
             }
@@ -140,7 +144,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val newList = adapter.getCurrentList()
         val currentIndex = c.currentMediaItemIndex
         
-        // Lấy danh sách các bài đã phát (bao gồm bài hiện tại)
         val itemsToKeep = mutableListOf<MediaItem>()
         for (i in 0..currentIndex) {
             itemsToKeep.add(c.getMediaItemAt(i))
@@ -180,7 +183,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnShuffle.setOnClickListener {
             c.shuffleModeEnabled = !c.shuffleModeEnabled
             updateHeaderUI()
-            updateUI() // Cập nhật lại danh sách vì thứ tự có thể thay đổi
+            updateUI() 
         }
 
         btnRepeat.setOnClickListener {
@@ -256,7 +259,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             }
         }
 
-        // 2. Cập nhật danh sách Up Next (Chỉ lấy các bài sau bài hiện tại)
+        // 2. Cập nhật danh sách Up Next
         val upcomingItems = mutableListOf<MediaItem>()
         for (i in (c.currentMediaItemIndex + 1) until c.mediaItemCount) {
             upcomingItems.add(c.getMediaItemAt(i))
