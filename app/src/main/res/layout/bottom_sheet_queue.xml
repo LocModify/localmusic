@@ -152,6 +152,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Nút X: thoát chế độ chọn -->
+        <ImageView
+            android:id="@+id/btnExitSelection"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_close"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnDeleteSelected"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#1F1B2E" />
+
         <!-- Bên phải (đối diện): thùng rác đỏ -->
         <ImageView
             android:id="@+id/btnDeleteSelected"
