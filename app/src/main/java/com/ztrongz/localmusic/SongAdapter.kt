@@ -3,8 +3,6 @@ package com.ztrongz.localmusic
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ztrongz.localmusic.databinding.ItemSongBinding
 import java.util.concurrent.TimeUnit
@@ -26,30 +24,23 @@ class SongAdapter(
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
         val track = displayList[position]
+        
         with(holder.binding) {
-            // ⚠️ SỬA ID TẠI ĐÂY NẾU CẦN (Ví dụ: nếu layout của anh tên là tvTitle thay vì tvSongTitle)
-            tvSongTitle.text = track.title 
-            tvSongArtist.text = track.artist
-            
-            // ĐÃ SỬA LỖI: Dùng track.duration thay vì track.durationMs
-            tvSongDuration.text = formatTime(track.duration)
+            // Ánh xạ chính xác với các ID trong file item_song.xml của anh
+            tvTitle.text = track.title
+            tvArtist.text = track.artist
+            tvDuration.text = formatTime(track.duration)
 
             if (track.cover != null) {
-                ivSongCover.setImageBitmap(track.cover)
+                ivCover.setImageBitmap(track.cover)
             } else {
-                ivSongCover.setImageResource(R.drawable.bg_cover_default)
+                ivCover.setImageResource(R.drawable.bg_cover_default)
             }
 
-            // Hiển thị trạng thái yêu thích
-            if (track.isFavorite) {
-                ivFavoriteIcon.setImageResource(R.drawable.ic_heart_filled)
-                ivFavoriteIcon.setColorFilter(android.graphics.Color.parseColor("#FF3B5C"))
-            } else {
-                ivFavoriteIcon.setImageResource(R.drawable.ic_heart_outline)
-                ivFavoriteIcon.setColorFilter(android.graphics.Color.parseColor("#B45CFF"))
-            }
-
+            // Bắt sự kiện click vào bài hát
             root.setOnClickListener { onSongClick(track) }
+            
+            // Bắt sự kiện click vào nút 3 chấm
             btnMore.setOnClickListener { view -> onMoreClick(track, view) }
         }
     }
