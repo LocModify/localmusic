@@ -2,15 +2,16 @@ package com.ztrongz.localmusic
 
 import android.content.ComponentName
 import android.content.res.ColorStateList
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.snackbar.Snackbar
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 
@@ -30,6 +32,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var rvQueue: RecyclerView
     private lateinit var btnShuffle: ImageView
     private lateinit var btnRepeat: ImageView
+
+    // View cho phần Current Track
+    private lateinit var ivCurrentThumbnail: ImageView
+    private lateinit var tvCurrentTitle: TextView
+    private lateinit var tvCurrentArtist: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +51,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         rvQueue = view.findViewById(R.id.rvQueue)
         btnShuffle = view.findViewById(R.id.btnQueueShuffle)
         btnRepeat = view.findViewById(R.id.btnQueueRepeat)
+        
+        ivCurrentThumbnail = view.findViewById(R.id.ivCurrentThumbnail)
+        tvCurrentTitle = view.findViewById(R.id.tvCurrentTitle)
+        tvCurrentArtist = view.findViewById(R.id.tvCurrentArtist)
 
         view.findViewById<ImageView>(R.id.btnCloseQueue).setOnClickListener {
             dismiss()
@@ -56,11 +67,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             setupRecyclerView()
             setupHeaderButtons()
             observePlayer()
-            updateQueueList() // Cập nhật lần đầu
+            updateUI()
         }, MoreExecutors.directExecutor())
     }
 
-    // Mở rộng BottomSheet lên toàn màn hình khi hiển thị
     override fun onStart() {
         super.onStart()
         val dialog = dialog as? BottomSheetDialog
@@ -70,56 +80,94 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private fun setupRecyclerView() {
         adapter = QueueAdapter(emptyList(), 
             onItemClick = { index ->
-                controller?.seekTo(index, 0L)
-                controller?.play()
+                val c = controller ?: return@QueueAdapter
+                // Index trong adapter là index của "Up Next", nên phải cộng thêm currentIndex + 1
+                val actualIndex = c.currentMediaItemIndex + 1 + index
+                c.seekTo(actualIndex, 0L)
+                c.play()
             },
-            onMoreClick = { index, view ->
-                // Xử lý nút "..." nếu cần
+            onStartDrag = { viewHolder ->
+                itemTouchHelper.startDrag(viewHolder)
             }
         )
 
         rvQueue.layoutManager = LinearLayoutManager(requireContext())
         rvQueue.adapter = adapter
 
-        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
-            0
-        ) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                adapter.onItemMove(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
-                return true
-            }
+        itemTouchHelper.attachToRecyclerView(rvQueue)
+    }
 
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+    // Cấu hình ItemTouchHelper cho Kéo thả và Vuốt xóa
+    private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+        ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+        ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+    ) {
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            val fromPos = viewHolder.bindingAdapterPosition
+            val toPos = target.bindingAdapterPosition
+            adapter.onItemMove(fromPos, toPos)
+            return true
+        }
 
-            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
-                super.clearView(recyclerView, viewHolder)
-                val newList = adapter.getCurrentList()
-                controller?.let { c ->
-                    val wasPlaying = c.isPlaying
-                    val currentItem = c.currentMediaItem
-                    val currentPosition = c.currentPosition
-                    
-                    c.clearMediaItems()
-                    c.addMediaItems(newList)
-                    
-                    if (currentItem != null) {
-                        val newIndex = newList.indexOf(currentItem)
-                        if (newIndex != -1) {
-                            c.seekTo(newIndex, currentPosition)
-                            if (wasPlaying) c.play() else c.pause()
-                        }
-                    }
-                    adapter.setCurrentPlayingIndex(c.currentMediaItemIndex)
-                }
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            val position = viewHolder.bindingAdapterPosition
+            val c = controller ?: return
+            val actualIndex = c.currentMediaItemIndex + 1 + position
+            
+            if (actualIndex < c.mediaItemCount) {
+                val removedItem = c.getMediaItemAt(actualIndex)
+                c.removeMediaItem(actualIndex)
+                adapter.removeItem(position)
+                showUndoSnackbar(position, removedItem)
             }
         }
 
-        ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(rvQueue)
+        override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+            super.clearView(recyclerView, viewHolder)
+            // Khi thả tay sau khi kéo thả, cập nhật lại danh sách trong Player
+            if (viewHolder.bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                syncPlayerQueue()
+            }
+        }
+    })
+
+    private fun syncPlayerQueue() {
+        val c = controller ?: return
+        val newList = adapter.getCurrentList()
+        val currentIndex = c.currentMediaItemIndex
+        
+        // Chèn lại toàn bộ danh sách mới vào sau bài đang phát
+        // Lưu ý: Cách này đơn giản nhưng sẽ reset lại queue. 
+        // Cách chuẩn nhất là dùng c.moveMediaItem, nhưng do adapter thay đổi vị trí liên tục, ta cần đồng bộ lại.
+        val itemsToKeep = mutableListOf<MediaItem>()
+        for (i in 0..currentIndex) {
+            itemsToKeep.add(c.getMediaItemAt(i))
+        }
+        
+        c.clearMediaItems()
+        c.addMediaItems(itemsToKeep)
+        c.addMediaItems(newList)
+        c.seekTo(currentIndex, c.currentPosition)
+    }
+
+    private fun showUndoSnackbar(position: Int, removedItem: MediaItem) {
+        val snackbarContainer = view?.findViewById<View>(R.id.snackbarContainer) ?: return
+        val title = removedItem.mediaMetadata.title ?: "bài hát"
+        
+        Snackbar.make(snackbarContainer, "Đã xóa $title", Snackbar.LENGTH_LONG).apply {
+            setAction("Hoàn tác") {
+                controller?.let { c ->
+                    val actualIndex = c.currentMediaItemIndex + 1 + position
+                    c.addMediaItem(actualIndex, removedItem)
+                    adapter.addItem(position, removedItem)
+                }
+            }
+            show()
+        }
     }
 
     private fun setupHeaderButtons() {
@@ -128,6 +176,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnShuffle.setOnClickListener {
             c.shuffleModeEnabled = !c.shuffleModeEnabled
             updateHeaderUI()
+            updateUI()
         }
 
         btnRepeat.setOnClickListener {
@@ -169,19 +218,15 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val c = controller ?: return
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                updateQueueList()
+                updateUI()
             }
-            
-            // SỬA LỖI: Lắng nghe sự kiện Timeline thay đổi (Khi danh sách vừa đồng bộ xong)
-            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                updateQueueList()
+            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+                updateUI()
             }
-            
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateHeaderUI()
-                updateQueueList() // Cập nhật lại danh sách nếu bật Shuffle (thứ tự thay đổi)
+                updateUI() 
             }
-            
             override fun onRepeatModeChanged(repeatMode: Int) {
                 updateHeaderUI()
             }
@@ -189,13 +234,30 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         c.addListener(listener)
     }
 
-    private fun updateQueueList() {
+    private fun updateUI() {
         val c = controller ?: return
-        val items = mutableListOf<MediaItem>()
-        for (i in 0 until c.mediaItemCount) {
-            c.getMediaItemAt(i).let { items.add(it) }
+
+        // 1. Cập nhật phần Current Track
+        val currentItem = c.currentMediaItem
+        if (currentItem != null) {
+            tvCurrentTitle.text = currentItem.mediaMetadata.title ?: "Unknown Title"
+            tvCurrentArtist.text = currentItem.mediaMetadata.artist ?: "Unknown Artist"
+            
+            val artworkData = currentItem.mediaMetadata.artworkData
+            if (artworkData != null) {
+                val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+                ivCurrentThumbnail.setImageBitmap(bitmap)
+            } else {
+                ivCurrentThumbnail.setImageResource(R.drawable.bg_cover_default)
+            }
         }
-        adapter.updateItems(items, c.currentMediaItemIndex)
+
+        // 2. Cập nhật danh sách Up Next (Chỉ lấy từ currentIndex + 1 đến hết)
+        val upcomingItems = mutableListOf<MediaItem>()
+        for (i in (c.currentMediaItemIndex + 1) until c.mediaItemCount) {
+            upcomingItems.add(c.getMediaItemAt(i))
+        }
+        adapter.updateItems(upcomingItems)
     }
 
     override fun onDestroyView() {
