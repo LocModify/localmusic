@@ -7,20 +7,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
 import androidx.media3.common.MediaItem
+import androidx.recyclerview.widget.RecyclerView
 import java.util.Collections
-import java.util.concurrent.TimeUnit
 
 class QueueAdapter(
-    private var items: List<MediaItem>,
-    private val startIndex: Int,
+    items: List<MediaItem>,
+    // Số thứ tự hiển thị của dòng đầu tiên (mặc định 1)
+    private val startIndex: Int = 1,
     private val onItemClick: (Int) -> Unit,
     private val onStartDrag: (RecyclerView.ViewHolder) -> Unit,
     private val onMoreClick: (Int, View) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
+
+    // Vị trí của bài đang phát trong danh sách (-1 = không có)
     private var currentPlayingIndex = -1
 
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -41,47 +43,45 @@ class QueueAdapter(
     }
 
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
-        val mediaItem = mutableItems[position]
-        val metadata = mediaItem.mediaMetadata
+        val metadata = mutableItems[position].mediaMetadata
 
         holder.tvTitle.text = metadata.title ?: "Unknown Title"
         holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
-        
         holder.tvIndex.text = (position + startIndex).toString()
-
-        val durationMs = metadata.durationMs ?: 0L
-        holder.tvDuration.text = formatTime(durationMs)
+        holder.tvDuration.text = TimeUtils.format(metadata.durationMs ?: 0L)
 
         val artworkData = metadata.artworkData
         if (artworkData != null) {
             val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            holder.ivThumbnail.setImageBitmap(bitmap)
+            if (bitmap != null) holder.ivThumbnail.setImageBitmap(bitmap)
+            else holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         } else {
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
 
         if (position == currentPlayingIndex) {
+            // Bài đang phát: nền tím nhạt + biểu tượng sóng âm (ẩn số thứ tự, giữ chỗ cho thời lượng/ba chấm)
             holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
             holder.tvIndex.visibility = View.GONE
             holder.ivPlayingIcon.visibility = View.VISIBLE
-            holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
-            holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
-            holder.tvDuration.visibility = View.GONE 
+            holder.tvDuration.visibility = View.INVISIBLE
+            holder.btnMore.visibility = View.INVISIBLE
         } else {
             holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
             holder.tvIndex.visibility = View.VISIBLE
             holder.ivPlayingIcon.visibility = View.GONE
-            holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
-            holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
             holder.tvDuration.visibility = View.VISIBLE
+            holder.btnMore.visibility = View.VISIBLE
         }
 
         holder.itemView.setOnClickListener {
-            onItemClick(holder.bindingAdapterPosition)
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) onItemClick(pos)
         }
-        
+
         holder.btnMore.setOnClickListener {
-            onMoreClick(holder.bindingAdapterPosition, it)
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) onMoreClick(pos, it)
         }
 
         holder.itemView.setOnLongClickListener {
@@ -92,11 +92,25 @@ class QueueAdapter(
 
     override fun getItemCount(): Int = mutableItems.size
 
-    fun updateItems(newItems: List<MediaItem>, playingIndex: Int) {
+    // Cập nhật danh sách. playingIndex = vị trí bài đang phát để tô nền (-1 = không tô)
+    fun updateItems(newItems: List<MediaItem>, playingIndex: Int = 0) {
+        // Danh sách không đổi thì bỏ qua để không làm giật khi đang vuốt/kéo
+        if (playingIndex == currentPlayingIndex && isSameQueue(newItems)) return
         mutableItems.clear()
         mutableItems.addAll(newItems)
         currentPlayingIndex = playingIndex
         notifyDataSetChanged()
+    }
+
+    private fun isSameQueue(newItems: List<MediaItem>): Boolean {
+        if (newItems.size != mutableItems.size) return false
+        for (i in newItems.indices) {
+            val a = newItems[i]
+            val b = mutableItems[i]
+            if (a.localConfiguration?.uri != b.localConfiguration?.uri) return false
+            if (a.mediaMetadata.title != b.mediaMetadata.title) return false
+        }
+        return true
     }
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
@@ -119,12 +133,4 @@ class QueueAdapter(
     }
 
     fun getCurrentList(): List<MediaItem> = mutableItems
-
-    private fun formatTime(millis: Long): String {
-        return String.format(
-            "%02d:%02d",
-            TimeUnit.MILLISECONDS.toMinutes(millis),
-            TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-        )
-    }
 }
