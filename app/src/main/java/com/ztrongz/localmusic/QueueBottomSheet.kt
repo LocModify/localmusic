@@ -2,7 +2,6 @@ package com.ztrongz.localmusic
 
 import android.content.ComponentName
 import android.content.res.ColorStateList
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
@@ -20,9 +20,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.snackbar.Snackbar
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.concurrent.TimeUnit
 
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
@@ -30,12 +30,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private var controller: MediaController? = null
     private lateinit var adapter: QueueAdapter
     private lateinit var rvQueue: RecyclerView
-    private lateinit var btnShuffle: ImageView
-    private lateinit var btnRepeat: ImageView
-
-    private lateinit var ivCurrentThumbnail: ImageView
-    private lateinit var tvCurrentTitle: TextView
-    private lateinit var tvCurrentArtist: TextView
+    
+    private lateinit var btnShuffleBottom: ImageView
+    private lateinit var btnRepeatBottom: ImageView
+    private lateinit var tvPlaylistTitle: TextView
+    private lateinit var tvPlaylistSubtitle: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,44 +47,36 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rvQueue = view.findViewById(R.id.rvQueue)
-        btnShuffle = view.findViewById(R.id.btnQueueShuffle)
-        btnRepeat = view.findViewById(R.id.btnQueueRepeat)
-        
-        ivCurrentThumbnail = view.findViewById(R.id.ivCurrentThumbnail)
-        tvCurrentTitle = view.findViewById(R.id.tvCurrentTitle)
-        tvCurrentArtist = view.findViewById(R.id.tvCurrentArtist)
-
-        view.findViewById<ImageView>(R.id.btnCloseQueue).setOnClickListener {
-            dismiss()
-        }
+        btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
+        btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
+        tvPlaylistTitle = view.findViewById(R.id.tvPlaylistTitle)
+        tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
 
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
         controllerFuture.addListener({
             controller = controllerFuture.get()
             setupRecyclerView()
-            setupHeaderButtons()
+            setupBottomBar()
             observePlayer()
-            
-            // Đảm bảo UI được cập nhật ngay khi controller sẵn sàng
-            view.post {
-                updateUI()
-            }
+            updateUI()
         }, MoreExecutors.directExecutor())
     }
 
     override fun onStart() {
         super.onStart()
         val dialog = dialog as? BottomSheetDialog
-        // Ép BottomSheet mở rộng toàn màn hình ngay lập tức
         dialog?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
         dialog?.behavior?.skipCollapsed = true
+        dialog?.window?.setDimAmount(0.4f)
     }
 
     private fun setupRecyclerView() {
-        adapter = QueueAdapter(emptyList(), 
+        val c = controller ?: return
+        val startIndex = c.currentMediaItemIndex + 2
+
+        adapter = QueueAdapter(emptyList(), startIndex,
             onItemClick = { index ->
-                val c = controller ?: return@QueueAdapter
                 val actualIndex = c.currentMediaItemIndex + 1 + index
                 if (actualIndex < c.mediaItemCount) {
                     c.seekTo(actualIndex, 0L)
@@ -94,12 +85,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             },
             onStartDrag = { viewHolder ->
                 itemTouchHelper.startDrag(viewHolder)
+            },
+            onMoreClick = { index, _ ->
+                Toast.makeText(requireContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show()
             }
         )
 
         rvQueue.layoutManager = LinearLayoutManager(requireContext())
         rvQueue.adapter = adapter
-
         itemTouchHelper.attachToRecyclerView(rvQueue)
     }
 
@@ -112,9 +105,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             viewHolder: RecyclerView.ViewHolder,
             target: RecyclerView.ViewHolder
         ): Boolean {
-            val fromPos = viewHolder.bindingAdapterPosition
-            val toPos = target.bindingAdapterPosition
-            adapter.onItemMove(fromPos, toPos)
+            adapter.onItemMove(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
             return true
         }
 
@@ -124,10 +115,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val actualIndex = c.currentMediaItemIndex + 1 + position
             
             if (actualIndex < c.mediaItemCount) {
-                val removedItem = c.getMediaItemAt(actualIndex)
                 c.removeMediaItem(actualIndex)
                 adapter.removeItem(position)
-                showUndoSnackbar(position, removedItem)
+                Toast.makeText(requireContext(), "Đã xóa bài hát", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -159,34 +149,16 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         if (wasPlaying) c.play() else c.pause()
     }
 
-    private fun showUndoSnackbar(position: Int, removedItem: MediaItem) {
-        val snackbarContainer = view?.findViewById<View>(R.id.snackbarContainer) ?: return
-        val title = removedItem.mediaMetadata.title ?: "bài hát"
-        
-        Snackbar.make(snackbarContainer, "Đã xóa $title", Snackbar.LENGTH_LONG).apply {
-            setAction("Hoàn tác") {
-                controller?.let { c ->
-                    val actualIndex = c.currentMediaItemIndex + 1 + position
-                    if (actualIndex <= c.mediaItemCount) {
-                        c.addMediaItem(actualIndex, removedItem)
-                        adapter.addItem(position, removedItem)
-                    }
-                }
-            }
-            show()
-        }
-    }
-
-    private fun setupHeaderButtons() {
+    private fun setupBottomBar() {
         val c = controller ?: return
 
-        btnShuffle.setOnClickListener {
+        btnShuffleBottom.setOnClickListener {
             c.shuffleModeEnabled = !c.shuffleModeEnabled
             updateHeaderUI()
-            updateUI() 
+            updateUI()
         }
 
-        btnRepeat.setOnClickListener {
+        btnRepeatBottom.setOnClickListener {
             val nextMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
                 Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
@@ -195,6 +167,18 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             c.repeatMode = nextMode
             updateHeaderUI()
         }
+
+        view?.findViewById<View>(R.id.btnClearQueue)?.setOnClickListener {
+            val currentIndex = c.currentMediaItemIndex
+            if (currentIndex + 1 < c.mediaItemCount) {
+                c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
+                updateUI()
+                Toast.makeText(requireContext(), "Đã xóa toàn bộ hàng đợi", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Hàng đợi đang trống", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         updateHeaderUI()
     }
 
@@ -203,20 +187,20 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val grayColor = Color.parseColor("#9E9E9E")
         val purpleColor = Color.parseColor("#7C3AED")
 
-        btnShuffle.imageTintList = ColorStateList.valueOf(if (c.shuffleModeEnabled) purpleColor else grayColor)
+        btnShuffleBottom.imageTintList = ColorStateList.valueOf(if (c.shuffleModeEnabled) purpleColor else grayColor)
 
         when (c.repeatMode) {
             Player.REPEAT_MODE_OFF -> {
-                btnRepeat.setImageResource(R.drawable.ic_repeat)
-                btnRepeat.imageTintList = ColorStateList.valueOf(grayColor)
+                btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(grayColor)
             }
             Player.REPEAT_MODE_ALL -> {
-                btnRepeat.setImageResource(R.drawable.ic_repeat)
-                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
+                btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purpleColor)
             }
             Player.REPEAT_MODE_ONE -> {
-                btnRepeat.setImageResource(R.drawable.ic_repeat_one)
-                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
+                btnRepeatBottom.setImageResource(R.drawable.ic_repeat_one)
+                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purpleColor)
             }
         }
     }
@@ -244,27 +228,19 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private fun updateUI() {
         val c = controller ?: return
 
-        // 1. Cập nhật phần Current Track
-        val currentItem = c.currentMediaItem
-        if (currentItem != null) {
-            tvCurrentTitle.text = currentItem.mediaMetadata.title ?: "Unknown Title"
-            tvCurrentArtist.text = currentItem.mediaMetadata.artist ?: "Unknown Artist"
-            
-            val artworkData = currentItem.mediaMetadata.artworkData
-            if (artworkData != null) {
-                val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-                ivCurrentThumbnail.setImageBitmap(bitmap)
-            } else {
-                ivCurrentThumbnail.setImageResource(R.drawable.bg_cover_default)
-            }
+        var totalDurationMs = 0L
+        for (i in 0 until c.mediaItemCount) {
+            totalDurationMs += (c.getMediaItemAt(i).mediaMetadata.durationMs ?: 0L)
         }
+        val totalMinutes = TimeUnit.MILLISECONDS.toMinutes(totalDurationMs)
+        tvPlaylistSubtitle.text = "${c.mediaItemCount} bài hát • $totalMinutes phút"
 
-        // 2. Cập nhật danh sách Up Next
         val upcomingItems = mutableListOf<MediaItem>()
         for (i in (c.currentMediaItemIndex + 1) until c.mediaItemCount) {
             upcomingItems.add(c.getMediaItemAt(i))
         }
-        adapter.updateItems(upcomingItems)
+        
+        adapter.updateItems(upcomingItems, -1)
     }
 
     override fun onDestroyView() {
