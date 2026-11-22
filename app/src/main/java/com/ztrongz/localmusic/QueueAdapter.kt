@@ -23,7 +23,15 @@ class QueueAdapter(
     private val mutableItems = items.toMutableList()
 
     // Vị trí của bài đang phát trong danh sách (-1 = không có)
-    private var currentPlayingIndex = -1
+    var currentPlayingIndex = -1
+        private set
+
+    // Nhạc đang phát hay tạm dừng (để bật/tắt chuyển động của cột sóng âm)
+    private var isPlaying = false
+
+    private companion object {
+        const val PAYLOAD_PLAYING = "playing"
+    }
 
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val itemContainer: View = view.findViewById(R.id.itemContainer)
@@ -32,7 +40,7 @@ class QueueAdapter(
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
         val tvDuration: TextView = view.findViewById(R.id.tvDuration)
         val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
-        val ivPlayingIcon: ImageView = view.findViewById(R.id.ivPlayingIcon)
+        val playingBars: PlayingBarsView = view.findViewById(R.id.viewPlayingBars)
         val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
     }
 
@@ -42,11 +50,26 @@ class QueueAdapter(
         return QueueViewHolder(view)
     }
 
+    // Chỉ cập nhật cột sóng âm khi trạng thái phát/dừng thay đổi (không vẽ lại cả dòng)
+    override fun onBindViewHolder(
+        holder: QueueViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.contains(PAYLOAD_PLAYING)) {
+            holder.playingBars.setPlaying(position == currentPlayingIndex && isPlaying)
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
+        }
+    }
+
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
         val metadata = mutableItems[position].mediaMetadata
 
-        holder.tvTitle.text = metadata.title ?: "Unknown Title"
-        holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
+        val title = metadata.title?.toString()
+        val artist = metadata.artist?.toString()
+        holder.tvTitle.text = if (title.isNullOrBlank()) "Unknown Title" else title
+        holder.tvArtist.text = if (artist.isNullOrBlank()) "Unknown Artist" else artist
         holder.tvIndex.text = (position + startIndex).toString()
         holder.tvDuration.text = TimeUtils.format(metadata.durationMs ?: 0L)
 
@@ -60,16 +83,18 @@ class QueueAdapter(
         }
 
         if (position == currentPlayingIndex) {
-            // Bài đang phát: nền tím nhạt + biểu tượng sóng âm (ẩn số thứ tự, giữ chỗ cho thời lượng/ba chấm)
+            // Bài đang phát: nền tím nhạt + cột sóng âm chuyển động (ẩn số thứ tự, giữ chỗ cho thời lượng/ba chấm)
             holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
             holder.tvIndex.visibility = View.GONE
-            holder.ivPlayingIcon.visibility = View.VISIBLE
+            holder.playingBars.visibility = View.VISIBLE
+            holder.playingBars.setPlaying(isPlaying)
             holder.tvDuration.visibility = View.INVISIBLE
             holder.btnMore.visibility = View.INVISIBLE
         } else {
             holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
             holder.tvIndex.visibility = View.VISIBLE
-            holder.ivPlayingIcon.visibility = View.GONE
+            holder.playingBars.setPlaying(false)
+            holder.playingBars.visibility = View.GONE
             holder.tvDuration.visibility = View.VISIBLE
             holder.btnMore.visibility = View.VISIBLE
         }
@@ -102,6 +127,15 @@ class QueueAdapter(
         notifyDataSetChanged()
     }
 
+    // Báo nhạc đang phát hay tạm dừng để cột sóng âm chạy / đứng yên
+    fun setPlaying(playing: Boolean) {
+        if (isPlaying == playing) return
+        isPlaying = playing
+        if (currentPlayingIndex in mutableItems.indices) {
+            notifyItemChanged(currentPlayingIndex, PAYLOAD_PLAYING)
+        }
+    }
+
     private fun isSameQueue(newItems: List<MediaItem>): Boolean {
         if (newItems.size != mutableItems.size) return false
         for (i in newItems.indices) {
@@ -121,6 +155,8 @@ class QueueAdapter(
     fun removeItem(position: Int) {
         if (position in mutableItems.indices) {
             mutableItems.removeAt(position)
+            // Xóa bài nằm trước bài đang phát thì vị trí bài đang phát lùi 1
+            if (position < currentPlayingIndex) currentPlayingIndex -= 1
             notifyItemRemoved(position)
         }
     }
@@ -128,6 +164,7 @@ class QueueAdapter(
     fun addItem(position: Int, item: MediaItem) {
         if (position <= mutableItems.size) {
             mutableItems.add(position, item)
+            if (position <= currentPlayingIndex) currentPlayingIndex += 1
             notifyItemInserted(position)
         }
     }
