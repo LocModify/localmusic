@@ -1,57 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Nền Now Playing: trắng chuyển lavender rất nhạt + lớp sóng/lụa tím phía trên -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Nền trắng tinh khiết -->
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" />
-        </shape>
-    </item>
-
-    <!-- Mây Tím (Góc trên trái) -->
     <item>
         <shape android:shape="rectangle">
             <gradient
-                android:type="radial"
-                android:gradientRadius="400dp"
-                android:centerX="0.1"
-                android:centerY="0.1"
-                android:startColor="#50E8D5FF"
-                android:endColor="#00FFFFFF" />
-        </shape>
-    </item>
-
-    <!-- Mây Xanh (Góc trên phải) -->
-    <item>
-        <shape android:shape="rectangle">
-            <gradient
-                android:type="radial"
-                android:gradientRadius="400dp"
-                android:centerX="0.9"
-                android:centerY="0.2"
-                android:startColor="#40D5EEFF"
-                android:endColor="#00FFFFFF" />
-        </shape>
-    </item>
-
-    <!-- Dải sóng mây Tím (Dưới đáy) -->
-    <item android:bottom="0dp" android:top="550dp">
-        <shape android:shape="oval">
-            <gradient
-                android:type="linear"
                 android:angle="270"
-                android:startColor="#60E8D5FF"
-                android:endColor="#90DCC6FF" />
+                android:startColor="#FFFFFF"
+                android:endColor="#F8F2FF"
+                android:type="linear" />
         </shape>
     </item>
-
-    <!-- Dải sóng mây Hồng (Dưới đáy) -->
-    <item android:bottom="0dp" android:top="650dp">
-        <shape android:shape="oval">
-            <gradient
-                android:type="linear"
-                android:angle="90"
-                android:startColor="#60FFE5F1"
-                android:endColor="#30E8D5FF" />
-        </shape>
-    </item>
+    <item android:drawable="@drawable/bg_waves" />
 </layer-list>
