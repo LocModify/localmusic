@@ -10,11 +10,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -53,8 +56,15 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             setupRecyclerView()
             setupHeaderButtons()
             observePlayer()
-            updateQueueList() // Load danh sách ngay lập tức
+            updateQueueList() // Cập nhật lần đầu
         }, MoreExecutors.directExecutor())
+    }
+
+    // Mở rộng BottomSheet lên toàn màn hình khi hiển thị
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog as? BottomSheetDialog
+        dialog?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun setupRecyclerView() {
@@ -64,7 +74,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                 controller?.play()
             },
             onMoreClick = { index, view ->
-                // Xử lý nút "..." nếu cần (ví dụ: xóa khỏi hàng đợi)
+                // Xử lý nút "..." nếu cần
             }
         )
 
@@ -160,11 +170,18 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateQueueList()
-                updateHeaderUI()
             }
+            
+            // SỬA LỖI: Lắng nghe sự kiện Timeline thay đổi (Khi danh sách vừa đồng bộ xong)
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                updateQueueList()
+            }
+            
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateHeaderUI()
+                updateQueueList() // Cập nhật lại danh sách nếu bật Shuffle (thứ tự thay đổi)
             }
+            
             override fun onRepeatModeChanged(repeatMode: Int) {
                 updateHeaderUI()
             }
@@ -174,13 +191,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private fun updateQueueList() {
         val c = controller ?: return
-        
-        // SỬA LỖI: Lấy danh sách bằng mediaItemCount thay vì currentTimeline
         val items = mutableListOf<MediaItem>()
         for (i in 0 until c.mediaItemCount) {
             c.getMediaItemAt(i).let { items.add(it) }
         }
-        
         adapter.updateItems(items, c.currentMediaItemIndex)
     }
 
