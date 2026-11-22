@@ -231,7 +231,7 @@ class NowPlayingActivity : AppCompatActivity() {
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
         }
 
-        // Đồng bộ trạng thái ban đầu cho 2 nút
+        // Đồng bộ trạng thái ban đầu cho 2 nút khi mở màn hình
         updateShuffleRepeatUI(c.shuffleModeEnabled, c.repeatMode)
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -248,19 +248,29 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // Cập nhật UI cho nút Shuffle và Repeat
+    // Cập nhật UI cho nút Shuffle và Repeat theo thiết kế mới
     private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
-        val purpleColor = Color.parseColor("#7C3AED")
-        val whiteColor = Color.WHITE
+        val grayColor = Color.parseColor("#9E9E9E") // Màu xám khi tắt
+        val purpleColor = Color.parseColor("#7C3AED") // Màu tím khi bật
 
-        // Cập nhật UI cho Shuffle
-        btnShuffle.isSelected = isShuffleOn
-        btnShuffle.imageTintList = ColorStateList.valueOf(if (isShuffleOn) whiteColor else purpleColor)
+        // 1. Cập nhật UI cho Shuffle (Chỉ đổi màu Icon)
+        btnShuffle.imageTintList = ColorStateList.valueOf(if (isShuffleOn) purpleColor else grayColor)
 
-        // Cập nhật UI cho Repeat
-        val isRepeatOn = repeatMode != Player.REPEAT_MODE_OFF
-        btnRepeat.isSelected = isRepeatOn
-        btnRepeat.imageTintList = ColorStateList.valueOf(if (isRepeatOn) whiteColor else purpleColor)
+        // 2. Cập nhật UI cho Repeat (Đổi màu và đổi Icon)
+        when (repeatMode) {
+            Player.REPEAT_MODE_OFF -> {
+                btnRepeat.setImageResource(R.drawable.ic_repeat)
+                btnRepeat.imageTintList = ColorStateList.valueOf(grayColor)
+            }
+            Player.REPEAT_MODE_ALL -> {
+                btnRepeat.setImageResource(R.drawable.ic_repeat)
+                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
+            }
+            Player.REPEAT_MODE_ONE -> {
+                btnRepeat.setImageResource(R.drawable.ic_repeat_one)
+                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
+            }
+        }
     }
 
     private val playerListener = object : Player.Listener {
@@ -277,7 +287,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 startSeekBarUpdater()
             }
         }
-        // Lắng nghe sự thay đổi của Shuffle và Repeat
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
             updateShuffleRepeatUI(shuffleModeEnabled, controller?.repeatMode ?: Player.REPEAT_MODE_OFF)
         }
@@ -297,11 +306,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         val artworkData = metadata.artworkData
         if (artworkData == null || artworkData.contentEquals(defaultArtworkBytes)) {
-            // Ảnh mặc định: giữ nguyên, KHÔNG cắt viền (nền tối của ảnh không phải viền đen)
             imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
         } else {
             val decoded = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            // Cắt viền đen (nếu có) để ảnh vừa khít khung tròn
             val bitmap = if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
             if (bitmap != null) imgAlbumArt.setImageBitmap(bitmap)
             else imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
@@ -318,13 +325,11 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
-        // Ảnh bìa chỉ xoay khi đang phát
         val spin = coverSpinAnimator
         if (spin != null) {
             if (isPlaying && spin.isPaused) spin.resume()
             if (!isPlaying && spin.isRunning && !spin.isPaused) spin.pause()
         }
-        // Hào quang quanh nút Play chỉ phập phồng khi đang phát
         val glow = playGlowAnimator
         if (glow != null) {
             if (isPlaying && glow.isPaused) glow.resume()
@@ -419,7 +424,6 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun formatTime(millis: Long): String = TimeUtils.format(millis)
 
     override fun onDestroy() {
-        // Dừng các hiệu ứng lặp vô hạn để không rò rỉ bộ nhớ
         effectAnimators.forEach { it.cancel() }
         effectAnimators.clear()
         handler.removeCallbacks(seekBarUpdater)
