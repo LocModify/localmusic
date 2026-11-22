@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.media3.common.MediaItem
+import android.view.animation.OvershootInterpolator
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Collections
 import java.util.concurrent.TimeUnit
@@ -28,7 +30,14 @@ class QueueAdapter(
     private val onSelectionChanged: () -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
+    companion object {
+        const val PAYLOAD_MODE = "mode"       // vào/ra chế độ chọn nhiều (có hiệu ứng mờ dần)
+        const val PAYLOAD_TOGGLE = "toggle"   // tick/bỏ tick (có hiệu ứng nảy nhẹ)
+        const val PAYLOAD_REBIND = "rebind"   // vẽ lại đầy đủ nhưng không nháy
+    }
+
     private val mutableItems = mutableListOf<MediaItem>()
+    private val bitmapCache = HashMap<String, android.graphics.Bitmap?>()
 
     // Vị trí bài đang phát (-1 nếu không có)
     var currentPlayingIndex = -1
@@ -72,7 +81,9 @@ class QueueAdapter(
 
         val artworkData = metadata.artworkData
         if (artworkData != null) {
-            holder.ivThumbnail.setImageBitmap(BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size))
+            // Cache ảnh bìa để cuộn/vẽ lại không bị giật
+            val bmp = bitmapCache.getOrPut(uri) { BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size) }
+            holder.ivThumbnail.setImageBitmap(bmp)
         } else {
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
@@ -92,28 +103,7 @@ class QueueAdapter(
             holder.tvDuration.visibility = View.VISIBLE
         }
 
-        // ----- Cột số thứ tự <-> vòng tròn chọn (cùng 1 vị trí, dùng INVISIBLE để không lệch layout) -----
-        if (isSelectionMode) {
-            holder.tvIndex.visibility = View.INVISIBLE
-            holder.btnMore.visibility = View.INVISIBLE
-            if (isCurrent) {
-                // Bài đang phát không được chọn/xóa
-                holder.ivSelectCheckbox.visibility = View.INVISIBLE
-            } else {
-                holder.ivSelectCheckbox.visibility = View.VISIBLE
-                if (selectedUris.contains(uri)) {
-                    holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_filled)
-                    holder.ivSelectCheckbox.imageTintList = null
-                } else {
-                    holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline)
-                    holder.ivSelectCheckbox.imageTintList = ColorStateList.valueOf(Color.parseColor("#9E9E9E"))
-                }
-            }
-        } else {
-            holder.ivSelectCheckbox.visibility = View.GONE
-            holder.btnMore.visibility = View.VISIBLE
-            holder.tvIndex.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
-        }
+        applySelectionState(holder, position)
 
         // ----- Sự kiện -----
         holder.itemView.setOnClickListener {
@@ -130,10 +120,7 @@ class QueueAdapter(
         holder.itemView.setOnLongClickListener {
             val pos = holder.bindingAdapterPosition
             if (pos == RecyclerView.NO_POSITION || pos == currentPlayingIndex) return@setOnLongClickListener true
-            if (!isSelectionMode) {
-                isSelectionMode = true
-                toggleSelection(uriOf(mutableItems[pos]))
-            }
+            if (!isSelectionMode) startSelection(uriOf(mutableItems[pos]))
             true
         }
 
@@ -151,16 +138,90 @@ class QueueAdapter(
         }
     }
 
+    // Bind từng phần (payload) để không bị nháy và có animation mượt
+    override fun onBindViewHolder(holder: QueueViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty() || payloads.contains(PAYLOAD_REBIND)) {
+            onBindViewHolder(holder, position)
+            return
+        }
+        applySelectionState(holder, position)
+        val isCurrent = position == currentPlayingIndex
+
+        if (payloads.contains(PAYLOAD_MODE)) {
+            // Cột số <-> vòng tròn chọn: mờ dần
+            val fadeIn = if (isSelectionMode) holder.ivSelectCheckbox else holder.tvIndex
+            if (fadeIn.visibility == View.VISIBLE && !(isCurrent && !isSelectionMode)) {
+                fadeIn.alpha = 0f
+                fadeIn.animate().alpha(1f).setDuration(200).start()
+            }
+            if (holder.btnMore.visibility == View.VISIBLE) {
+                holder.btnMore.alpha = 0f
+                holder.btnMore.animate().alpha(1f).setDuration(200).start()
+            }
+        } else if (payloads.contains(PAYLOAD_TOGGLE) && holder.ivSelectCheckbox.visibility == View.VISIBLE) {
+            holder.ivSelectCheckbox.scaleX = 0.7f
+            holder.ivSelectCheckbox.scaleY = 0.7f
+            holder.ivSelectCheckbox.animate().scaleX(1f).scaleY(1f)
+                .setDuration(180).setInterpolator(OvershootInterpolator(2f)).start()
+        }
+    }
+
+    // Trạng thái hiển thị của cột số / vòng tròn chọn / nút 3 chấm
+    private fun applySelectionState(holder: QueueViewHolder, position: Int) {
+        val item = mutableItems[position]
+        val isCurrent = position == currentPlayingIndex
+
+        holder.tvIndex.animate().cancel()
+        holder.ivSelectCheckbox.animate().cancel()
+        holder.btnMore.animate().cancel()
+        holder.tvIndex.alpha = 1f
+        holder.ivSelectCheckbox.alpha = 1f
+        holder.btnMore.alpha = 1f
+        holder.ivSelectCheckbox.scaleX = 1f
+        holder.ivSelectCheckbox.scaleY = 1f
+
+        if (isSelectionMode) {
+            holder.tvIndex.visibility = View.INVISIBLE
+            holder.btnMore.visibility = View.INVISIBLE
+            if (isCurrent) {
+                holder.ivSelectCheckbox.visibility = View.INVISIBLE // bài đang phát không chọn được
+            } else {
+                holder.ivSelectCheckbox.visibility = View.VISIBLE
+                if (selectedUris.contains(uriOf(item))) {
+                    holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_filled)
+                    holder.ivSelectCheckbox.imageTintList = null
+                } else {
+                    holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline)
+                    holder.ivSelectCheckbox.imageTintList = ColorStateList.valueOf(Color.parseColor("#9E9E9E"))
+                }
+            }
+        } else {
+            holder.ivSelectCheckbox.visibility = View.GONE
+            holder.btnMore.visibility = View.VISIBLE
+            holder.tvIndex.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
+        }
+    }
+
     override fun getItemCount(): Int = mutableItems.size
 
     private fun uriOf(item: MediaItem): String = item.localConfiguration?.uri.toString()
 
     // ====== Chọn nhiều ======
+    private fun positionOf(uri: String) = mutableItems.indexOfFirst { uriOf(it) == uri }
+
+    /** Bấm 1 bài khi đang chọn: tick / bỏ tick (KHÔNG tự thoát chế độ chọn) */
     fun toggleSelection(uri: String) {
         if (!selectedUris.remove(uri)) selectedUris.add(uri)
-        // Bỏ chọn hết thì tự thoát chế độ chọn
-        if (selectedUris.isEmpty()) isSelectionMode = false
-        notifyDataSetChanged()
+        val pos = positionOf(uri)
+        if (pos != -1) notifyItemChanged(pos, PAYLOAD_TOGGLE)
+        onSelectionChanged()
+    }
+
+    /** Giữ lâu: vào chế độ chọn và tick bài đó */
+    private fun startSelection(uri: String) {
+        isSelectionMode = true
+        selectedUris.add(uri)
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_MODE)
         onSelectionChanged()
     }
 
@@ -174,31 +235,49 @@ class QueueAdapter(
         mutableItems.forEachIndexed { i, item ->
             if (i != currentPlayingIndex) selectedUris.add(uriOf(item))
         }
-        isSelectionMode = selectedUris.isNotEmpty()
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_TOGGLE)
         onSelectionChanged()
     }
 
-    fun deselectAll() {
+    /** Bỏ tick hết nhưng VẪN Ở chế độ chọn nhiều */
+    fun clearSelection() {
+        selectedUris.clear()
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_TOGGLE)
+        onSelectionChanged()
+    }
+
+    /** Thoát hẳn chế độ chọn nhiều */
+    fun exitSelection() {
         selectedUris.clear()
         isSelectionMode = false
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_MODE)
         onSelectionChanged()
     }
 
     // ====== Dữ liệu ======
     fun updateItems(newItems: List<MediaItem>, playingIndex: Int) {
+        val old = mutableItems.toList()
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize() = old.size
+            override fun getNewListSize() = newItems.size
+            override fun areItemsTheSame(o: Int, n: Int) = uriOf(old[o]) == uriOf(newItems[n])
+            override fun areContentsTheSame(o: Int, n: Int): Boolean {
+                val a = old[o].mediaMetadata
+                val b = newItems[n].mediaMetadata
+                return a.title == b.title && a.artist == b.artist && a.durationMs == b.durationMs
+            }
+        })
+
         mutableItems.clear()
         mutableItems.addAll(newItems)
         currentPlayingIndex = playingIndex
+        diff.dispatchUpdatesTo(this)
+        // Vẽ lại số thứ tự / highlight bài đang phát mà không nháy
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_REBIND)
 
         // Bỏ các bài đã chọn nhưng không còn trong hàng đợi
         val existing = mutableItems.map { uriOf(it) }.toSet()
-        val changed = selectedUris.retainAll(existing)
-        if (selectedUris.isEmpty()) isSelectionMode = false
-
-        notifyDataSetChanged()
-        if (changed || !isSelectionMode) onSelectionChanged()
+        if (selectedUris.retainAll(existing)) onSelectionChanged()
     }
 
     fun onItemMove(from: Int, to: Int) {
