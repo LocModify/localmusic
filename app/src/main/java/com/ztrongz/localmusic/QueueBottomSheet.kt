@@ -81,10 +81,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         adapter = QueueAdapter(emptyList(), 
             onItemClick = { index ->
                 val c = controller ?: return@QueueAdapter
-                // Index trong adapter là index của "Up Next", nên phải cộng thêm currentIndex + 1
                 val actualIndex = c.currentMediaItemIndex + 1 + index
-                c.seekTo(actualIndex, 0L)
-                c.play()
+                if (actualIndex < c.mediaItemCount) {
+                    c.seekTo(actualIndex, 0L)
+                    c.play()
+                }
             },
             onStartDrag = { viewHolder ->
                 itemTouchHelper.startDrag(viewHolder)
@@ -97,7 +98,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         itemTouchHelper.attachToRecyclerView(rvQueue)
     }
 
-    // Cấu hình ItemTouchHelper cho Kéo thả và Vuốt xóa
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         ItemTouchHelper.UP or ItemTouchHelper.DOWN,
         ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
@@ -140,18 +140,20 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val newList = adapter.getCurrentList()
         val currentIndex = c.currentMediaItemIndex
         
-        // Chèn lại toàn bộ danh sách mới vào sau bài đang phát
-        // Lưu ý: Cách này đơn giản nhưng sẽ reset lại queue. 
-        // Cách chuẩn nhất là dùng c.moveMediaItem, nhưng do adapter thay đổi vị trí liên tục, ta cần đồng bộ lại.
+        // Lấy danh sách các bài đã phát (bao gồm bài hiện tại)
         val itemsToKeep = mutableListOf<MediaItem>()
         for (i in 0..currentIndex) {
             itemsToKeep.add(c.getMediaItemAt(i))
         }
         
+        val wasPlaying = c.isPlaying
+        val currentPos = c.currentPosition
+        
         c.clearMediaItems()
         c.addMediaItems(itemsToKeep)
         c.addMediaItems(newList)
-        c.seekTo(currentIndex, c.currentPosition)
+        c.seekTo(currentIndex, currentPos)
+        if (wasPlaying) c.play() else c.pause()
     }
 
     private fun showUndoSnackbar(position: Int, removedItem: MediaItem) {
@@ -162,8 +164,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             setAction("Hoàn tác") {
                 controller?.let { c ->
                     val actualIndex = c.currentMediaItemIndex + 1 + position
-                    c.addMediaItem(actualIndex, removedItem)
-                    adapter.addItem(position, removedItem)
+                    if (actualIndex <= c.mediaItemCount) {
+                        c.addMediaItem(actualIndex, removedItem)
+                        adapter.addItem(position, removedItem)
+                    }
                 }
             }
             show()
@@ -176,7 +180,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnShuffle.setOnClickListener {
             c.shuffleModeEnabled = !c.shuffleModeEnabled
             updateHeaderUI()
-            updateUI()
+            updateUI() // Cập nhật lại danh sách vì thứ tự có thể thay đổi
         }
 
         btnRepeat.setOnClickListener {
@@ -252,7 +256,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             }
         }
 
-        // 2. Cập nhật danh sách Up Next (Chỉ lấy từ currentIndex + 1 đến hết)
+        // 2. Cập nhật danh sách Up Next (Chỉ lấy các bài sau bài hiện tại)
         val upcomingItems = mutableListOf<MediaItem>()
         for (i in (c.currentMediaItemIndex + 1) until c.mediaItemCount) {
             upcomingItems.add(c.getMediaItemAt(i))
