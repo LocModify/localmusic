@@ -98,7 +98,6 @@ class NowPlayingActivity : AppCompatActivity() {
 
         btnMinimize.setOnClickListener { closeActivity() }
 
-        // SỬA LỖI TẠI ĐÂY: Dùng dấu = để gán lambda thay vì gọi hàm
         rootLayout.onSwipeDownListener = {
             closeActivity()
         }
@@ -255,7 +254,7 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // SỬA LỖI 1: Tắt popup cũ trước khi hiện popup mới để không bị đè
+    // Hàm hiển thị Popup thông báo (không bị đè)
     private fun showCustomPopup(message: String) {
         customPopup?.dismiss() // Đóng popup cũ nếu đang hiện
 
@@ -305,13 +304,7 @@ class NowPlayingActivity : AppCompatActivity() {
             updatePlayPauseIcon(isPlaying)
         }
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            // SỬA LỖI 2: Nếu chế độ là Tắt Lặp (OFF) và bài hát tự động chuyển (AUTO)
-            // -> Ép dừng phát nhạc lại
-            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-                if (controller?.repeatMode == Player.REPEAT_MODE_OFF) {
-                    controller?.pause()
-                }
-            }
+            // Đã xóa đoạn hack pause() ở đây để nhạc tự nhiên chuyển bài
             updateUI()
             startSeekBarUpdater()
         }
