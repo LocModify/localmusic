@@ -37,6 +37,8 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var btnPlayPause: ImageView
     private lateinit var btnNext: ImageView
     private lateinit var btnPrevious: ImageView
+    private lateinit var btnShuffle: ImageView
+    private lateinit var btnRepeat: ImageView
     private lateinit var imgAlbumArt: ImageView
     private lateinit var txtSongTitle: TextView
     private lateinit var txtArtist: TextView
@@ -75,6 +77,8 @@ class NowPlayingActivity : AppCompatActivity() {
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnNext = findViewById(R.id.btnNext)
         btnPrevious = findViewById(R.id.btnPrevious)
+        btnShuffle = findViewById(R.id.btnShuffle)
+        btnRepeat = findViewById(R.id.btnRepeat)
         imgAlbumArt = findViewById(R.id.imgAlbumArt)
         txtSongTitle = findViewById(R.id.txtSongTitle)
         txtArtist = findViewById(R.id.txtArtist)
@@ -209,6 +213,27 @@ class NowPlayingActivity : AppCompatActivity() {
         btnNext.setOnClickListener { c.seekToNextMediaItem() }
         btnPrevious.setOnClickListener { c.seekToPreviousMediaItem() }
 
+        // Xử lý nút Shuffle
+        btnShuffle.setOnClickListener {
+            val newState = !c.shuffleModeEnabled
+            c.shuffleModeEnabled = newState
+            updateShuffleRepeatUI(newState, c.repeatMode)
+        }
+
+        // Xử lý nút Repeat
+        btnRepeat.setOnClickListener {
+            val nextMode = when (c.repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                else -> Player.REPEAT_MODE_OFF
+            }
+            c.repeatMode = nextMode
+            updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
+        }
+
+        // Đồng bộ trạng thái ban đầu cho 2 nút
+        updateShuffleRepeatUI(c.shuffleModeEnabled, c.repeatMode)
+
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -221,6 +246,21 @@ class NowPlayingActivity : AppCompatActivity() {
                 controller?.seekTo(seekBar?.progress?.toLong() ?: 0L)
             }
         })
+    }
+
+    // Cập nhật UI cho nút Shuffle và Repeat
+    private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
+        val purpleColor = Color.parseColor("#7C3AED")
+        val whiteColor = Color.WHITE
+
+        // Cập nhật UI cho Shuffle
+        btnShuffle.isSelected = isShuffleOn
+        btnShuffle.imageTintList = ColorStateList.valueOf(if (isShuffleOn) whiteColor else purpleColor)
+
+        // Cập nhật UI cho Repeat
+        val isRepeatOn = repeatMode != Player.REPEAT_MODE_OFF
+        btnRepeat.isSelected = isRepeatOn
+        btnRepeat.imageTintList = ColorStateList.valueOf(if (isRepeatOn) whiteColor else purpleColor)
     }
 
     private val playerListener = object : Player.Listener {
@@ -236,6 +276,14 @@ class NowPlayingActivity : AppCompatActivity() {
                 updateUI()
                 startSeekBarUpdater()
             }
+        }
+        // Lắng nghe sự thay đổi của Shuffle và Repeat
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            updateShuffleRepeatUI(shuffleModeEnabled, controller?.repeatMode ?: Player.REPEAT_MODE_OFF)
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            updateShuffleRepeatUI(controller?.shuffleModeEnabled ?: false, repeatMode)
         }
     }
 
