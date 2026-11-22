@@ -1,42 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Nền trắng tinh khiết -->
+    <!-- Nền trắng cơ bản -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" />
+            <solid android:color="#FAFAFF" />
         </shape>
     </item>
 
-    <!-- Mảng màu tím nhạt mờ ở góc trên bên trái -->
-    <item>
+    <!-- Mảng mây tím nhạt góc trên trái -->
+    <item android:top="-10%p" android:left="-20%p">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:gradientRadius="60%p"
-                android:startColor="#40DCC6FF"
+                android:gradientRadius="80%p"
+                android:startColor="#60E8D5FF"
+                android:endColor="#00E8D5FF" />
+        </shape>
+    </item>
+
+    <!-- Mảng mây xanh nhạt góc trên phải -->
+    <item android:top="-15%p" android:right="-20%p">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80%p"
+                android:startColor="#50D5EEFF"
+                android:endColor="#00D5EEFF" />
+        </shape>
+    </item>
+
+    <!-- Mảng mây hồng nhạt góc dưới trái -->
+    <item android:bottom="-20%p" android:left="-10%p">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80%p"
+                android:startColor="#60FFE5F1"
+                android:endColor="#00FFE5F1" />
+        </shape>
+    </item>
+
+    <!-- Mảng mây tím đậm hơn góc dưới phải -->
+    <item android:bottom="-15%p" android:right="-20%p">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="70%p"
+                android:startColor="#50DCC6FF"
                 android:endColor="#00DCC6FF" />
-        </shape>
-    </item>
-
-    <!-- Mảng màu xanh nhạt mờ ở góc dưới bên phải -->
-    <item>
-        <shape android:shape="oval">
-            <gradient
-                android:type="radial"
-                android:gradientRadius="60%p"
-                android:startColor="#30E0F7FA"
-                android:endColor="#00E0F7FA" />
-        </shape>
-    </item>
-
-    <!-- Mảng màu tím nhạt thứ 2 ở dưới cùng bên trái -->
-    <item>
-        <shape android:shape="oval">
-            <gradient
-                android:type="radial"
-                android:gradientRadius="50%p"
-                android:startColor="#30F3E5F5"
-                android:endColor="#00F3E5F5" />
         </shape>
     </item>
 </layer-list>
