@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -193,13 +194,21 @@ class NowPlayingActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             
-            // Đặt chế độ mặc định dựa trên trạng thái hiện tại
-            controller?.pauseAtEndOfMediaItems = (controller?.repeatMode == Player.REPEAT_MODE_OFF)
+            // Mặc định bật tính năng dừng ở cuối bài nếu đang là REPEAT_MODE_OFF
+            updatePauseAtEnd(controller?.repeatMode == Player.REPEAT_MODE_OFF)
             
             updateUI()
             startSeekBarUpdater()
             setupControlButtons()
         }, MoreExecutors.directExecutor())
+    }
+
+    // Hàm gửi lệnh xuống Service để bật/tắt tính năng dừng cuối bài
+    private fun updatePauseAtEnd(pause: Boolean) {
+        controller?.sendCustomCommand(
+            SessionCommand("SET_PAUSE_AT_END", Bundle.EMPTY),
+            Bundle().apply { putBoolean("pause", pause) }
+        )
     }
 
     private fun setupControlButtons() {
@@ -231,8 +240,8 @@ class NowPlayingActivity : AppCompatActivity() {
             }
             c.repeatMode = nextMode
             
-            // BẬT TÍNH NĂNG DỪNG CUỐI BÀI NẾU LÀ REPEAT OFF
-            c.pauseAtEndOfMediaItems = (nextMode == Player.REPEAT_MODE_OFF)
+            // Bật/tắt tính năng dừng cuối bài tương ứng
+            updatePauseAtEnd(nextMode == Player.REPEAT_MODE_OFF)
             
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
 
