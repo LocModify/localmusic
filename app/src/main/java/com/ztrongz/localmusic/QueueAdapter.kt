@@ -2,6 +2,7 @@ package com.ztrongz.localmusic
 
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -13,17 +14,16 @@ import java.util.Collections
 class QueueAdapter(
     private var items: List<MediaItem>,
     private val onItemClick: (Int) -> Unit,
-    private val onMoreClick: (Int, View) -> Unit
+    private val onStartDrag: (RecyclerView.ViewHolder) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
-    private var currentPlayingIndex = -1
 
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvQueueItemTitle)
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
         val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
-        val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
+        val btnDragHandle: ImageView = view.findViewById(R.id.btnDragHandle)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
@@ -37,19 +37,8 @@ class QueueAdapter(
         val metadata = mediaItem.mediaMetadata
 
         holder.tvTitle.text = metadata.title ?: "Unknown Title"
-        
-        // Hiển thị trạng thái bài đang phát
-        if (position == currentPlayingIndex) {
-            holder.tvArtist.text = "Đang phát"
-            holder.tvArtist.setTextColor(android.graphics.Color.parseColor("#7C3AED"))
-            holder.tvTitle.setTextColor(android.graphics.Color.parseColor("#7C3AED"))
-        } else {
-            holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
-            holder.tvArtist.setTextColor(android.graphics.Color.parseColor("#7A5BA8"))
-            holder.tvTitle.setTextColor(android.graphics.Color.parseColor("#1F1B2E"))
-        }
+        holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
 
-        // Load ảnh bìa
         val artworkData = metadata.artworkData
         if (artworkData != null) {
             val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
@@ -61,35 +50,39 @@ class QueueAdapter(
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)
         }
-        
-        holder.btnMore.setOnClickListener {
-            onMoreClick(holder.bindingAdapterPosition, it)
+
+        // Kéo thả bằng tay nắm
+        holder.btnDragHandle.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                onStartDrag(holder)
+            }
+            false
         }
     }
 
     override fun getItemCount(): Int = mutableItems.size
 
-    fun updateItems(newItems: List<MediaItem>, currentIndex: Int) {
+    fun updateItems(newItems: List<MediaItem>) {
         mutableItems.clear()
         mutableItems.addAll(newItems)
-        currentPlayingIndex = currentIndex
         notifyDataSetChanged()
     }
 
-    fun setCurrentPlayingIndex(index: Int) {
-        val oldIndex = currentPlayingIndex
-        currentPlayingIndex = index
-        if (oldIndex in mutableItems.indices) {
-            notifyItemChanged(oldIndex)
-        }
-        if (index in mutableItems.indices) {
-            notifyItemChanged(index)
-        }
-    }
+    fun getItemAt(position: Int): MediaItem = mutableItems[position]
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         Collections.swap(mutableItems, fromPosition, toPosition)
         notifyItemMoved(fromPosition, toPosition)
+    }
+
+    fun removeItem(position: Int) {
+        mutableItems.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    fun addItem(position: Int, item: MediaItem) {
+        mutableItems.add(position, item)
+        notifyItemInserted(position)
     }
 
     fun getCurrentList(): List<MediaItem> = mutableItems
