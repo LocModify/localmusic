@@ -134,6 +134,55 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshFavoriteStatus()
+        syncTracksFromPlayer() // Gọi hàm đồng bộ khi quay lại màn hình chính
+    }
+
+    // HÀM MỚI: Đồng bộ danh sách tracks với Player
+    private fun syncTracksFromPlayer() {
+        val c = controller ?: return
+        if (c.mediaItemCount == 0) {
+            if (tracks.isNotEmpty()) {
+                tracks.clear()
+                saveTracksToStorage()
+                filterAndShowSongs()
+                updateMiniPlayerUI()
+            }
+            return
+        }
+
+        val currentTracks = mutableListOf<Track>()
+        for (i in 0 until c.mediaItemCount) {
+            val mediaItem = c.getMediaItemAt(i)
+            val uri = mediaItem.localConfiguration?.uri ?: continue
+            val metadata = mediaItem.mediaMetadata
+            
+            val existingTrack = tracks.find { it.uri == uri }
+            
+            val coverBitmap = metadata.artworkData?.let { data ->
+                BitmapFactory.decodeByteArray(data, 0, data.size)
+            } ?: existingTrack?.cover
+
+            val track = Track(
+                uri = uri,
+                title = metadata.title?.toString() ?: existingTrack?.title ?: "Unknown Title",
+                artist = metadata.artist?.toString() ?: existingTrack?.artist ?: "",
+                duration = metadata.durationMs ?: existingTrack?.duration ?: 0L,
+                cover = coverBitmap,
+                isFavorite = existingTrack?.isFavorite ?: false
+            )
+            currentTracks.add(track)
+        }
+
+        val currentUris = currentTracks.map { it.uri }
+        val existingUris = tracks.map { it.uri }
+
+        if (currentUris != existingUris) {
+            tracks.clear()
+            tracks.addAll(currentTracks)
+            saveTracksToStorage()
+            filterAndShowSongs()
+            updateMiniPlayerUI()
+        }
     }
 
     private fun refreshFavoriteStatus() {
@@ -423,7 +472,7 @@ class MainActivity : AppCompatActivity() {
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(track.title)
             .setArtist(track.artist)
-            .setDurationMs(track.duration) // <-- Đã sửa lỗi ở đây
+            .setDurationMs(track.duration)
 
         if (track.cover != null) {
             val stream = ByteArrayOutputStream()
