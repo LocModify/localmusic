@@ -133,56 +133,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Chỉ cập nhật trạng thái Yêu thích, KHÔNG đồng bộ xóa bài từ Player
         refreshFavoriteStatus()
-        syncTracksFromPlayer() // Gọi hàm đồng bộ khi quay lại màn hình chính
-    }
-
-    // HÀM MỚI: Đồng bộ danh sách tracks với Player
-    private fun syncTracksFromPlayer() {
-        val c = controller ?: return
-        if (c.mediaItemCount == 0) {
-            if (tracks.isNotEmpty()) {
-                tracks.clear()
-                saveTracksToStorage()
-                filterAndShowSongs()
-                updateMiniPlayerUI()
-            }
-            return
-        }
-
-        val currentTracks = mutableListOf<Track>()
-        for (i in 0 until c.mediaItemCount) {
-            val mediaItem = c.getMediaItemAt(i)
-            val uri = mediaItem.localConfiguration?.uri ?: continue
-            val metadata = mediaItem.mediaMetadata
-            
-            val existingTrack = tracks.find { it.uri == uri }
-            
-            val coverBitmap = metadata.artworkData?.let { data ->
-                BitmapFactory.decodeByteArray(data, 0, data.size)
-            } ?: existingTrack?.cover
-
-            val track = Track(
-                uri = uri,
-                title = metadata.title?.toString() ?: existingTrack?.title ?: "Unknown Title",
-                artist = metadata.artist?.toString() ?: existingTrack?.artist ?: "",
-                duration = metadata.durationMs ?: existingTrack?.duration ?: 0L,
-                cover = coverBitmap,
-                isFavorite = existingTrack?.isFavorite ?: false
-            )
-            currentTracks.add(track)
-        }
-
-        val currentUris = currentTracks.map { it.uri }
-        val existingUris = tracks.map { it.uri }
-
-        if (currentUris != existingUris) {
-            tracks.clear()
-            tracks.addAll(currentTracks)
-            saveTracksToStorage()
-            filterAndShowSongs()
-            updateMiniPlayerUI()
-        }
     }
 
     private fun refreshFavoriteStatus() {
@@ -403,9 +355,31 @@ class MainActivity : AppCompatActivity() {
         filterAndShowSongs()
     }
 
+    // SỬA LẠI HÀM NÀY ĐỂ TÌM BÀI HÁT BẰNG URI THAY VÌ INDEX
     private fun playSongAt(position: Int) {
-        controller?.let { c ->
-            c.seekTo(position, 0L)
+        val c = controller ?: return
+        val track = tracks[position]
+        val trackUri = track.uri
+
+        // Tìm xem bài hát này có đang nằm trong Player (Hàng đợi) không
+        var targetIndex = -1
+        for (i in 0 until c.mediaItemCount) {
+            if (c.getMediaItemAt(i).localConfiguration?.uri == trackUri) {
+                targetIndex = i
+                break
+            }
+        }
+
+        if (targetIndex != -1) {
+            // Nếu có trong Hàng đợi -> Chỉ cần seek tới và phát
+            c.seekTo(targetIndex, 0L)
+            c.play()
+        } else {
+            // Nếu không có (do đã bị xóa khỏi Hàng đợi) -> Chèn lại vào sau bài hiện tại và phát
+            val newItem = buildMediaItem(track)
+            val insertIndex = if (c.mediaItemCount == 0) 0 else c.currentMediaItemIndex + 1
+            c.addMediaItem(insertIndex, newItem)
+            c.seekTo(insertIndex, 0L)
             c.play()
         }
     }
@@ -441,16 +415,20 @@ class MainActivity : AppCompatActivity() {
             binding.tvMiniArtist.text = artistText
         }
 
-        val currentIndex = c.currentMediaItemIndex
-        if (currentIndex in tracks.indices) {
-            val currentTrack = tracks[currentIndex]
-            if (currentTrack.cover != null) {
-                binding.ivMiniCover.setImageBitmap(currentTrack.cover)
+        val currentUri = currentMediaItem?.localConfiguration?.uri
+        val currentTrack = tracks.find { it.uri == currentUri }
+        
+        if (currentTrack != null && currentTrack.cover != null) {
+            binding.ivMiniCover.setImageBitmap(currentTrack.cover)
+        } else {
+            // Nếu bài đang phát không có trong tracks (do bị xóa), thử lấy từ Artwork
+            val artworkData = currentMediaItem?.mediaMetadata?.artworkData
+            if (artworkData != null) {
+                val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+                binding.ivMiniCover.setImageBitmap(bitmap)
             } else {
                 binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
             }
-        } else {
-            binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
         }
 
         binding.btnPlayPause.setImageResource(
