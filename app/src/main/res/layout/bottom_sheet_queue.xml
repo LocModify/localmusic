@@ -22,9 +22,10 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/layoutSelectionHeader">
 
+        <!-- Đã sửa lại độ rộng để không bị đè lên các nút bên phải -->
         <TextView
             android:id="@+id/tvPlaylistTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"
@@ -32,6 +33,7 @@
             android:textColor="#1F1B2E"
             android:textSize="22sp"
             android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,35 +48,7 @@
             app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
             app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
 
-        <LinearLayout
-            android:id="@+id/pillPlaying"
-            android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp"
-            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-            app:layout_constraintStart_toEndOf="@id/tvPlaylistTitle"
-            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle">
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_np_play"
-                app:tint="#7C3AED" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="Đang phát"
-                android:textColor="#7C3AED"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
+        <!-- Nút Add (Đã căn lại theo chiều dọc với Title) -->
         <ImageView
             android:id="@+id/btnAddSong"
             android:layout_width="40dp"
@@ -83,11 +57,12 @@
             android:background="@drawable/bg_pill_button_light"
             android:padding="8dp"
             android:src="@drawable/ic_add_purple"
-            app:layout_constraintBottom_toBottomOf="@id/pillPlaying"
+            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
             app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
-            app:layout_constraintTop_toTopOf="@id/pillPlaying"
+            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
             app:tint="#7C3AED" />
 
+        <!-- Nút More -->
         <ImageView
             android:id="@+id/btnMoreOptions"
             android:layout_width="40dp"
@@ -96,9 +71,9 @@
             android:background="@drawable/bg_pill_button_light"
             android:padding="8dp"
             android:src="@drawable/ic_more_vert"
-            app:layout_constraintBottom_toBottomOf="@id/pillPlaying"
+            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/pillPlaying"
+            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
             app:tint="#7C3AED" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -193,7 +168,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutNormalHeader" />
 
-    <!-- Thanh công cụ nổi dưới cùng -->
+    <!-- Thanh công cụ nổi dưới cùng (Đã xóa nút Xóa) -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
@@ -204,7 +179,7 @@
         android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
+        android:paddingHorizontal="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ImageView
@@ -217,15 +192,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:text="Ngẫu nhiên"
             android:textColor="#7A5BA8"
-            android:textSize="12sp" />
+            android:textSize="13sp" />
 
         <View
             android:layout_width="1dp"
             android:layout_height="20dp"
-            android:layout_marginHorizontal="8dp"
+            android:layout_marginHorizontal="16dp"
             android:background="#E6D6FF" />
 
         <ImageView
@@ -238,41 +213,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:text="Lặp lại"
             android:textColor="#7A5BA8"
-            android:textSize="12sp" />
+            android:textSize="13sp" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:id="@+id/btnClearQueue"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:backgroundTint="#7C3AED"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp">
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_clear_all"
-                app:tint="#FFFFFF" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="Xóa"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
