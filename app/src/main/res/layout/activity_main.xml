@@ -95,7 +95,7 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- CATEGORIES -->
+    <!-- CATEGORIES: cắt theo góc bo của thanh + mờ dần ở hai mép khi vuốt ngang -->
     <HorizontalScrollView
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
@@ -103,8 +103,12 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/bg_category_bar"
+        android:clipToOutline="true"
+        android:clipToPadding="false"
+        android:fadingEdgeLength="24dp"
         android:fillViewport="true"
         android:padding="4dp"
+        android:requiresFadingEdge="horizontal"
         android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/searchBar">
 
