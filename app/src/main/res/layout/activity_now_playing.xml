@@ -8,14 +8,14 @@
     android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
-    <!-- Lớp nền mờ (Gradient) -->
+    <!-- Background mới: Trắng + mây pastel -->
     <View
         android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_now_playing" />
 
-    <!-- Container chứa toàn bộ nội dung -->
+    <!-- Container nội dung -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
@@ -23,7 +23,7 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <!-- 1. THANH TOP BAR -->
+        <!-- TOP BAR -->
         <ImageView
             android:id="@+id/btnMinimize"
             android:layout_width="32dp"
@@ -59,7 +59,7 @@
             app:layout_constraintTop_toTopOf="@+id/btnMinimize"
             app:tint="#B45CFF" />
 
-        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG -->
+        <!-- ẢNH BÌA & HIỆU ỨNG -->
         <FrameLayout
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
@@ -73,8 +73,8 @@
 
             <View
                 android:id="@+id/vGlow"
-                android:layout_width="340dp"
-                android:layout_height="340dp"
+                android:layout_width="320dp"
+                android:layout_height="320dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_cover_glow" />
 
@@ -117,12 +117,13 @@
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
 
+            <!-- Các nốt nhạc mờ hơn một chút -->
             <ImageView
                 android:id="@+id/note1"
                 android:layout_width="34dp"
                 android:layout_height="34dp"
                 android:layout_gravity="top|start"
-                android:alpha="0.9"
+                android:alpha="0.7"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="-16dp"
                 android:translationY="4dp"
@@ -133,7 +134,7 @@
                 android:layout_width="28dp"
                 android:layout_height="28dp"
                 android:layout_gravity="top|end"
-                android:alpha="0.9"
+                android:alpha="0.7"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="14dp"
                 android:translationY="-2dp"
@@ -144,7 +145,7 @@
                 android:layout_width="26dp"
                 android:layout_height="26dp"
                 android:layout_gravity="bottom|start"
-                android:alpha="0.9"
+                android:alpha="0.7"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="-12dp"
                 android:translationY="2dp"
@@ -155,14 +156,14 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:layout_gravity="bottom|end"
-                android:alpha="0.9"
+                android:alpha="0.7"
                 android:src="@drawable/ic_chip_music"
                 android:translationX="12dp"
                 android:translationY="-6dp"
                 app:tint="#C9A5FF" />
         </FrameLayout>
 
-        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
+        <!-- TÊN BÀI HÁT & NGHỆ SĨ -->
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtSongTitle"
             android:layout_width="0dp"
@@ -204,7 +205,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
 
-        <!-- 4. THANH TIẾN TRÌNH (SEEK BAR) -->
+        <!-- THANH TIẾN TRÌNH -->
         <TextView
             android:id="@+id/txtCurrentTime"
             android:layout_width="wrap_content"
@@ -248,7 +249,7 @@
             app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
             app:layout_constraintTop_toTopOf="@+id/txtCurrentTime" />
 
-        <!-- 5. CỤM NÚT ĐIỀU KHIỂN ĐÃ ĐƯỢC TINH CHỈNH -->
+        <!-- CỤM NÚT ĐIỀU KHIỂN -->
         <LinearLayout
             android:id="@+id/controlsLayout"
             android:layout_width="match_parent"
@@ -283,7 +284,6 @@
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-            <!-- NÚT PLAY VÀ HÀO QUANG -->
             <FrameLayout
                 android:layout_width="80dp"
                 android:layout_height="80dp"
@@ -297,7 +297,6 @@
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_glow" />
 
-                <!-- Nút Play: Giảm padding xuống 12dp để icon to hơn -->
                 <ImageView
                     android:id="@+id/btnPlayPause"
                     android:layout_width="64dp"
@@ -332,7 +331,7 @@
                 app:tint="#7C3AED" />
         </LinearLayout>
 
-        <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
+        <!-- HÀNG CHỨC NĂNG DƯỚI CÙNG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
