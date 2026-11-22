@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:background="#FFFFFF"
     android:paddingHorizontal="20dp"
-    android:paddingVertical="12dp">
+    android:paddingVertical="10dp">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardThumbnail"
@@ -32,7 +32,7 @@
         android:layout_marginEnd="8dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@+id/cardThumbnail"
-        app:layout_constraintEnd_toStartOf="@+id/btnQueueMore"
+        app:layout_constraintEnd_toStartOf="@+id/btnDragHandle"
         app:layout_constraintStart_toEndOf="@+id/cardThumbnail"
         app:layout_constraintTop_toTopOf="@+id/cardThumbnail">
 
@@ -58,14 +58,15 @@
     </LinearLayout>
 
     <ImageView
-        android:id="@+id/btnQueueMore"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:id="@+id/btnDragHandle"
+        android:layout_width="32dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_more_vert"
+        android:padding="4dp"
+        android:src="@drawable/ic_drag_handle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="#7A5BA8" />
+        app:tint="#9E9E9E" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
