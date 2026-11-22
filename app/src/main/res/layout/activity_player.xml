@@ -2,14 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <!-- ẢNH NỀN SÓNG (Up ở bước 1) -->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:src="@drawable/bg_player_wave" />
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_player_wave"> <!-- Dùng nền Gradient code -->
 
     <!-- Nút thu nhỏ -->
     <ImageView
@@ -37,7 +31,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Menu (Icon nốt nhạc) -->
+    <!-- Menu -->
     <ImageView
         android:id="@+id/btnMore"
         android:layout_width="32dp"
@@ -49,7 +43,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- HIỆU ỨNG HÀO QUANG (Vòng sáng phía sau đĩa nhạc) -->
+    <!-- VÒNG HÀO QUANG (Nằm phía sau đĩa nhạc) -->
     <View
         android:id="@+id/glowEffect"
         android:layout_width="300dp"
@@ -60,13 +54,13 @@
         app:layout_constraintTop_toBottomOf="@id/btnMinimize"
         android:layout_marginTop="30dp" />
 
-    <!-- Đĩa nhạc quay -->
+    <!-- Đĩa nhạc quay (Nằm đè lên hào quang) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardCover"
         android:layout_width="260dp"
         android:layout_height="260dp"
         app:cardCornerRadius="130dp"
-        app:cardElevation="0dp"
+        app:cardElevation="8dp"
         app:cardBackgroundColor="@android:color/transparent"
         app:layout_constraintEnd_toEndOf="@id/glowEffect"
         app:layout_constraintStart_toStartOf="@id/glowEffect"
@@ -117,7 +111,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
 
-    <!-- Nút Yêu thích (Bên phải tên bài hát) -->
+    <!-- Nút Yêu thích -->
     <ImageView
         android:id="@+id/btnFavorite"
         android:layout_width="48dp"
@@ -219,58 +213,6 @@
             android:padding="12dp"
             android:src="@android:drawable/ic_menu_revert"
             app:tint="#8B5CF6" />
-    </LinearLayout>
-
-    <!-- Hàng nút chức năng dưới cùng -->
-    <LinearLayout
-        android:id="@+id/bottomButtonsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/controlsLayout">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_category_inactive"
-            android:drawableStart="@drawable/ic_heart_outline"
-            android:drawablePadding="8dp"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:text="Yêu thích"
-            android:textColor="#1F1B2E"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:background="@drawable/bg_category_inactive"
-            android:drawableStart="@android:drawable/ic_input_add"
-            android:drawablePadding="8dp"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:text="Thêm vào"
-            android:textColor="#1F1B2E"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:background="@drawable/bg_category_inactive"
-            android:drawableStart="@android:drawable/ic_menu_info_details"
-            android:drawablePadding="8dp"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:text="Thông tin"
-            android:textColor="#1F1B2E"
-            android:textSize="12sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
