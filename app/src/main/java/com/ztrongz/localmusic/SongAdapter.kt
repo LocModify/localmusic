@@ -27,10 +27,11 @@ class SongAdapter(
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
         val track = displayList[position]
         with(holder.binding) {
-            tvSongTitle.text = track.title
+            // ⚠️ SỬA ID TẠI ĐÂY NẾU CẦN (Ví dụ: nếu layout của anh tên là tvTitle thay vì tvSongTitle)
+            tvSongTitle.text = track.title 
             tvSongArtist.text = track.artist
             
-            // Lấy thời lượng từ thuộc tính 'duration'
+            // ĐÃ SỬA LỖI: Dùng track.duration thay vì track.durationMs
             tvSongDuration.text = formatTime(track.duration)
 
             if (track.cover != null) {
@@ -39,7 +40,7 @@ class SongAdapter(
                 ivSongCover.setImageResource(R.drawable.bg_cover_default)
             }
 
-            // Hiển thị trạng thái yêu thích (nếu có icon trái tim trên item)
+            // Hiển thị trạng thái yêu thích
             if (track.isFavorite) {
                 ivFavoriteIcon.setImageResource(R.drawable.ic_heart_filled)
                 ivFavoriteIcon.setColorFilter(android.graphics.Color.parseColor("#FF3B5C"))
