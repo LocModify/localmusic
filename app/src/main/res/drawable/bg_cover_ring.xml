@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Vành trắng sáng bao quanh ảnh bìa -->
+<!-- Vành trắng sáng sát ảnh bìa -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
     <solid android:color="#FFFFFF" />
-    <stroke android:width="2dp" android:color="#E3C9FF" />
 </shape>
