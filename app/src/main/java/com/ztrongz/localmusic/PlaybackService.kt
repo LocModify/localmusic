@@ -6,6 +6,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
@@ -16,6 +17,13 @@ import com.google.common.util.concurrent.ListenableFuture
 class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
+
+    // Định nghĩa các hằng số cho Custom Command để dễ quản lý
+    companion object {
+        private const val ACTION_SET_PAUSE_AT_END = "SET_PAUSE_AT_END"
+        private const val ACTION_SHUFFLE = "ACTION_SHUFFLE"
+        private const val ACTION_REPEAT = "ACTION_REPEAT"
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -41,13 +49,37 @@ class PlaybackService : MediaSessionService() {
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo
                 ): MediaSession.ConnectionResult {
-                    // Đăng ký lệnh Custom Command cho phép Activity điều khiển
+                    // Đăng ký các Custom Command (bao gồm cả Shuffle và Repeat)
                     val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                        .add(SessionCommand("SET_PAUSE_AT_END", Bundle.EMPTY))
+                        .add(SessionCommand(ACTION_SET_PAUSE_AT_END, Bundle.EMPTY))
+                        .add(SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY))
+                        .add(SessionCommand(ACTION_REPEAT, Bundle.EMPTY))
                         .build()
                     return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(sessionCommands)
                         .build()
+                }
+
+                // Hàm này dùng để gửi các nút lên giao diện thông báo (Notification)
+                override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
+                    super.onPostConnect(session, controller)
+                    
+                    // Tạo danh sách các nút bấm (Shuffle và Repeat)
+                    // Lưu ý: Anh cần chắc chắn đã có file ic_shuffle và ic_repeat trong thư mục drawable
+                    val customLayout = listOf(
+                        CommandButton.Builder()
+                            .setDisplayName("Shuffle")
+                            .setIconResId(R.drawable.ic_shuffle)
+                            .setSessionCommand(SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY))
+                            .build(),
+                        CommandButton.Builder()
+                            .setDisplayName("Repeat")
+                            .setIconResId(R.drawable.ic_repeat)
+                            .setSessionCommand(SessionCommand(ACTION_REPEAT, Bundle.EMPTY))
+                            .build()
+                    )
+                    // Gửi layout lên thông báo
+                    session.setCustomLayout(controller, customLayout)
                 }
 
                 override fun onCustomCommand(
@@ -56,14 +88,34 @@ class PlaybackService : MediaSessionService() {
                     customCommand: SessionCommand,
                     args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    if (customCommand.customAction == "SET_PAUSE_AT_END") {
-                        val pause = args.getBoolean("pause")
-                        if (session.player is ExoPlayer) {
-                            (session.player as ExoPlayer).pauseAtEndOfMediaItems = pause
+                    when (customCommand.customAction) {
+                        ACTION_SET_PAUSE_AT_END -> {
+                            val pause = args.getBoolean("pause")
+                            if (session.player is ExoPlayer) {
+                                (session.player as ExoPlayer).pauseAtEndOfMediaItems = pause
+                            }
                         }
-                        return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+                        
+                        ACTION_SHUFFLE -> {
+                            // Đảo trạng thái Shuffle (Bật <-> Tắt)
+                            session.player.shuffleModeEnabled = !session.player.shuffleModeEnabled
+                            // (Tùy chọn) Anh có thể gọi lại onPostConnect ở đây nếu muốn icon đổi màu khi bật/tắt
+                        }
+                        
+                        ACTION_REPEAT -> {
+                            // Chuyển đổi vòng lặp: Tắt -> Lặp tất cả -> Lặp 1 bài -> Tắt
+                            val currentMode = session.player.repeatMode
+                            val newMode = when (currentMode) {
+                                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                                else -> Player.REPEAT_MODE_OFF
+                            }
+                            session.player.repeatMode = newMode
+                        }
+                        
+                        else -> return super.onCustomCommand(session, controller, customCommand, args)
                     }
-                    return super.onCustomCommand(session, controller, customCommand, args)
+                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
                 }
             })
             .build()
