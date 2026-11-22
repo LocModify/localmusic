@@ -5,226 +5,273 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_bottom_sheet_rounded">
 
-    <!-- Thanh kéo -->
+    <!-- Thanh kéo (Drag Handle) -->
     <View
         android:id="@+id/dragHandle"
-        android:layout_width="48dp"
-        android:layout_height="5dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/bg_drag_handle"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="12dp"
+        android:background="#D1C4E9"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Tiêu đề -->
-    <TextView
-        android:id="@+id/tvPlaylistTitle"
-        android:layout_width="wrap_content"
+    <!-- KHU VỰC 1: HEADER BÌNH THƯỜNG -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutNormalHeader"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="18dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="Danh sách phát"
-        android:textColor="#1F1B2E"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintEnd_toStartOf="@id/pillPlaying"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dragHandle" />
-
-    <TextView
-        android:id="@+id/tvPlaylistSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="0 bài hát • 0 phút"
-        android:textColor="#7A5BA8"
-        android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
-
-    <!-- Nhãn Đang phát -->
-    <LinearLayout
-        android:id="@+id/pillPlaying"
-        android:layout_width="wrap_content"
-        android:layout_height="28dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/bg_pill_playing"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="8dp"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-        app:layout_constraintEnd_toStartOf="@id/btnAddSong"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toEndOf="@id/tvPlaylistTitle"
-        app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle">
-
-        <ImageView
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:src="@drawable/ic_np_play"
-            app:tint="#7C3AED" />
+        app:layout_constraintTop_toBottomOf="@id/dragHandle">
 
         <TextView
+            android:id="@+id/tvPlaylistTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="3dp"
-            android:maxLines="1"
-            android:text="Đang phát"
-            android:textColor="#7C3AED"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Danh sách phát"
+            android:textColor="#1F1B2E"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Nút thêm nhạc và tùy chọn -->
-    <ImageView
-        android:id="@+id/btnAddSong"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_marginEnd="6dp"
-        android:background="@drawable/bg_sheet_circle_btn"
-        android:padding="9dp"
-        android:src="@drawable/ic_add_music"
-        app:layout_constraintBottom_toBottomOf="@id/tvPlaylistSubtitle"
-        app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
-        app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-        app:tint="#7C3AED" />
+        <TextView
+            android:id="@+id/tvPlaylistSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="0 bài hát • 0 phút"
+            android:textColor="#7A5BA8"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
+            app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
 
-    <ImageView
-        android:id="@+id/btnMoreOptions"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
-        android:layout_marginEnd="14dp"
-        android:background="@drawable/bg_sheet_circle_btn"
-        android:padding="9dp"
-        android:src="@drawable/ic_more_horiz"
-        app:layout_constraintBottom_toBottomOf="@id/tvPlaylistSubtitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-        app:tint="#7C3AED" />
+        <LinearLayout
+            android:id="@+id/pillPlaying"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/bg_pill_button_light"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
+            app:layout_constraintStart_toEndOf="@id/tvPlaylistTitle"
+            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle">
 
-    <!-- Danh sách bài hát -->
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_np_play"
+                app:tint="#7C3AED" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Đang phát"
+                android:textColor="#7C3AED"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btnAddSong"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_pill_button_light"
+            android:padding="8dp"
+            android:src="@drawable/ic_add_purple"
+            app:layout_constraintBottom_toBottomOf="@id/pillPlaying"
+            app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
+            app:layout_constraintTop_toTopOf="@id/pillPlaying"
+            app:tint="#7C3AED" />
+
+        <ImageView
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/bg_pill_button_light"
+            android:padding="8dp"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintBottom_toBottomOf="@id/pillPlaying"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/pillPlaying"
+            app:tint="#7C3AED" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- KHU VỰC 2: HEADER CHỌN NHIỀU (MẶC ĐỊNH ẨN) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutSelectionHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/dragHandle">
+
+        <!-- Nút Chọn Tất cả -->
+        <LinearLayout
+            android:id="@+id/btnSelectAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivSelectAllIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_check_circle_outline"
+                app:tint="#7A5BA8" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Tất cả"
+                android:textColor="#1F1B2E"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvSelectedCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đã chọn 0"
+            android:textColor="#1F1B2E"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btnSelectAll"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnSelectAll" />
+
+        <!-- Nút Xóa (Thùng rác đỏ) và Đóng -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@id/btnSelectAll"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnSelectAll">
+
+            <ImageView
+                android:id="@+id/btnDeleteSelected"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:src="@drawable/ic_clear_all"
+                app:tint="#FF3B5C" />
+
+            <ImageView
+                android:id="@+id/btnCancelSelection"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="12dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:src="@drawable/ic_close"
+                app:tint="#1F1B2E" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Danh sách nhạc -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQueue"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="16dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="12dp"
-        android:paddingBottom="110dp"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPlaylistSubtitle" />
+        app:layout_constraintTop_toBottomOf="@id/layoutNormalHeader" />
 
-    <!-- Thanh điều khiển nổi phía dưới -->
+    <!-- Thanh công cụ nổi dưới cùng -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginHorizontal="14dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="24dp"
         android:background="@drawable/bg_floating_bottom_bar"
         android:elevation="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="8dp"
+        android:paddingHorizontal="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Nhóm: Phát ngẫu nhiên -->
-        <LinearLayout
-            android:id="@+id/groupShuffle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.5"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/btnShuffleBottom"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_shuffle"
+            app:tint="#9E9E9E" />
 
-            <ImageView
-                android:id="@+id/btnShuffleBottom"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_shuffle"
-                app:tint="#A892D8" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Phát ngẫu nhiên"
-                android:textColor="#6B4FA8"
-                android:textSize="12sp" />
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="Ngẫu nhiên"
+            android:textColor="#7A5BA8"
+            android:textSize="12sp" />
 
         <View
             android:layout_width="1dp"
-            android:layout_height="22dp"
+            android:layout_height="20dp"
             android:layout_marginHorizontal="8dp"
             android:background="#E6D6FF" />
 
-        <!-- Nhóm: Lặp lại -->
-        <LinearLayout
-            android:id="@+id/groupRepeat"
+        <ImageView
+            android:id="@+id/btnRepeatBottom"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_repeat"
+            app:tint="#9E9E9E" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="Lặp lại"
+            android:textColor="#7A5BA8"
+            android:textSize="12sp" />
+
+        <Space
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
-            <ImageView
-                android:id="@+id/btnRepeatBottom"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_repeat"
-                app:tint="#A892D8" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Lặp lại"
-                android:textColor="#6B4FA8"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Nút Xóa hàng đợi -->
         <LinearLayout
             android:id="@+id/btnClearQueue"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_clear_queue_btn"
-            android:elevation="4dp"
-            android:gravity="center"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_pill_button_light"
+            android:backgroundTint="#7C3AED"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="14dp">
+            android:paddingHorizontal="12dp">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:src="@drawable/ic_clear_all"
                 app:tint="#FFFFFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:maxLines="1"
-                android:text="Xóa hàng đợi"
+                android:layout_marginStart="4dp"
+                android:text="Xóa"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp"
                 android:textStyle="bold" />
