@@ -5,25 +5,20 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
-    <!-- Lớp nền mờ (Gradient) -->
     <View
         android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_now_playing" />
 
-    <!-- Container chứa toàn bộ nội dung -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipChildren="false"
-        android:clipToPadding="false">
+        android:layout_height="match_parent">
 
-        <!-- 1. THANH TOP BAR -->
+        <!-- TOP BAR -->
         <ImageView
             android:id="@+id/btnMinimize"
             android:layout_width="32dp"
@@ -32,8 +27,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_down"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#B45CFF" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/btnPlaylistTop"
@@ -44,8 +38,7 @@
             android:src="@drawable/ic_playlist"
             app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
             app:layout_constraintEnd_toStartOf="@+id/btnMoreTop"
-            app:layout_constraintTop_toTopOf="@+id/btnMinimize"
-            app:tint="#B45CFF" />
+            app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
 
         <ImageView
             android:id="@+id/btnMoreTop"
@@ -56,61 +49,26 @@
             android:src="@drawable/ic_more_vert"
             app:layout_constraintBottom_toBottomOf="@+id/btnMinimize"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/btnMinimize"
-            app:tint="#B45CFF" />
+            app:layout_constraintTop_toTopOf="@+id/btnMinimize" />
 
-        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG (vầng sáng, quỹ đạo, nốt nhạc bay) -->
-        <FrameLayout
+        <!-- ALBUM ART -->
+        <androidx.cardview.widget.CardView
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:layout_marginTop="20dp"
-            android:clipChildren="false"
-            android:clipToPadding="false"
+            app:cardBackgroundColor="#40FFFFFF"
+            app:cardCornerRadius="150dp"
+            app:cardElevation="10dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
 
-            <!-- Vầng sáng tím -->
-            <View
-                android:id="@+id/vGlow"
-                android:layout_width="340dp"
-                android:layout_height="340dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_cover_glow" />
-
-            <!-- 2 quỹ đạo elip -->
-            <View
-                android:id="@+id/vOrbit1"
-                android:layout_width="330dp"
-                android:layout_height="150dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_orbit"
-                android:rotation="25" />
-
-            <View
-                android:id="@+id/vOrbit2"
-                android:layout_width="330dp"
-                android:layout_height="170dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_orbit"
-                android:rotation="-35" />
-
-            <!-- Vành trắng -->
-            <View
-                android:layout_width="292dp"
-                android:layout_height="292dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_cover_ring" />
-
-            <!-- Ảnh bìa tròn (xoay khi đang phát) -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/cardCoverInner"
-                android:layout_width="272dp"
-                android:layout_height="272dp"
+                android:layout_width="280dp"
+                android:layout_height="280dp"
                 android:layout_gravity="center"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="136dp"
+                app:cardCornerRadius="140dp"
                 app:cardElevation="0dp">
 
                 <ImageView
@@ -120,61 +78,18 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-            <!-- Nốt nhạc bay -->
-            <ImageView
-                android:id="@+id/note1"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_gravity="top|start"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="-16dp"
-                android:translationY="4dp"
-                app:tint="#C9A5FF" />
-
-            <ImageView
-                android:id="@+id/note2"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="top|end"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="14dp"
-                android:translationY="-2dp"
-                app:tint="#C9A5FF" />
-
-            <ImageView
-                android:id="@+id/note3"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_gravity="bottom|start"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="-12dp"
-                android:translationY="2dp"
-                app:tint="#C9A5FF" />
-
-            <ImageView
-                android:id="@+id/note4"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="bottom|end"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="12dp"
-                android:translationY="-6dp"
-                app:tint="#C9A5FF" />
-        </FrameLayout>
-
-        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
-        <com.ztrongz.localmusic.MarqueeTextView
+        <!-- SONG TITLE & ARTIST -->
+        <TextView
             android:id="@+id/txtSongTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="Dreaming"
             android:textColor="#111111"
             android:textSize="26sp"
@@ -183,15 +98,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cardAlbumArt" />
 
-        <com.ztrongz.localmusic.MarqueeTextView
+        <TextView
             android:id="@+id/txtArtist"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="Unknown Artist"
-            android:textColor="#7A5BA8"
+            android:textColor="#555555"
             android:textSize="15sp"
             app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
             app:layout_constraintStart_toStartOf="parent"
@@ -205,11 +122,12 @@
             android:background="@drawable/bg_icon_circle_light"
             android:padding="10dp"
             android:src="@drawable/ic_heart_outline"
+            app:tint="#8B3DFF"
             app:layout_constraintBottom_toBottomOf="@+id/txtArtist"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/txtSongTitle" />
 
-        <!-- 4. THANH TIẾN TRÌNH (SEEK BAR) -->
+        <!-- SEEK BAR -->
         <TextView
             android:id="@+id/txtCurrentTime"
             android:layout_width="wrap_content"
@@ -217,10 +135,8 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="20dp"
             android:text="00:00"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.04"
-            android:textColor="#4B3A94"
-            android:textSize="14sp"
+            android:textColor="#333333"
+            android:textSize="13sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtArtist" />
 
@@ -230,10 +146,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
             android:text="00:00"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.04"
-            android:textColor="#4B3A94"
-            android:textSize="14sp"
+            android:textColor="#333333"
+            android:textSize="13sp"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -241,99 +155,108 @@
             android:id="@+id/seekBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:maxHeight="5dp"
-            android:minHeight="5dp"
-            android:progressDrawable="@drawable/seekbar_progress"
-            android:splitTrack="false"
-            android:thumb="@drawable/seekbar_thumb"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:progressTint="#8B3DFF"
+            android:thumbTint="#8B3DFF"
             app:layout_constraintBottom_toBottomOf="@+id/txtCurrentTime"
             app:layout_constraintEnd_toStartOf="@+id/txtTotalTime"
             app:layout_constraintStart_toEndOf="@+id/txtCurrentTime"
             app:layout_constraintTop_toTopOf="@+id/txtCurrentTime" />
 
-        <!-- 5. CỤM NÚT ĐIỀU KHIỂN -->
+        <!-- ===== CỤM ĐIỀU KHIỂN ĐÃ ĐƯỢC CHỈNH SỬA ===== -->
         <LinearLayout
             android:id="@+id/controlsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clipChildren="false"
+            android:layout_marginTop="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="20dp"
             app:layout_constraintTop_toBottomOf="@+id/seekBar">
 
+            <!-- Shuffle -->
             <ImageView
                 android:id="@+id/btnShuffle"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/bg_ctrl_square"
-                android:padding="11dp"
-                android:src="@drawable/ic_shuffle"
-                app:tint="#7C3AED" />
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_shuffle" />
 
-            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
+            <!-- Previous (to ra 44dp) -->
             <ImageView
                 android:id="@+id/btnPrevious"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:src="@drawable/ic_np_prev"
-                app:tint="#4527A0" />
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_prev" />
 
-            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
-            <!-- Nút Play/Pause: cả vòng tím là nút bấm, kèm 1 hào quang nhỏ phía sau -->
+            <!-- Nút Play/Pause: FrameLayout chứa glow tròn + nút chính -->
             <FrameLayout
-                android:layout_width="88dp"
-                android:layout_height="88dp"
-                android:clipChildren="false">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
+                <!-- Lớp hào quang tròn, không bị cắt góc -->
                 <View
-                    android:id="@+id/vPlayGlow"
-                    android:layout_width="88dp"
-                    android:layout_height="88dp"
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_glow" />
 
-                <ImageView
-                    android:id="@+id/btnPlayPause"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                <!-- Nút chính nhỏ lại 64dp, icon to 36dp -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/bg_play_button"
-                    android:padding="21dp"
-                    android:src="@drawable/ic_np_play" />
+                    app:cardBackgroundColor="#B45CFF"
+                    app:cardCornerRadius="32dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/btnPlayPause"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_play" />
+                </androidx.cardview.widget.CardView>
             </FrameLayout>
 
-            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
+            <!-- Next (to ra 44dp) -->
             <ImageView
                 android:id="@+id/btnNext"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:src="@drawable/ic_np_next"
-                app:tint="#4527A0" />
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_next" />
 
-            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
+            <!-- Repeat -->
             <ImageView
                 android:id="@+id/btnRepeat"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:background="@drawable/bg_ctrl_square"
-                android:padding="11dp"
-                android:src="@drawable/ic_repeat"
-                app:tint="#7C3AED" />
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_repeat" />
         </LinearLayout>
 
-        <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
+        <!-- HÀNG CHỨC NĂNG DƯỚI CÙNG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -355,8 +278,8 @@
                 android:text="Yêu thích"
                 android:textAllCaps="false"
                 android:textSize="12sp"
-                android:textColor="#4A2A7A"
-                app:drawableTint="#B45CFF" />
+                android:textColor="#333333"
+                app:iconTint="#5E35B1" />
 
             <Button
                 android:id="@+id/btnAddTo"
@@ -370,7 +293,7 @@
                 android:text="Thêm vào"
                 android:textAllCaps="false"
                 android:textSize="12sp"
-                android:textColor="#4A2A7A" />
+                android:textColor="#333333" />
 
             <Button
                 android:id="@+id/btnDownload"
@@ -384,8 +307,7 @@
                 android:text="Tải xuống"
                 android:textAllCaps="false"
                 android:textSize="12sp"
-                android:textColor="#4A2A7A"
-                app:drawableTint="#B45CFF" />
+                android:textColor="#333333" />
 
             <Button
                 android:id="@+id/btnInfo"
@@ -398,8 +320,7 @@
                 android:text="Thông tin"
                 android:textAllCaps="false"
                 android:textSize="12sp"
-                android:textColor="#4A2A7A"
-                app:drawableTint="#B45CFF" />
+                android:textColor="#333333" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
