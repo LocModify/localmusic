@@ -1,37 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="360dp"
-    android:height="800dp"
-    android:viewportWidth="360"
-    android:viewportHeight="800">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Nền trắng tinh khiết -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
 
-    <!-- Nền trắng ngà -->
-    <path
-        android:fillColor="#FAFAFF"
-        android:pathData="M0,0h360v800H0z" />
+    <!-- Mây Tím (Góc trên trái) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="400dp"
+                android:centerX="0.1"
+                android:centerY="0.1"
+                android:startColor="#50E8D5FF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
 
-    <!-- Mây tím mờ góc trên trái -->
-    <path
-        android:pathData="M-50,-50 C 50,-50 150,50 100,150 C 50,250 -50,150 -50,-50 Z"
-        android:fillColor="#40E8D5FF" />
+    <!-- Mây Xanh (Góc trên phải) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="400dp"
+                android:centerX="0.9"
+                android:centerY="0.2"
+                android:startColor="#40D5EEFF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
 
-    <!-- Mây xanh mờ góc trên phải -->
-    <path
-        android:pathData="M410,-50 C 310,-50 210,50 260,150 C 310,250 410,150 410,-50 Z"
-        android:fillColor="#30D5EEFF" />
+    <!-- Dải sóng mây Tím (Dưới đáy) -->
+    <item android:bottom="0dp" android:top="550dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#60E8D5FF"
+                android:endColor="#90DCC6FF" />
+        </shape>
+    </item>
 
-    <!-- Sóng 1 (Tím nhạt) -->
-    <path
-        android:fillColor="#50E8D5FF"
-        android:pathData="M0,600 C 100,550 200,700 360,600 L360,800 L0,800 Z" />
-
-    <!-- Sóng 2 (Hồng nhạt) -->
-    <path
-        android:fillColor="#40FFE5F1"
-        android:pathData="M0,680 C 150,750 250,600 360,680 L360,800 L0,800 Z" />
-
-    <!-- Sóng 3 (Xanh nhạt) -->
-    <path
-        android:fillColor="#30D5EEFF"
-        android:pathData="M0,750 C 120,700 240,800 360,740 L360,800 L0,800 Z" />
-</vector>
+    <!-- Dải sóng mây Hồng (Dưới đáy) -->
+    <item android:bottom="0dp" android:top="650dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="90"
+                android:startColor="#60FFE5F1"
+                android:endColor="#30E8D5FF" />
+        </shape>
+    </item>
+</layer-list>
