@@ -24,6 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.Locale
 
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
@@ -43,8 +44,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private var dragTo = -1
 
     private companion object {
-        // Chiều cao bảng = 70% chiều cao màn hình (chỉnh số này để cao/thấp hơn)
-        const val SHEET_HEIGHT_RATIO = 0.7f
         const val COLOR_ON = "#7C3AED"
         const val COLOR_OFF = "#A892D8"
     }
@@ -64,6 +63,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
         tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
 
+        // Bảng chiếm toàn màn hình: chừa chỗ cho thanh trạng thái phía trên
+        val resId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val statusBarHeight = if (resId > 0) resources.getDimensionPixelSize(resId) else 0
+        view.setPadding(0, statusBarHeight, 0, 0)
+
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
         controllerFuture.addListener({
@@ -73,6 +77,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             setupBottomBar()
             observePlayer()
             updateUI()
+            scrollToCurrent()
         }, MoreExecutors.directExecutor())
     }
 
@@ -80,23 +85,20 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onStart()
         val bsDialog = dialog as? BottomSheetDialog ?: return
 
-        // Đặt cứng chiều cao bảng (trước đây bảng co lại bằng phần nội dung nên chỉ còn 1 dải nhỏ)
-        val height = (resources.displayMetrics.heightPixels * SHEET_HEIGHT_RATIO).toInt()
+        // Bảng cao bằng toàn bộ màn hình
         val sheet = bsDialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
         if (sheet != null) {
-            sheet.layoutParams.height = height
-            // Bỏ nền mặc định của Material để thấy góc bo và nền kính mờ của mình
+            sheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            // Bỏ nền mặc định của Material để thấy nền kính mờ của mình
             sheet.setBackgroundColor(Color.TRANSPARENT)
             sheet.requestLayout()
         }
 
         bsDialog.behavior.apply {
-            peekHeight = height
+            peekHeight = resources.displayMetrics.heightPixels
             skipCollapsed = true
             state = BottomSheetBehavior.STATE_EXPANDED
         }
-        // Làm tối nhẹ màn hình Now Playing phía sau
-        bsDialog.window?.setDimAmount(0.35f)
     }
 
     private fun setupRecyclerView() {
@@ -104,11 +106,12 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             items = emptyList(),
             onItemClick = { position ->
                 val c = controller
-                // Vị trí 0 là bài đang phát nên không cần chuyển bài
-                if (c != null && position > 0) {
-                    val actualIndex = c.currentMediaItemIndex + position
-                    if (actualIndex < c.mediaItemCount) {
-                        c.seekTo(actualIndex, 0L)
+                if (c != null) {
+                    if (position == adapter.currentPlayingIndex) {
+                        // Bấm vào bài đang phát: bật / tạm dừng
+                        if (c.isPlaying) c.pause() else c.play()
+                    } else if (position < c.mediaItemCount) {
+                        c.seekTo(position, 0L)
                         c.play()
                     }
                 }
@@ -130,12 +133,13 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         ItemTouchHelper.UP or ItemTouchHelper.DOWN,
         ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
     ) {
-        // Bài đang phát (vị trí 0) không cho kéo hay vuốt xóa
+        // Bài đang phát không cho kéo hay vuốt xóa
         override fun getMovementFlags(
             recyclerView: RecyclerView,
             viewHolder: RecyclerView.ViewHolder
         ): Int {
-            if (viewHolder.bindingAdapterPosition <= 0) return 0
+            val pos = viewHolder.bindingAdapterPosition
+            if (pos == RecyclerView.NO_POSITION || pos == adapter.currentPlayingIndex) return 0
             return super.getMovementFlags(recyclerView, viewHolder)
         }
 
@@ -149,7 +153,13 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         ): Boolean {
             val from = viewHolder.bindingAdapterPosition
             val to = target.bindingAdapterPosition
-            if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION || to == 0) return false
+            if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+
+            // Không cho kéo bài vượt qua bài đang phát (tránh lệch vị trí tô nền)
+            val cur = adapter.currentPlayingIndex
+            if (to == cur) return false
+            if ((from < cur && to > cur) || (from > cur && to < cur)) return false
+
             if (dragFrom == -1) dragFrom = from
             dragTo = to
             adapter.onItemMove(from, to)
@@ -159,11 +169,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             val position = viewHolder.bindingAdapterPosition
             val c = controller
-            if (c == null || position <= 0) return
-            val actualIndex = c.currentMediaItemIndex + position
-            if (actualIndex < c.mediaItemCount) {
+            if (c == null || position == RecyclerView.NO_POSITION) return
+            if (position < c.mediaItemCount) {
                 adapter.removeItem(position)
-                c.removeMediaItem(actualIndex)
+                c.removeMediaItem(position)
                 Toast.makeText(requireContext(), "Đã xóa bài hát", Toast.LENGTH_SHORT).show()
             }
         }
@@ -173,8 +182,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             super.clearView(recyclerView, viewHolder)
             val c = controller
             if (c != null && dragFrom != -1 && dragTo != -1 && dragFrom != dragTo) {
-                val base = c.currentMediaItemIndex
-                c.moveMediaItem(base + dragFrom, base + dragTo)
+                c.moveMediaItem(dragFrom, dragTo)
             }
             dragFrom = -1
             dragTo = -1
@@ -199,6 +207,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             updateHeaderUI()
         }
 
+        // Xóa hàng đợi: chỉ xóa các bài SAU bài đang phát (các bài đã nghe vẫn giữ)
         root.findViewById<View>(R.id.btnClearQueue).setOnClickListener {
             val currentIndex = c.currentMediaItemIndex
             if (currentIndex + 1 < c.mediaItemCount) {
@@ -242,9 +251,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateUI()
+                // Sang bài mới thì cuộn tới bài đang phát
+                scrollToCurrent()
             }
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 updateUI()
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (::adapter.isInitialized) adapter.setPlaying(isPlaying)
             }
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
                 updateHeaderUI()
@@ -257,24 +271,44 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         c.addListener(listener)
     }
 
-    // Danh sách hiển thị = bài đang phát (vị trí 0, tô nền tím) + các bài tiếp theo
+    // Hiển thị TOÀN BỘ hàng đợi; bài đang phát được tô nền tím ở đúng vị trí của nó
     private fun updateUI() {
         val c = controller ?: return
         if (!::adapter.isInitialized) return
 
         val items = mutableListOf<MediaItem>()
         var totalDurationMs = 0L
-        for (i in c.currentMediaItemIndex until c.mediaItemCount) {
+        for (i in 0 until c.mediaItemCount) {
             val item = c.getMediaItemAt(i)
             items.add(item)
             totalDurationMs += item.mediaMetadata.durationMs ?: 0L
         }
 
-        // Làm tròn lên theo phút
-        val totalMinutes = (totalDurationMs + 59_999L) / 60_000L
-        tvPlaylistSubtitle.text = "${items.size} bài hát • $totalMinutes phút"
+        tvPlaylistSubtitle.text = "${items.size} bài hát • ${formatTotalDuration(totalDurationMs)}"
 
-        adapter.updateItems(items, 0)
+        adapter.updateItems(items, c.currentMediaItemIndex)
+        adapter.setPlaying(c.isPlaying)
+    }
+
+    // Đưa bài đang phát lên đầu vùng nhìn thấy
+    private fun scrollToCurrent() {
+        if (!::adapter.isInitialized) return
+        val lm = rvQueue.layoutManager as? LinearLayoutManager ?: return
+        val pos = adapter.currentPlayingIndex
+        if (pos >= 0) lm.scrollToPositionWithOffset(pos, 0)
+    }
+
+    // Dưới 1 giờ: "42:30". Từ 1 giờ trở lên: "1h 00:30"
+    private fun formatTotalDuration(millis: Long): String {
+        val totalSeconds = (millis.coerceAtLeast(0L)) / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        return if (hours > 0) {
+            String.format(Locale.US, "%dh %02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.US, "%02d:%02d", minutes, seconds)
+        }
     }
 
     override fun onDestroyView() {
