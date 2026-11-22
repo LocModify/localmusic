@@ -444,18 +444,22 @@ class MainActivity : AppCompatActivity() {
         val wasPlaying = c.isPlaying
         val currentPos = c.currentMediaItemIndex
         val currentTime = c.currentPosition
+        val wasShuffleOn = c.shuffleModeEnabled // Lưu lại trạng thái Shuffle
 
         val items = tracks.map { t -> buildMediaItem(t) }
 
         c.setMediaItems(items, if (currentPos < items.size) currentPos else 0, currentTime)
+        c.shuffleModeEnabled = wasShuffleOn // Khôi phục lại trạng thái Shuffle
         if (wasPlaying) c.play()
     }
 
     private fun addTracksToPlaylist(newTracks: List<Track>) {
         val c = controller ?: return
+        val wasShuffleOn = c.shuffleModeEnabled // Lưu lại trạng thái Shuffle
         val newItems = newTracks.map { t -> buildMediaItem(t) }
 
         if (c.mediaItemCount == 0) c.setMediaItems(newItems) else c.addMediaItems(newItems)
+        c.shuffleModeEnabled = wasShuffleOn // Khôi phục lại trạng thái Shuffle
     }
 
     private fun getDefaultArtworkBytes(): ByteArray {
