@@ -7,31 +7,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.media3.common.MediaItem
 import androidx.recyclerview.widget.RecyclerView
+import androidx.media3.common.MediaItem
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 
 class QueueAdapter(
-    items: List<MediaItem>,
-    // Số thứ tự hiển thị của dòng đầu tiên (mặc định 1)
-    private val startIndex: Int = 1,
+    private var items: List<MediaItem>,
+    private val startIndex: Int,
     private val onItemClick: (Int) -> Unit,
     private val onStartDrag: (RecyclerView.ViewHolder) -> Unit,
-    private val onMoreClick: (Int, View) -> Unit
+    private val onMoreClick: (Int, View) -> Unit,
+    private val onSelectionChanged: () -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
+    private var currentPlayingIndex = -1
 
-    // Vị trí của bài đang phát trong danh sách (-1 = không có)
-    var currentPlayingIndex = -1
+    // Trạng thái chọn nhiều
+    var isSelectionMode = false
         private set
-
-    // Nhạc đang phát hay tạm dừng (để bật/tắt chuyển động của cột sóng âm)
-    private var isPlaying = false
-
-    private companion object {
-        const val PAYLOAD_PLAYING = "playing"
-    }
+    val selectedUris = mutableSetOf<String>()
 
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val itemContainer: View = view.findViewById(R.id.itemContainer)
@@ -40,8 +36,9 @@ class QueueAdapter(
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
         val tvDuration: TextView = view.findViewById(R.id.tvDuration)
         val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
-        val playingBars: PlayingBarsView = view.findViewById(R.id.viewPlayingBars)
+        val ivPlayingIcon: ImageView = view.findViewById(R.id.ivPlayingIcon)
         val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
+        val ivSelectCheckbox: ImageView = view.findViewById(R.id.ivSelectCheckbox)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
@@ -50,66 +47,88 @@ class QueueAdapter(
         return QueueViewHolder(view)
     }
 
-    // Chỉ cập nhật cột sóng âm khi trạng thái phát/dừng thay đổi (không vẽ lại cả dòng)
-    override fun onBindViewHolder(
-        holder: QueueViewHolder,
-        position: Int,
-        payloads: MutableList<Any>
-    ) {
-        if (payloads.contains(PAYLOAD_PLAYING)) {
-            holder.playingBars.setPlaying(position == currentPlayingIndex && isPlaying)
-        } else {
-            super.onBindViewHolder(holder, position, payloads)
-        }
-    }
-
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
-        val metadata = mutableItems[position].mediaMetadata
+        val mediaItem = mutableItems[position]
+        val metadata = mediaItem.mediaMetadata
+        val uri = mediaItem.localConfiguration?.uri.toString()
 
-        val title = metadata.title?.toString()
-        val artist = metadata.artist?.toString()
-        holder.tvTitle.text = if (title.isNullOrBlank()) "Unknown Title" else title
-        holder.tvArtist.text = if (artist.isNullOrBlank()) "Unknown Artist" else artist
+        holder.tvTitle.text = metadata.title ?: "Unknown Title"
+        holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
         holder.tvIndex.text = (position + startIndex).toString()
-        holder.tvDuration.text = TimeUtils.format(metadata.durationMs ?: 0L)
+
+        val durationMs = metadata.durationMs ?: 0L
+        holder.tvDuration.text = formatTime(durationMs)
 
         val artworkData = metadata.artworkData
         if (artworkData != null) {
             val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            if (bitmap != null) holder.ivThumbnail.setImageBitmap(bitmap)
-            else holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
+            holder.ivThumbnail.setImageBitmap(bitmap)
         } else {
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
 
-        if (position == currentPlayingIndex) {
-            // Bài đang phát: nền tím nhạt + cột sóng âm chuyển động (ẩn số thứ tự, giữ chỗ cho thời lượng/ba chấm)
-            holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
+        // Xử lý UI khi ở chế độ chọn
+        if (isSelectionMode) {
+            holder.ivSelectCheckbox.visibility = View.VISIBLE
             holder.tvIndex.visibility = View.GONE
-            holder.playingBars.visibility = View.VISIBLE
-            holder.playingBars.setPlaying(isPlaying)
-            holder.tvDuration.visibility = View.INVISIBLE
-            holder.btnMore.visibility = View.INVISIBLE
-        } else {
+            holder.btnMore.visibility = View.GONE
             holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
-            holder.tvIndex.visibility = View.VISIBLE
-            holder.playingBars.setPlaying(false)
-            holder.playingBars.visibility = View.GONE
-            holder.tvDuration.visibility = View.VISIBLE
+
+            // Đổi màu icon checkbox dựa trên trạng thái được chọn
+            if (selectedUris.contains(uri)) {
+                holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline) // Hoặc icon check filled nếu có
+                holder.ivSelectCheckbox.setColorFilter(Color.parseColor("#7C3AED"))
+            } else {
+                holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline)
+                holder.ivSelectCheckbox.setColorFilter(Color.parseColor("#9E9E9E"))
+            }
+        } else {
+            holder.ivSelectCheckbox.visibility = View.GONE
             holder.btnMore.visibility = View.VISIBLE
+
+            // Xử lý UI bình thường
+            if (position == currentPlayingIndex) {
+                holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
+                holder.tvIndex.visibility = View.GONE
+                holder.ivPlayingIcon.visibility = View.VISIBLE
+                holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
+                holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
+                holder.tvDuration.visibility = View.GONE
+            } else {
+                holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
+                holder.tvIndex.visibility = View.VISIBLE
+                holder.ivPlayingIcon.visibility = View.GONE
+                holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
+                holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
+                holder.tvDuration.visibility = View.VISIBLE
+            }
         }
 
+        // Sự kiện Click
         holder.itemView.setOnClickListener {
-            val pos = holder.bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) onItemClick(pos)
+            if (isSelectionMode) {
+                toggleSelection(uri)
+            } else {
+                onItemClick(holder.bindingAdapterPosition)
+            }
+        }
+
+        // Sự kiện Long Click (Nhấn giữ) để bật chế độ chọn
+        holder.itemView.setOnLongClickListener {
+            if (!isSelectionMode) {
+                isSelectionMode = true
+                toggleSelection(uri)
+            }
+            true
         }
 
         holder.btnMore.setOnClickListener {
-            val pos = holder.bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) onMoreClick(pos, it)
+            onMoreClick(holder.bindingAdapterPosition, it)
         }
 
+        // Kéo thả (chỉ cho phép khi không ở chế độ chọn)
         holder.itemView.setOnLongClickListener {
+            if (isSelectionMode) return@setOnLongClickListener false // Không kéo thả khi đang chọn
             onStartDrag(holder)
             true
         }
@@ -117,34 +136,42 @@ class QueueAdapter(
 
     override fun getItemCount(): Int = mutableItems.size
 
-    // Cập nhật danh sách. playingIndex = vị trí bài đang phát để tô nền (-1 = không tô)
-    fun updateItems(newItems: List<MediaItem>, playingIndex: Int = 0) {
-        // Danh sách không đổi thì bỏ qua để không làm giật khi đang vuốt/kéo
-        if (playingIndex == currentPlayingIndex && isSameQueue(newItems)) return
+    fun toggleSelection(uri: String) {
+        if (selectedUris.contains(uri)) {
+            selectedUris.remove(uri)
+            if (selectedUris.isEmpty()) isSelectionMode = false
+        } else {
+            selectedUris.add(uri)
+        }
+        notifyDataSetChanged()
+        onSelectionChanged()
+    }
+
+    fun selectAll() {
+        for (item in mutableItems) {
+            item.localConfiguration?.uri?.toString()?.let { selectedUris.add(it) }
+        }
+        isSelectionMode = true
+        notifyDataSetChanged()
+        onSelectionChanged()
+    }
+
+    fun deselectAll() {
+        selectedUris.clear()
+        isSelectionMode = false
+        notifyDataSetChanged()
+        onSelectionChanged()
+    }
+
+    fun getSelectedItems(): List<MediaItem> {
+        return mutableItems.filter { selectedUris.contains(it.localConfiguration?.uri.toString()) }
+    }
+
+    fun updateItems(newItems: List<MediaItem>, playingIndex: Int) {
         mutableItems.clear()
         mutableItems.addAll(newItems)
         currentPlayingIndex = playingIndex
         notifyDataSetChanged()
-    }
-
-    // Báo nhạc đang phát hay tạm dừng để cột sóng âm chạy / đứng yên
-    fun setPlaying(playing: Boolean) {
-        if (isPlaying == playing) return
-        isPlaying = playing
-        if (currentPlayingIndex in mutableItems.indices) {
-            notifyItemChanged(currentPlayingIndex, PAYLOAD_PLAYING)
-        }
-    }
-
-    private fun isSameQueue(newItems: List<MediaItem>): Boolean {
-        if (newItems.size != mutableItems.size) return false
-        for (i in newItems.indices) {
-            val a = newItems[i]
-            val b = mutableItems[i]
-            if (a.localConfiguration?.uri != b.localConfiguration?.uri) return false
-            if (a.mediaMetadata.title != b.mediaMetadata.title) return false
-        }
-        return true
     }
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
@@ -155,8 +182,6 @@ class QueueAdapter(
     fun removeItem(position: Int) {
         if (position in mutableItems.indices) {
             mutableItems.removeAt(position)
-            // Xóa bài nằm trước bài đang phát thì vị trí bài đang phát lùi 1
-            if (position < currentPlayingIndex) currentPlayingIndex -= 1
             notifyItemRemoved(position)
         }
     }
@@ -164,10 +189,17 @@ class QueueAdapter(
     fun addItem(position: Int, item: MediaItem) {
         if (position <= mutableItems.size) {
             mutableItems.add(position, item)
-            if (position <= currentPlayingIndex) currentPlayingIndex += 1
             notifyItemInserted(position)
         }
     }
 
     fun getCurrentList(): List<MediaItem> = mutableItems
+
+    private fun formatTime(millis: Long): String {
+        return String.format(
+            "%02d:%02d",
+            TimeUnit.MILLISECONDS.toMinutes(millis),
+            TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+        )
+    }
 }
