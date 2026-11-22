@@ -1,8 +1,8 @@
 package com.ztrongz.localmusic
 
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -10,20 +10,28 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.media3.common.MediaItem
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 
 class QueueAdapter(
     private var items: List<MediaItem>,
+    private val startIndex: Int,
     private val onItemClick: (Int) -> Unit,
-    private val onStartDrag: (RecyclerView.ViewHolder) -> Unit
+    private val onStartDrag: (RecyclerView.ViewHolder) -> Unit,
+    private val onMoreClick: (Int, View) -> Unit
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
+    private var currentPlayingIndex = -1
 
     class QueueViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val itemContainer: View = view.findViewById(R.id.itemContainer)
+        val tvIndex: TextView = view.findViewById(R.id.tvIndex)
         val tvTitle: TextView = view.findViewById(R.id.tvQueueItemTitle)
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
+        val tvDuration: TextView = view.findViewById(R.id.tvDuration)
         val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
-        val btnDragHandle: ImageView = view.findViewById(R.id.btnDragHandle)
+        val ivPlayingIcon: ImageView = view.findViewById(R.id.ivPlayingIcon)
+        val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
@@ -38,6 +46,11 @@ class QueueAdapter(
 
         holder.tvTitle.text = metadata.title ?: "Unknown Title"
         holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
+        
+        holder.tvIndex.text = (position + startIndex).toString()
+
+        val durationMs = metadata.durationMs ?: 0L
+        holder.tvDuration.text = formatTime(durationMs)
 
         val artworkData = metadata.artworkData
         if (artworkData != null) {
@@ -47,28 +60,44 @@ class QueueAdapter(
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
 
+        if (position == currentPlayingIndex) {
+            holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
+            holder.tvIndex.visibility = View.GONE
+            holder.ivPlayingIcon.visibility = View.VISIBLE
+            holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
+            holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
+            holder.tvDuration.visibility = View.GONE 
+        } else {
+            holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
+            holder.tvIndex.visibility = View.VISIBLE
+            holder.ivPlayingIcon.visibility = View.GONE
+            holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
+            holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
+            holder.tvDuration.visibility = View.VISIBLE
+        }
+
         holder.itemView.setOnClickListener {
             onItemClick(holder.bindingAdapterPosition)
         }
+        
+        holder.btnMore.setOnClickListener {
+            onMoreClick(holder.bindingAdapterPosition, it)
+        }
 
-        // Kéo thả bằng tay nắm
-        holder.btnDragHandle.setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                onStartDrag(holder)
-            }
-            false
+        holder.itemView.setOnLongClickListener {
+            onStartDrag(holder)
+            true
         }
     }
 
     override fun getItemCount(): Int = mutableItems.size
 
-    fun updateItems(newItems: List<MediaItem>) {
+    fun updateItems(newItems: List<MediaItem>, playingIndex: Int) {
         mutableItems.clear()
         mutableItems.addAll(newItems)
+        currentPlayingIndex = playingIndex
         notifyDataSetChanged()
     }
-
-    fun getItemAt(position: Int): MediaItem = mutableItems[position]
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         Collections.swap(mutableItems, fromPosition, toPosition)
@@ -76,14 +105,26 @@ class QueueAdapter(
     }
 
     fun removeItem(position: Int) {
-        mutableItems.removeAt(position)
-        notifyItemRemoved(position)
+        if (position in mutableItems.indices) {
+            mutableItems.removeAt(position)
+            notifyItemRemoved(position)
+        }
     }
 
     fun addItem(position: Int, item: MediaItem) {
-        mutableItems.add(position, item)
-        notifyItemInserted(position)
+        if (position <= mutableItems.size) {
+            mutableItems.add(position, item)
+            notifyItemInserted(position)
+        }
     }
 
     fun getCurrentList(): List<MediaItem> = mutableItems
+
+    private fun formatTime(millis: Long): String {
+        return String.format(
+            "%02d:%02d",
+            TimeUnit.MILLISECONDS.toMinutes(millis),
+            TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+        )
+    }
 }
