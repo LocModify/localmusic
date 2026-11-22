@@ -18,7 +18,6 @@ class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
 
-    // Định nghĩa các hằng số cho Custom Command để dễ quản lý
     companion object {
         private const val ACTION_SET_PAUSE_AT_END = "SET_PAUSE_AT_END"
         private const val ACTION_SHUFFLE = "ACTION_SHUFFLE"
@@ -39,9 +38,19 @@ class PlaybackService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true)
             .build()
 
-        // Mặc định tắt lặp và tắt xáo trộn
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
+
+        // Lắng nghe sự thay đổi trạng thái của Player để cập nhật lại thông báo
+        player.addListener(object : Player.Listener {
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                updateNotificationLayout()
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+                updateNotificationLayout()
+            }
+        })
 
         val session = MediaSession.Builder(this, player)
             .setCallback(object : MediaSession.Callback {
@@ -49,7 +58,6 @@ class PlaybackService : MediaSessionService() {
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo
                 ): MediaSession.ConnectionResult {
-                    // Đăng ký các Custom Command (bao gồm cả Shuffle và Repeat)
                     val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
                         .add(SessionCommand(ACTION_SET_PAUSE_AT_END, Bundle.EMPTY))
                         .add(SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY))
@@ -60,26 +68,10 @@ class PlaybackService : MediaSessionService() {
                         .build()
                 }
 
-                // Hàm này dùng để gửi các nút lên giao diện thông báo (Notification)
                 override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
                     super.onPostConnect(session, controller)
-                    
-                    // Tạo danh sách các nút bấm (Shuffle và Repeat)
-                    // Lưu ý: Anh cần chắc chắn đã có file ic_shuffle và ic_repeat trong thư mục drawable
-                    val customLayout = listOf(
-                        CommandButton.Builder()
-                            .setDisplayName("Shuffle")
-                            .setIconResId(R.drawable.ic_shuffle)
-                            .setSessionCommand(SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY))
-                            .build(),
-                        CommandButton.Builder()
-                            .setDisplayName("Repeat")
-                            .setIconResId(R.drawable.ic_repeat)
-                            .setSessionCommand(SessionCommand(ACTION_REPEAT, Bundle.EMPTY))
-                            .build()
-                    )
-                    // Gửi layout lên thông báo
-                    session.setCustomLayout(controller, customLayout)
+                    // Cập nhật icon ngay khi vừa kết nối (mở thông báo)
+                    updateNotificationLayout()
                 }
 
                 override fun onCustomCommand(
@@ -95,15 +87,11 @@ class PlaybackService : MediaSessionService() {
                                 (session.player as ExoPlayer).pauseAtEndOfMediaItems = pause
                             }
                         }
-                        
                         ACTION_SHUFFLE -> {
-                            // Đảo trạng thái Shuffle (Bật <-> Tắt)
                             session.player.shuffleModeEnabled = !session.player.shuffleModeEnabled
-                            // (Tùy chọn) Anh có thể gọi lại onPostConnect ở đây nếu muốn icon đổi màu khi bật/tắt
+                            // Không cần gọi updateNotificationLayout() ở đây vì Listener ở trên đã tự bắt sự kiện
                         }
-                        
                         ACTION_REPEAT -> {
-                            // Chuyển đổi vòng lặp: Tắt -> Lặp tất cả -> Lặp 1 bài -> Tắt
                             val currentMode = session.player.repeatMode
                             val newMode = when (currentMode) {
                                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -111,8 +99,8 @@ class PlaybackService : MediaSessionService() {
                                 else -> Player.REPEAT_MODE_OFF
                             }
                             session.player.repeatMode = newMode
+                            // Không cần gọi updateNotificationLayout() ở đây vì Listener ở trên đã tự bắt sự kiện
                         }
-                        
                         else -> return super.onCustomCommand(session, controller, customCommand, args)
                     }
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
@@ -121,6 +109,45 @@ class PlaybackService : MediaSessionService() {
             .build()
 
         mediaSession = session
+    }
+
+    // Hàm cập nhật icon động cho thông báo
+    private fun updateNotificationLayout() {
+        val session = mediaSession ?: return
+        val player = session.player
+
+        // 1. Xác định icon Shuffle (Bật/Tắt)
+        val shuffleIcon = if (player.shuffleModeEnabled) {
+            R.drawable.ic_shuffle_on
+        } else {
+            R.drawable.ic_shuffle_off
+        }
+
+        // 2. Xác định icon Repeat (Tắt / Lặp tất cả / Lặp 1 bài)
+        val repeatIcon = when (player.repeatMode) {
+            Player.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all
+            Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+            else -> R.drawable.ic_repeat_off
+        }
+
+        // 3. Tạo lại danh sách nút bấm với icon mới
+        val customLayout = listOf(
+            CommandButton.Builder()
+                .setDisplayName("Shuffle")
+                .setIconResId(shuffleIcon)
+                .setSessionCommand(SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY))
+                .build(),
+            CommandButton.Builder()
+                .setDisplayName("Repeat")
+                .setIconResId(repeatIcon)
+                .setSessionCommand(SessionCommand(ACTION_REPEAT, Bundle.EMPTY))
+                .build()
+        )
+
+        // 4. Gửi cập nhật cho tất cả các controller (bao gồm cả thông báo và app)
+        for (controller in session.connectedControllers) {
+            session.setCustomLayout(controller, customLayout)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
