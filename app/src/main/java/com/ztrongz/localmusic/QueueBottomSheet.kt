@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.media3.common.MediaItem
@@ -109,7 +111,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP &&
                 ::adapter.isInitialized && adapter.isSelectionMode
             ) {
-                adapter.deselectAll()
+                adapter.exitSelection()
                 true
             } else false
         }
@@ -176,9 +178,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     // ================= Chế độ chọn nhiều =================
     private fun setupSelectionHeader() {
-        // "Tất cả": chọn tất cả / bỏ chọn tất cả
+        // "Tất cả": chọn tất cả / bỏ tick hết (vẫn ở chế độ chọn nhiều)
         btnSelectAll.setOnClickListener {
-            if (adapter.isAllSelected()) adapter.deselectAll() else adapter.selectAll()
+            if (adapter.isAllSelected()) adapter.clearSelection() else adapter.selectAll()
+        }
+
+        // Nút X: thoát chế độ chọn nhiều
+        rootView.findViewById<View>(R.id.btnExitSelection).setOnClickListener {
+            adapter.exitSelection()
         }
 
         // Thùng rác đỏ: xóa các bài đã chọn khỏi hàng đợi
@@ -197,14 +204,26 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                     removed++
                 }
             }
-            adapter.deselectAll()
+            adapter.exitSelection()
             updateUI(scrollToCurrent = false)
             Toast.makeText(requireContext(), "Đã xóa $removed bài hát", Toast.LENGTH_SHORT).show()
         }
     }
 
+    private var lastSelectionMode = false
+
     private fun updateSelectionUI() {
         if (!::adapter.isInitialized) return
+
+        // Hiệu ứng trượt mượt khi thanh chọn hiện/ẩn (chỉ khi đổi chế độ)
+        if (adapter.isSelectionMode != lastSelectionMode) {
+            lastSelectionMode = adapter.isSelectionMode
+            TransitionManager.beginDelayedTransition(
+                rootView as ViewGroup,
+                AutoTransition().apply { duration = 200 }
+            )
+        }
+
         if (adapter.isSelectionMode) {
             layoutSelectionHeader.visibility = View.VISIBLE
             tvSelectedCount.text = "Đã chọn ${adapter.selectedUris.size}"
@@ -241,7 +260,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         rootView.findViewById<View>(R.id.btnClearQueue).setOnClickListener {
             val currentIndex = c.currentMediaItemIndex
             if (currentIndex + 1 < c.mediaItemCount) {
-                adapter.deselectAll()
+                adapter.exitSelection()
                 c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
                 updateUI(scrollToCurrent = false)
                 Toast.makeText(requireContext(), "Đã xóa toàn bộ hàng đợi", Toast.LENGTH_SHORT).show()
