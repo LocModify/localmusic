@@ -214,19 +214,20 @@
                 app:tint="#BE9BFF" />
         </FrameLayout>
 
-        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
+        <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ: căn giữa màn hình (chừa 2 bên bằng nhau 76dp) -->
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtSongTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="76dp"
+            android:layout_marginEnd="76dp"
+            android:gravity="center_horizontal"
             android:text="Dreaming"
             android:textColor="#111111"
             android:textSize="26sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cardAlbumArt" />
 
@@ -235,12 +236,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="76dp"
+            android:layout_marginEnd="76dp"
+            android:gravity="center_horizontal"
             android:text="Unknown Artist"
             android:textColor="#7A5BA8"
             android:textSize="15sp"
-            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtSongTitle" />
 
