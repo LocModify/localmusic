@@ -194,7 +194,7 @@ class NowPlayingActivity : AppCompatActivity() {
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
             
-            // Mặc định bật tính năng dừng ở cuối bài nếu đang là REPEAT_MODE_OFF
+            // Gửi lệnh khôi phục trạng thái dừng cuối bài
             updatePauseAtEnd(controller?.repeatMode == Player.REPEAT_MODE_OFF)
             
             updateUI()
@@ -203,7 +203,7 @@ class NowPlayingActivity : AppCompatActivity() {
         }, MoreExecutors.directExecutor())
     }
 
-    // Hàm gửi lệnh xuống Service để bật/tắt tính năng dừng cuối bài
+    // Hàm gửi lệnh xuống Service để bật/tắt tính năng dừng cuối bài (Đã sửa)
     private fun updatePauseAtEnd(pause: Boolean) {
         controller?.sendCustomCommand(
             SessionCommand("SET_PAUSE_AT_END", Bundle.EMPTY),
@@ -231,7 +231,7 @@ class NowPlayingActivity : AppCompatActivity() {
             showCustomPopup(msg)
         }
 
-        // Xử lý nút Repeat (Xoay vòng 3 trạng thái)
+        // Xử lý nút Repeat
         btnRepeat.setOnClickListener {
             val nextMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -240,7 +240,7 @@ class NowPlayingActivity : AppCompatActivity() {
             }
             c.repeatMode = nextMode
             
-            // Bật/tắt tính năng dừng cuối bài tương ứng
+            // Gửi lệnh bật/tắt dừng cuối bài
             updatePauseAtEnd(nextMode == Player.REPEAT_MODE_OFF)
             
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
