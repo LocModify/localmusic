@@ -3,22 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_wave_gradient">
-
-    <!-- Nền sóng động ở dưới cùng -->
-    <com.scwang.wave.MultiWaveHeader
-        android:id="@+id/waveHeader"
-        android:layout_width="match_parent"
-        android:layout_height="220dp"
-        app:mwhVelocity="1.2"
-        app:mwhProgress="0.8"
-        app:mwhRunning="true"
-        app:mwhGradientAngle="45"
-        app:mwhWaveHeight="80dp"
-        app:mwhStartColor="#D8B4FE"
-        app:mwhCloseColor="#A78BFA"
-        app:mwhColorAlpha="0.4"
-        app:layout_constraintBottom_toBottomOf="parent" />
+    android:background="@drawable/bg_player_wave"> <!-- Dùng nền sóng mới -->
 
     <!-- Nút thu nhỏ -->
     <ImageView
@@ -58,7 +43,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Đĩa nhạc quay (Dùng CardView bọc ImageView để bo tròn) -->
+    <!-- Đĩa nhạc quay (Dùng CardView bọc ImageView) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardCover"
         android:layout_width="280dp"
