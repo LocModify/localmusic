@@ -62,6 +62,9 @@ class NowPlayingActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var isUserSeeking = false
 
+    // Biến quản lý Popup thông báo để không bị đè lên nhau
+    private var customPopup: PopupWindow? = null
+
     private val defaultArtworkBytes: ByteArray by lazy {
         val bmp = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
         val stream = ByteArrayOutputStream()
@@ -93,13 +96,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         setupCoverEffects()
 
-        btnMinimize.setOnClickListener {
-            closeActivity()
-        }
+        btnMinimize.setOnClickListener { closeActivity() }
 
-        rootLayout.onSwipeDownListener = {
-            closeActivity()
-        }
+        rootLayout.onSwipeDownListener { closeActivity() }
 
         rootLayout.onDragProgressListener = { progress ->
             bgOverlay.alpha = progress
@@ -253,24 +252,27 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // SỬA ĐỔI: Thay thế Toast bằng PopupWindow để tránh lỗi Deprecated trên GitHub Actions
+    // SỬA LỖI 1: Tắt popup cũ trước khi hiện popup mới để không bị đè
     private fun showCustomPopup(message: String) {
+        customPopup?.dismiss() // Đóng popup cũ nếu đang hiện
+
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val layout = inflater.inflate(R.layout.toast_layout, null)
         layout.findViewById<TextView>(R.id.tvToastMessage).text = message
 
-        val popup = PopupWindow(
+        customPopup = PopupWindow(
             layout,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             false
         )
-        popup.elevation = 10f
-        // Hiển thị ở giữa màn hình theo chiều ngang, cách đáy 250px
-        popup.showAtLocation(rootLayout, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 250)
+        customPopup?.elevation = 10f
+        customPopup?.showAtLocation(rootLayout, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 250)
 
         // Tự động đóng sau 1.5 giây
-        Handler(Looper.getMainLooper()).postDelayed({ popup.dismiss() }, 1500)
+        Handler(Looper.getMainLooper()).postDelayed({ 
+            customPopup?.dismiss() 
+        }, 1500)
     }
 
     private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
@@ -300,6 +302,13 @@ class NowPlayingActivity : AppCompatActivity() {
             updatePlayPauseIcon(isPlaying)
         }
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // SỬA LỖI 2: Nếu chế độ là Tắt Lặp (OFF) và bài hát tự động chuyển (AUTO)
+            // -> Ép dừng phát nhạc lại
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                if (controller?.repeatMode == Player.REPEAT_MODE_OFF) {
+                    controller?.pause()
+                }
+            }
             updateUI()
             startSeekBarUpdater()
         }
@@ -449,6 +458,7 @@ class NowPlayingActivity : AppCompatActivity() {
         effectAnimators.forEach { it.cancel() }
         effectAnimators.clear()
         handler.removeCallbacks(seekBarUpdater)
+        customPopup?.dismiss() // Đảm bảo đóng popup khi thoát
         controller?.removeListener(playerListener)
         if (::controllerFuture.isInitialized) {
             controllerFuture.addListener({
