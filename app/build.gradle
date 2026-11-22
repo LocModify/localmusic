@@ -9,27 +9,27 @@ android {
 
     defaultConfig {
         applicationId "com.ztrongz.localmusic"
-        minSdk 21
+        minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-
     kotlinOptions {
         jvmTarget = '17'
     }
-
     buildFeatures {
         viewBinding true
     }
@@ -41,12 +41,18 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
+    // Media3
     implementation 'androidx.media3:media3-exoplayer:1.4.1'
     implementation 'androidx.media3:media3-session:1.4.1'
     implementation 'androidx.media3:media3-ui:1.4.1'
 
     implementation 'androidx.activity:activity-ktx:1.9.2'
     
-    // Thêm dòng này vào TRƯỚC dấu ngoặc nhọn đóng khối
-    implementation("io.coil-kt:coil:2.6.0") 
+    // Thư viện Coil (nếu mày đang dùng để load ảnh)
+    implementation("io.coil-kt:coil:2.6.0")
+
+    // --- CÁC THƯ VIỆN MỚI CHO GIAO DIỆN ---
+    implementation("com.scwang.wave:MultiWaveHeader:1.0.0-alpha-1") // Hiệu ứng sóng nền
+    implementation("com.github.andremion:musiccoverview:1.0.0") // Đĩa nhạc quay
+    implementation("com.airbnb.android:lottie:6.1.0") // Hiệu ứng Lottie (nếu cần)
 }
