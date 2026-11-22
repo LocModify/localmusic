@@ -1,193 +1,365 @@
 package com.ztrongz.localmusic
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
-import android.content.res.ColorStateList
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.provider.OpenableColumns
+import android.view.LayoutInflater
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.LinearInterpolator
-import android.widget.Button
+import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.SeekBar
+import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.ztrongz.localmusic.databinding.ActivityMainBinding
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
-class NowPlayingActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var rootLayout: SwipeableConstraintLayout
-    private lateinit var bgOverlay: View
-    private lateinit var contentContainer: View
-    private lateinit var btnMinimize: ImageView
-    private lateinit var btnPlayPause: ImageView
-    private lateinit var btnNext: ImageView
-    private lateinit var btnPrevious: ImageView
-    private lateinit var btnShuffle: ImageView
-    private lateinit var btnRepeat: ImageView
-    private lateinit var imgAlbumArt: ImageView
-    private lateinit var txtSongTitle: TextView
-    private lateinit var txtArtist: TextView
-    private lateinit var txtCurrentTime: TextView
-    private lateinit var txtTotalTime: TextView
-    private lateinit var seekBar: SeekBar
-    private lateinit var btnFavoriteTop: ImageView
-    private lateinit var btnFavoriteBottom: Button
-
-    // Hiệu ứng ảnh bìa
-    private val effectAnimators = mutableListOf<ObjectAnimator>()
-    private var coverSpinAnimator: ObjectAnimator? = null
-    private var playGlowAnimator: ObjectAnimator? = null
-
+    private lateinit var binding: ActivityMainBinding
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
-    private val handler = Handler(Looper.getMainLooper())
-    private var isUserSeeking = false
+    private val tracks = mutableListOf<Track>()
+    private lateinit var songAdapter: SongAdapter
 
-    // Dữ liệu ảnh mặc định (tạo giống hệt cách MainActivity tạo) để nhận biết bài chưa có ảnh bìa riêng
-    private val defaultArtworkBytes: ByteArray by lazy {
-        val bmp = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
-        val stream = ByteArrayOutputStream()
-        bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)
-        stream.toByteArray()
+    private var isShowingFavorites = false
+    private var currentQuery = ""
+
+    private val pickFiles = registerForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNullOrEmpty()) return@registerForActivityResult
+
+        val newlyAddedTracks = mutableListOf<Track>()
+
+        uris.forEach { uri ->
+            val track = extractTrackInfo(uri)
+            if (track != null && tracks.none { it.uri == uri }) {
+                tracks.add(track)
+                newlyAddedTracks.add(track)
+            }
+        }
+        persistPermission(uris)
+
+        if (newlyAddedTracks.isNotEmpty()) {
+            addTracksToPlaylist(newlyAddedTracks)
+            saveTracksToStorage()
+            filterAndShowSongs()
+        }
     }
+
+    private val requestNotif = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_now_playing)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        rootLayout = findViewById(R.id.rootLayout)
-        bgOverlay = findViewById(R.id.bg_overlay)
-        contentContainer = findViewById(R.id.content_container)
-        btnMinimize = findViewById(R.id.btnMinimize)
-        btnPlayPause = findViewById(R.id.btnPlayPause)
-        btnNext = findViewById(R.id.btnNext)
-        btnPrevious = findViewById(R.id.btnPrevious)
-        btnShuffle = findViewById(R.id.btnShuffle)
-        btnRepeat = findViewById(R.id.btnRepeat)
-        imgAlbumArt = findViewById(R.id.imgAlbumArt)
-        txtSongTitle = findViewById(R.id.txtSongTitle)
-        txtArtist = findViewById(R.id.txtArtist)
-        txtCurrentTime = findViewById(R.id.txtCurrentTime)
-        txtTotalTime = findViewById(R.id.txtTotalTime)
-        seekBar = findViewById(R.id.seekBar)
-        btnFavoriteTop = findViewById(R.id.btnFavoriteTop)
-        btnFavoriteBottom = findViewById(R.id.btnFavoriteBottom)
+        songAdapter = SongAdapter(
+            songs = tracks,
+            onSongClick = { track -> 
+                val index = tracks.indexOf(track)
+                if (index != -1) playSongAt(index)
+            },
+            onMoreClick = { track, view -> 
+                val index = tracks.indexOf(track)
+                if (index != -1) showSongOptions(index, view)
+            }
+        )
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = songAdapter
 
-        setupCoverEffects()
+        setupCategoryChips()
+        setupSearchBar()
 
-        btnMinimize.setOnClickListener {
-            closeActivity()
+        // Sự kiện click Mini Player
+        binding.miniPlayerLayout.setOnClickListener {
+            if (controller?.currentMediaItem != null) {
+                val intent = Intent(this, NowPlayingActivity::class.java)
+                startActivity(intent)
+                overridePendingTransition(R.anim.slide_up, 0)
+            }
         }
 
-        rootLayout.onSwipeDownListener = {
-            closeActivity()
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // Làm mờ cả nền và nội dung khi kéo xuống để lộ màn hình chính
-        rootLayout.onDragProgressListener = { progress ->
-            bgOverlay.alpha = progress
-            contentContainer.alpha = progress
+        binding.btnAdd.setOnClickListener {
+            pickFiles.launch(arrayOf("audio/*"))
         }
 
-        btnFavoriteTop.setOnClickListener { toggleFavorite() }
-        btnFavoriteBottom.setOnClickListener { toggleFavorite() }
+        binding.btnPlayPause.setOnClickListener {
+            controller?.let { c ->
+                if (c.isPlaying) c.pause() else c.play()
+            }
+        }
 
+        binding.btnNext.setOnClickListener { controller?.seekToNextMediaItem() }
+        binding.btnPrev.setOnClickListener { controller?.seekToPreviousMediaItem() }
+
+        loadTracksFromStorage()
         connectController()
     }
 
-    // Tạo các hiệu ứng: ảnh bìa xoay, quỹ đạo quay, vầng sáng nhấp nháy, nốt nhạc bay
-    private fun setupCoverEffects() {
-        val density = resources.displayMetrics.density
+    override fun onResume() {
+        super.onResume()
+        refreshFavoriteStatus()
+    }
 
-        // Ảnh bìa xoay chậm (20 giây/vòng), tạm dừng khi nhạc dừng
-        coverSpinAnimator = ObjectAnimator.ofFloat(findViewById<View>(R.id.cardCoverInner), View.ROTATION, 0f, 360f).apply {
-            duration = 20000
-            interpolator = LinearInterpolator()
-            repeatCount = ObjectAnimator.INFINITE
-            start()
-            pause()
-        }
-        effectAnimators.add(coverSpinAnimator!!)
+    private fun refreshFavoriteStatus() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+        try {
+            val jsonArray = JSONArray(jsonString)
+            var changed = false
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val uri = obj.getString("uri")
+                val isFav = obj.optBoolean("isFavorite", false)
 
-        // Hào quang quanh nút Play: phập phồng sáng-mờ khi đang phát
-        playGlowAnimator = ObjectAnimator.ofPropertyValuesHolder(
-            findViewById<View>(R.id.vPlayGlow),
-            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.12f),
-            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.12f),
-            PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.55f)
-        ).apply {
-            duration = 1400
-            interpolator = AccelerateDecelerateInterpolator()
-            repeatCount = ObjectAnimator.INFINITE
-            repeatMode = ObjectAnimator.REVERSE
-            start()
-            pause()
-        }
-        effectAnimators.add(playGlowAnimator!!)
-
-        // 2 quỹ đạo quay ngược chiều nhau
-        val orbit1 = findViewById<View>(R.id.vOrbit1)
-        val orbit2 = findViewById<View>(R.id.vOrbit2)
-        effectAnimators.add(spin(orbit1, orbit1.rotation, orbit1.rotation + 360f, 40000))
-        effectAnimators.add(spin(orbit2, orbit2.rotation, orbit2.rotation - 360f, 55000))
-
-        // Vầng sáng phập phồng
-        val glow = findViewById<View>(R.id.vGlow)
-        for (prop in listOf(View.SCALE_X, View.SCALE_Y)) {
-            val a = ObjectAnimator.ofFloat(glow, prop, 1f, 1.06f).apply {
-                duration = 1800
-                interpolator = AccelerateDecelerateInterpolator()
-                repeatCount = ObjectAnimator.INFINITE
-                repeatMode = ObjectAnimator.REVERSE
-                start()
+                val index = tracks.indexOfFirst { it.uri.toString() == uri }
+                if (index != -1 && tracks[index].isFavorite != isFav) {
+                    tracks[index] = tracks[index].copy(isFavorite = isFav)
+                    changed = true
+                }
             }
-            effectAnimators.add(a)
-        }
-
-        // Nốt nhạc bay lên xuống (mỗi nốt một nhịp khác nhau)
-        val notes = listOf(R.id.note1, R.id.note2, R.id.note3, R.id.note4)
-        val durations = listOf(2200L, 2600L, 3000L, 2400L)
-        notes.forEachIndexed { i, id ->
-            val v = findViewById<View>(id)
-            val baseY = v.translationY
-            val a = ObjectAnimator.ofFloat(v, View.TRANSLATION_Y, baseY, baseY - 14 * density).apply {
-                duration = durations[i]
-                interpolator = AccelerateDecelerateInterpolator()
-                repeatCount = ObjectAnimator.INFINITE
-                repeatMode = ObjectAnimator.REVERSE
-                start()
+            if (changed) {
+                filterAndShowSongs()
             }
-            effectAnimators.add(a)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    private fun spin(v: View, from: Float, to: Float, ms: Long): ObjectAnimator =
-        ObjectAnimator.ofFloat(v, View.ROTATION, from, to).apply {
-            duration = ms
-            interpolator = LinearInterpolator()
-            repeatCount = ObjectAnimator.INFINITE
-            start()
+    private fun setupSearchBar() {
+        binding.etSearch.doAfterTextChanged { text ->
+            currentQuery = text.toString().trim()
+            filterAndShowSongs()
+        }
+    }
+
+    private fun setupCategoryChips() {
+        binding.chipAll.setOnClickListener {
+            isShowingFavorites = false
+            updateChipUI(binding.chipAll, binding.chipFav)
+            filterAndShowSongs()
         }
 
-    private fun closeActivity() {
-        finish()
-        // Hiệu ứng đóng: Trượt xuống, MainActivity hiện ra ngay lập tức
-        overridePendingTransition(0, R.anim.slide_down)
+        binding.chipFav.setOnClickListener {
+            isShowingFavorites = true
+            updateChipUI(binding.chipFav, binding.chipAll)
+            filterAndShowSongs()
+        }
+    }
+
+    private fun updateChipUI(activeChip: View, inactiveChip: View) {
+        activeChip.setBackgroundResource(R.drawable.bg_category_active)
+        if (activeChip is TextView) {
+            activeChip.setTextColor(Color.WHITE)
+            activeChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.white)
+        }
+
+        inactiveChip.setBackgroundResource(R.drawable.bg_category_inactive)
+        if (inactiveChip is TextView) {
+            inactiveChip.setTextColor(Color.parseColor("#1F1B2E"))
+            inactiveChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.black)
+        }
+    }
+
+    private fun filterAndShowSongs() {
+        var displayList: List<Track> = tracks
+
+        if (isShowingFavorites) {
+            displayList = displayList.filter { it.isFavorite }
+        }
+
+        if (currentQuery.isNotEmpty()) {
+            displayList = displayList.filter { 
+                it.title.contains(currentQuery, ignoreCase = true) || 
+                it.artist.contains(currentQuery, ignoreCase = true)
+            }
+        }
+
+        songAdapter.updateData(displayList)
+    }
+
+    private fun saveTracksToStorage() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonArray = JSONArray()
+        tracks.forEach { 
+            val obj = JSONObject()
+            obj.put("uri", it.uri.toString())
+            obj.put("isFavorite", it.isFavorite)
+            obj.put("title", it.title)
+            jsonArray.put(obj) 
+        }
+        prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
+    }
+
+    private fun loadTracksFromStorage() {
+        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
+        val jsonString = prefs.getString("saved_tracks", null) ?: return
+
+        try {
+            val jsonArray = JSONArray(jsonString)
+            tracks.clear()
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val uri = Uri.parse(obj.getString("uri"))
+                val isFav = obj.optBoolean("isFavorite", false)
+                val savedTitle = obj.optString("title", "")
+
+                val track = extractTrackInfo(uri)
+                if (track != null) {
+                    val finalTitle = removeAudioExtension(if (savedTitle.isNotEmpty()) savedTitle else track.title)
+                    tracks.add(track.copy(title = finalTitle, isFavorite = isFav))
+                }
+            }
+            filterAndShowSongs()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun showSongOptions(position: Int, view: View) {
+        val popupView = LayoutInflater.from(this).inflate(R.layout.dialog_song_options, null)
+        val popupWindow = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        popupWindow.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popupWindow.elevation = 15f
+
+        val track = tracks[position]
+
+        val btnFavorite = popupView.findViewById<View>(R.id.btnMenuFavorite)
+        val ivHeart = popupView.findViewById<ImageView>(R.id.ivMenuHeart)
+        val tvFavorite = popupView.findViewById<TextView>(R.id.tvMenuFavorite)
+        val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
+        val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
+
+        tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
+
+        fun updateFavoriteUI(isFav: Boolean) {
+            if (isFav) {
+                ivHeart.setImageResource(R.drawable.ic_heart_filled)
+                tvFavorite.text = "Bỏ yêu thích"
+            } else {
+                ivHeart.setImageResource(R.drawable.ic_heart_outline)
+                tvFavorite.text = "Yêu thích"
+            }
+        }
+
+        updateFavoriteUI(track.isFavorite)
+
+        btnFavorite.setOnClickListener {
+            toggleFavorite(position)
+            updateFavoriteUI(tracks[position].isFavorite)
+        }
+
+        btnRename.setOnClickListener {
+            popupWindow.dismiss()
+            showRenameDialog(position)
+        }
+
+        btnDelete.setOnClickListener {
+            popupWindow.dismiss()
+            deleteSong(position)
+        }
+
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popupWidth = popupView.measuredWidth
+        val offsetX = view.width - popupWidth - 16
+        popupWindow.showAsDropDown(view, offsetX, 0)
+    }
+
+    private fun toggleFavorite(position: Int) {
+        val track = tracks[position]
+        tracks[position] = track.copy(isFavorite = !track.isFavorite)
+        saveTracksToStorage()
+        filterAndShowSongs() 
+    }
+
+    private fun showRenameDialog(position: Int) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_rename, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val edtTitle = dialogView.findViewById<EditText>(R.id.edtNewTitle)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnSave = dialogView.findViewById<TextView>(R.id.btnSave)
+
+        val currentTitle = tracks[position].title
+        val titleWithoutExtension = removeAudioExtension(currentTitle)
+
+        edtTitle.setText(titleWithoutExtension)
+        edtTitle.setSelection(edtTitle.text.length)
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnSave.setOnClickListener {
+            val newTitle = edtTitle.text.toString().trim()
+            if (newTitle.isNotEmpty()) {
+                tracks[position] = tracks[position].copy(title = newTitle)
+                saveTracksToStorage()
+                filterAndShowSongs()
+                updatePlayerPlaylist()
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun deleteSong(position: Int) {
+        tracks.removeAt(position)
+        updatePlayerPlaylist()
+        saveTracksToStorage()
+        filterAndShowSongs()
+    }
+
+    private fun playSongAt(position: Int) {
+        controller?.let { c ->
+            c.seekTo(position, 0L)
+            c.play()
+        }
     }
 
     private fun connectController() {
@@ -196,252 +368,153 @@ class NowPlayingActivity : AppCompatActivity() {
         controllerFuture.addListener({
             controller = controllerFuture.get()
             controller?.addListener(playerListener)
-            
-            updateUI()
-            startSeekBarUpdater()
-            setupControlButtons()
+
+            if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
+                val c = controller ?: return@addListener
+                val items = tracks.map { t -> buildMediaItem(t) }
+                c.setMediaItems(items)
+            }
+            updateMiniPlayerUI()
+            filterAndShowSongs()
         }, MoreExecutors.directExecutor())
     }
 
-    private fun setupControlButtons() {
+    private fun updateMiniPlayerUI() {
         val c = controller ?: return
+        val currentMediaItem = c.currentMediaItem
 
-        btnPlayPause.setOnClickListener {
-            if (c.isPlaying) c.pause() else c.play()
+        binding.tvNowPlaying.text = currentMediaItem?.mediaMetadata?.title ?: "Chưa phát bài nào"
+        val artistText = currentMediaItem?.mediaMetadata?.artist?.toString() ?: ""
+
+        if (artistText.isBlank()) {
+            binding.tvMiniArtist.visibility = View.GONE
+        } else {
+            binding.tvMiniArtist.visibility = View.VISIBLE
+            binding.tvMiniArtist.text = artistText
         }
 
-        btnNext.setOnClickListener { c.seekToNextMediaItem() }
-        btnPrevious.setOnClickListener { c.seekToPreviousMediaItem() }
-
-        // Xử lý nút Shuffle
-        btnShuffle.setOnClickListener {
-            val newState = !c.shuffleModeEnabled
-            c.shuffleModeEnabled = newState
-            updateShuffleRepeatUI(newState, c.repeatMode)
+        val currentIndex = c.currentMediaItemIndex
+        if (currentIndex in tracks.indices) {
+            val currentTrack = tracks[currentIndex]
+            if (currentTrack.cover != null) {
+                binding.ivMiniCover.setImageBitmap(currentTrack.cover)
+            } else {
+                binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
+            }
+        } else {
+            binding.ivMiniCover.setImageResource(R.drawable.bg_cover_default)
         }
 
-        // Xử lý nút Repeat
-        btnRepeat.setOnClickListener {
-            val nextMode = when (c.repeatMode) {
-                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
-                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                else -> Player.REPEAT_MODE_OFF
-            }
-            c.repeatMode = nextMode
-            updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
-        }
-
-        // Đồng bộ trạng thái ban đầu cho 2 nút khi mở màn hình
-        updateShuffleRepeatUI(c.shuffleModeEnabled, c.repeatMode)
-
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    txtCurrentTime.text = formatTime(progress.toLong())
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) { isUserSeeking = true }
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isUserSeeking = false
-                controller?.seekTo(seekBar?.progress?.toLong() ?: 0L)
-            }
-        })
-    }
-
-    // Cập nhật UI cho nút Shuffle và Repeat theo thiết kế mới
-    private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
-        val grayColor = Color.parseColor("#9E9E9E") // Màu xám khi tắt
-        val purpleColor = Color.parseColor("#7C3AED") // Màu tím khi bật
-
-        // 1. Cập nhật UI cho Shuffle (Chỉ đổi màu Icon)
-        btnShuffle.imageTintList = ColorStateList.valueOf(if (isShuffleOn) purpleColor else grayColor)
-
-        // 2. Cập nhật UI cho Repeat (Đổi màu và đổi Icon)
-        when (repeatMode) {
-            Player.REPEAT_MODE_OFF -> {
-                // Tắt: Icon xám, dùng icon repeat thường
-                btnRepeat.setImageResource(R.drawable.ic_repeat)
-                btnRepeat.imageTintList = ColorStateList.valueOf(grayColor)
-            }
-            Player.REPEAT_MODE_ALL -> {
-                // Lặp tất cả: Icon tím, dùng icon repeat thường
-                btnRepeat.setImageResource(R.drawable.ic_repeat)
-                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
-            }
-            Player.REPEAT_MODE_ONE -> {
-                // Lặp 1 bài: Icon tím, đổi sang icon repeat_one (có số 1)
-                btnRepeat.setImageResource(R.drawable.ic_repeat_one)
-                btnRepeat.imageTintList = ColorStateList.valueOf(purpleColor)
-            }
-        }
+        binding.btnPlayPause.setImageResource(
+            if (c.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        )
     }
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            updatePlayPauseIcon(isPlaying)
+            updateMiniPlayerUI()
         }
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            updateUI()
-            startSeekBarUpdater()
-        }
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_READY) {
-                updateUI()
-                startSeekBarUpdater()
-            }
-        }
-        // Lắng nghe sự thay đổi của Shuffle và Repeat
-        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-            updateShuffleRepeatUI(shuffleModeEnabled, controller?.repeatMode ?: Player.REPEAT_MODE_OFF)
-        }
-
-        override fun onRepeatModeChanged(repeatMode: Int) {
-            updateShuffleRepeatUI(controller?.shuffleModeEnabled ?: false, repeatMode)
+            updateMiniPlayerUI()
         }
     }
 
-    private fun updateUI() {
+    private fun buildMediaItem(track: Track): MediaItem {
+        val metadataBuilder = MediaMetadata.Builder()
+            .setTitle(track.title)
+            .setArtist(track.artist)
+
+        if (track.cover != null) {
+            val stream = ByteArrayOutputStream()
+            track.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+            metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+        } else {
+            metadataBuilder.setArtworkData(getDefaultArtworkBytes(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+        }
+
+        return MediaItem.Builder()
+            .setUri(track.uri)
+            .setMediaMetadata(metadataBuilder.build())
+            .build()
+    }
+
+    private fun updatePlayerPlaylist() {
         val c = controller ?: return
-        val mediaItem = c.currentMediaItem ?: return
-        val metadata = mediaItem.mediaMetadata
+        val wasPlaying = c.isPlaying
+        val currentPos = c.currentMediaItemIndex
+        val currentTime = c.currentPosition
 
-        txtSongTitle.text = metadata.title ?: "Unknown Title"
-        txtArtist.text = metadata.artist ?: "Unknown Artist"
+        val items = tracks.map { t -> buildMediaItem(t) }
 
-        val artworkData = metadata.artworkData
-        if (artworkData == null || artworkData.contentEquals(defaultArtworkBytes)) {
-            // Ảnh mặc định: giữ nguyên, KHÔNG cắt viền (nền tối của ảnh không phải viền đen)
-            imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
-        } else {
-            val decoded = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            // Cắt viền đen (nếu có) để ảnh vừa khít khung tròn
-            val bitmap = if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
-            if (bitmap != null) imgAlbumArt.setImageBitmap(bitmap)
-            else imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
-        }
-
-        val duration = c.duration
-        if (duration > 0) {
-            txtTotalTime.text = formatTime(duration)
-            seekBar.max = duration.toInt()
-        }
-
-        updatePlayPauseIcon(c.isPlaying)
-        updateFavoriteUI()
+        c.setMediaItems(items, if (currentPos < items.size) currentPos else 0, currentTime)
+        if (wasPlaying) c.play()
     }
 
-    private fun updatePlayPauseIcon(isPlaying: Boolean) {
-        // Ảnh bìa chỉ xoay khi đang phát
-        val spin = coverSpinAnimator
-        if (spin != null) {
-            if (isPlaying && spin.isPaused) spin.resume()
-            if (!isPlaying && spin.isRunning && !spin.isPaused) spin.pause()
-        }
-        // Hào quang quanh nút Play chỉ phập phồng khi đang phát
-        val glow = playGlowAnimator
-        if (glow != null) {
-            if (isPlaying && glow.isPaused) glow.resume()
-            if (!isPlaying && glow.isRunning && !glow.isPaused) {
-                glow.pause()
+    private fun addTracksToPlaylist(newTracks: List<Track>) {
+        val c = controller ?: return
+        val newItems = newTracks.map { t -> buildMediaItem(t) }
+
+        if (c.mediaItemCount == 0) c.setMediaItems(newItems) else c.addMediaItems(newItems)
+    }
+
+    private fun getDefaultArtworkBytes(): ByteArray {
+        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        return stream.toByteArray()
+    }
+
+    private fun extractTrackInfo(uri: Uri): Track? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(this, uri)
+            val title = removeAudioExtension(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: queryName(uri) ?: "Unknown Title")
+            val artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: ""
+            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val duration = durationStr?.toLongOrNull() ?: 0L
+
+            val embeddedPicture = retriever.embeddedPicture
+            var coverBitmap: Bitmap? = null
+            if (embeddedPicture != null) {
+                coverBitmap = BitmapFactory.decodeByteArray(embeddedPicture, 0, embeddedPicture.size)
             }
-        }
-        if (isPlaying) {
-            btnPlayPause.setImageResource(R.drawable.ic_np_pause)
-        } else {
-            btnPlayPause.setImageResource(R.drawable.ic_np_play)
-        }
-    }
-
-    private fun getCurrentTrackUri(): String? {
-        return controller?.currentMediaItem?.localConfiguration?.uri?.toString()
-    }
-
-    private fun updateFavoriteUI() {
-        val currentUri = getCurrentTrackUri() ?: return
-        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
-        val jsonString = prefs.getString("saved_tracks", null) ?: return
-        var isFav = false
-
-        try {
-            val jsonArray = JSONArray(jsonString)
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                if (obj.getString("uri") == currentUri) {
-                    isFav = obj.optBoolean("isFavorite", false)
-                    break
-                }
-            }
-        } catch (e: Exception) { e.printStackTrace() }
-
-        if (isFav) {
-            btnFavoriteTop.setImageResource(R.drawable.ic_heart_filled)
-            btnFavoriteTop.setColorFilter(Color.parseColor("#FF3B5C"))
-            
-            btnFavoriteBottom.setText("Đã thích")
-            btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_filled, 0, 0, 0)
-            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF3B5C"))
-            btnFavoriteBottom.setTextColor(Color.parseColor("#FF3B5C"))
-        } else {
-            btnFavoriteTop.setImageResource(R.drawable.ic_heart_outline)
-            btnFavoriteTop.setColorFilter(Color.parseColor("#B45CFF"))
-            
-            btnFavoriteBottom.setText("Yêu thích")
-            btnFavoriteBottom.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_heart_outline, 0, 0, 0)
-            btnFavoriteBottom.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#B45CFF"))
-            btnFavoriteBottom.setTextColor(Color.parseColor("#4A2A7A"))
+            Track(uri, title, artist, duration, coverBitmap)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        } finally {
+            retriever.release()
         }
     }
 
-    private fun toggleFavorite() {
-        val currentUri = getCurrentTrackUri() ?: return
-        val prefs = getSharedPreferences("MusicAppPrefs", Context.MODE_PRIVATE)
-        val jsonString = prefs.getString("saved_tracks", null) ?: return
-
-        try {
-            val jsonArray = JSONArray(jsonString)
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                if (obj.getString("uri") == currentUri) {
-                    val currentFav = obj.optBoolean("isFavorite", false)
-                    obj.put("isFavorite", !currentFav)
-                    break
-                }
-            }
-            prefs.edit().putString("saved_tracks", jsonArray.toString()).apply()
-            updateFavoriteUI()
-        } catch (e: Exception) { e.printStackTrace() }
+    private fun removeAudioExtension(name: String): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        val known = setOf("mp3", "m4a", "wav", "flac", "ogg", "aac", "wma", "opus", "amr", "mp4", "3gp", "mka")
+        return if (ext in known) name.substringBeforeLast('.') else name
     }
 
-    private val seekBarUpdater = object : Runnable {
-        override fun run() {
-            val c = controller
-            if (c != null && c.isConnected && c.isPlaying && !isUserSeeking) {
-                val currentPos = c.currentPosition
-                seekBar.progress = currentPos.toInt()
-                txtCurrentTime.text = formatTime(currentPos)
-            }
-            handler.postDelayed(this, 1000)
+    private fun queryName(uri: Uri): String? {
+        contentResolver.query(uri, null, null, null, null)?.use { cur ->
+            val idx = cur.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (idx >= 0 && cur.moveToFirst()) return cur.getString(idx)
+        }
+        return null
+    }
+
+    private fun persistPermission(uris: List<Uri>) {
+        uris.forEach { uri ->
+            try {
+                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } catch (_: SecurityException) {}
         }
     }
-
-    private fun startSeekBarUpdater() {
-        handler.removeCallbacks(seekBarUpdater)
-        handler.post(seekBarUpdater)
-    }
-
-    private fun formatTime(millis: Long): String = TimeUtils.format(millis)
 
     override fun onDestroy() {
-        // Dừng các hiệu ứng lặp vô hạn để không rò rỉ bộ nhớ
-        effectAnimators.forEach { it.cancel() }
-        effectAnimators.clear()
-        handler.removeCallbacks(seekBarUpdater)
         controller?.removeListener(playerListener)
-        if (::controllerFuture.isInitialized) {
-            controllerFuture.addListener({
-                MediaController.releaseFuture(controllerFuture)
-            }, MoreExecutors.directExecutor())
-        }
+        controllerFuture.addListener({
+            MediaController.releaseFuture(controllerFuture)
+        }, MoreExecutors.directExecutor())
         super.onDestroy()
     }
 }
