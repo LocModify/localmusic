@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hào quang nhỏ: chỉ 1 vòng tím mỏng quanh nút Play -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="#447C3AED" />
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%p"
+        android:startColor="#80B45CFF"
+        android:endColor="#00B45CFF" />
 </shape>
