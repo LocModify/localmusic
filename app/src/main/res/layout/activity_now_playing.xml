@@ -8,68 +8,20 @@
     android:clipChildren="false"
     tools:context=".NowPlayingActivity">
 
-    <!-- Background Mesh Gradient -->
+    <!-- Lớp nền (trắng + lụa/sóng tím) -->
     <View
         android:id="@+id/bg_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_now_playing" />
 
+    <!-- Container chứa toàn bộ nội dung -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
         android:clipToPadding="false">
-
-        <!-- NỐT NHẠC BAY XUNG QUANH (Tạo chiều sâu) -->
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginStart="40dp"
-            android:layout_marginTop="100dp"
-            android:alpha="0.4"
-            android:src="@drawable/ic_chip_music"
-            android:rotation="-15"
-            app:tint="#C9A5FF"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_marginTop="150dp"
-            android:layout_marginEnd="30dp"
-            android:alpha="0.5"
-            android:src="@drawable/ic_chip_music"
-            android:rotation="25"
-            app:tint="#C9A5FF"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_marginStart="20dp"
-            android:alpha="0.4"
-            android:src="@drawable/ic_chip_music"
-            android:rotation="10"
-            app:tint="#C9A5FF"
-            app:layout_constraintBottom_toBottomOf="@+id/cardAlbumArt"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/cardAlbumArt" />
-
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginEnd="20dp"
-            android:alpha="0.5"
-            android:src="@drawable/ic_chip_music"
-            android:rotation="-20"
-            app:tint="#C9A5FF"
-            app:layout_constraintBottom_toBottomOf="@+id/cardAlbumArt"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/cardAlbumArt" />
 
         <!-- 1. THANH TOP BAR -->
         <ImageView
@@ -107,7 +59,7 @@
             app:layout_constraintTop_toTopOf="@+id/btnMinimize"
             app:tint="#B45CFF" />
 
-        <!-- 2. ẢNH BÌA LỚN + HIỆU ỨNG SÁNG RỰC RỠ -->
+        <!-- 2. ĐĨA NHẠC + HIỆU ỨNG (vầng sáng, quỹ đạo, cột sóng, nốt nhạc) -->
         <FrameLayout
             android:id="@+id/cardAlbumArt"
             android:layout_width="300dp"
@@ -119,44 +71,56 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnMinimize">
 
-            <!-- Hào quang phát sáng mạnh hơn -->
+            <!-- Vầng sáng tím sát vành trắng -->
             <View
                 android:id="@+id/vGlow"
-                android:layout_width="360dp"
-                android:layout_height="360dp"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_cover_glow" />
 
-            <!-- Vòng quỹ đạo đậm hơn -->
+            <!-- 2 quỹ đạo elip mảnh (quay ngược chiều nhau trong code) -->
             <View
                 android:id="@+id/vOrbit1"
-                android:layout_width="350dp"
+                android:layout_width="340dp"
                 android:layout_height="170dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_orbit"
-                android:rotation="20" />
+                android:rotation="-22" />
 
             <View
                 android:id="@+id/vOrbit2"
-                android:layout_width="350dp"
-                android:layout_height="200dp"
+                android:layout_width="320dp"
+                android:layout_height="140dp"
                 android:layout_gravity="center"
+                android:alpha="0.6"
                 android:background="@drawable/bg_orbit"
-                android:rotation="-30" />
+                android:rotation="30" />
 
+            <!-- Cột sóng nhạc ở góc dưới phải -->
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom|end"
+                android:src="@drawable/ic_wave_bars"
+                android:translationX="30dp"
+                android:translationY="14dp" />
+
+            <!-- Vành trắng sát ảnh -->
             <View
-                android:layout_width="292dp"
-                android:layout_height="292dp"
+                android:layout_width="254dp"
+                android:layout_height="254dp"
                 android:layout_gravity="center"
                 android:background="@drawable/bg_cover_ring" />
 
+            <!-- Ảnh bìa tròn (xoay khi đang phát) -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardCoverInner"
-                android:layout_width="272dp"
-                android:layout_height="272dp"
+                android:layout_width="244dp"
+                android:layout_height="244dp"
                 android:layout_gravity="center"
                 app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="136dp"
+                app:cardCornerRadius="122dp"
                 app:cardElevation="0dp">
 
                 <ImageView
@@ -167,80 +131,116 @@
                     android:src="@drawable/bg_cover_default" />
             </androidx.cardview.widget.CardView>
 
+            <!-- 4 nốt nhạc lớn (bay lên xuống trong code) -->
             <ImageView
                 android:id="@+id/note1"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_gravity="top|start"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="-16dp"
-                android:translationY="4dp"
-                app:tint="#C9A5FF" />
+                android:src="@drawable/ic_note_double"
+                android:translationX="-14dp"
+                android:translationY="2dp"
+                app:tint="#BE9BFF" />
 
             <ImageView
                 android:id="@+id/note2"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_gravity="top|end"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="14dp"
-                android:translationY="-2dp"
-                app:tint="#C9A5FF" />
+                android:src="@drawable/ic_note_double"
+                android:translationX="16dp"
+                android:translationY="-4dp"
+                app:tint="#BE9BFF" />
 
             <ImageView
                 android:id="@+id/note3"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
                 android:layout_gravity="bottom|start"
-                android:alpha="0.9"
-                android:src="@drawable/ic_chip_music"
-                android:translationX="-12dp"
-                android:translationY="2dp"
-                app:tint="#C9A5FF" />
+                android:src="@drawable/ic_note_double"
+                android:translationX="-8dp"
+                android:translationY="4dp"
+                app:tint="#BE9BFF" />
 
             <ImageView
                 android:id="@+id/note4"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="bottom|end"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="-34dp"
+                android:translationY="10dp"
+                app:tint="#BE9BFF" />
+
+            <!-- 4 nốt nhạc nhỏ trang trí (đứng yên) -->
+            <ImageView
                 android:layout_width="18dp"
                 android:layout_height="18dp"
-                android:layout_gravity="bottom|end"
-                android:alpha="0.9"
+                android:layout_gravity="start|center_vertical"
+                android:alpha="0.85"
                 android:src="@drawable/ic_chip_music"
-                android:translationX="12dp"
-                android:translationY="-6dp"
-                app:tint="#C9A5FF" />
+                android:translationX="-26dp"
+                android:translationY="-30dp"
+                app:tint="#BE9BFF" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="end|center_vertical"
+                android:alpha="0.85"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="28dp"
+                android:translationY="-20dp"
+                app:tint="#BE9BFF" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:alpha="0.85"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="-14dp"
+                android:translationY="26dp"
+                app:tint="#BE9BFF" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="bottom|start"
+                android:alpha="0.85"
+                android:src="@drawable/ic_chip_music"
+                android:translationX="38dp"
+                android:translationY="12dp"
+                app:tint="#BE9BFF" />
         </FrameLayout>
 
         <!-- 3. TÊN BÀI HÁT & NGHỆ SĨ -->
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtSongTitle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:paddingStart="60dp"
-            android:paddingEnd="60dp"
-            android:gravity="center"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
             android:text="Dreaming"
             android:textColor="#111111"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/cardAlbumArt" />
 
         <com.ztrongz.localmusic.MarqueeTextView
             android:id="@+id/txtArtist"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:paddingStart="60dp"
-            android:paddingEnd="60dp"
-            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp"
             android:text="Unknown Artist"
             android:textColor="#7A5BA8"
             android:textSize="15sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnFavoriteTop"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/txtSongTitle" />
 
@@ -248,7 +248,7 @@
             android:id="@+id/btnFavoriteTop"
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="24dp"
             android:background="@drawable/bg_icon_circle_light"
             android:padding="10dp"
             android:src="@drawable/ic_heart_outline"
@@ -262,7 +262,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:text="00:00"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.04"
@@ -306,82 +306,78 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:clipChildren="false" 
-            android:clipToPadding="false"
+            android:clipChildren="false"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="20dp"
             app:layout_constraintTop_toBottomOf="@+id/seekBar">
 
-            <!-- NÚT SHUFFLE THEO THIẾT KẾ MỚI -->
             <ImageView
                 android:id="@+id/btnShuffle"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="14dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_shuffle"
-                app:tint="#9E9E9E" />
+                app:tint="#7C3AED" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnPrevious"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:src="@drawable/ic_np_prev"
-                app:tint="#3B206F" />
+                app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
+            <!-- Nút Play/Pause: cả vòng tím là nút bấm, kèm 1 hào quang nhỏ phía sau -->
             <FrameLayout
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:clipChildren="false"
-                android:clipToPadding="false">
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:clipChildren="false">
 
                 <View
                     android:id="@+id/vPlayGlow"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_glow" />
 
                 <ImageView
                     android:id="@+id/btnPlayPause"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_button"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_np_play"
-                    app:tint="#FFFFFF" />
+                    android:padding="21dp"
+                    android:src="@drawable/ic_np_play" />
             </FrameLayout>
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
             <ImageView
                 android:id="@+id/btnNext"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:src="@drawable/ic_np_next"
-                app:tint="#3B206F" />
+                app:tint="#4527A0" />
 
             <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
 
-            <!-- NÚT REPEAT THEO THIẾT KẾ MỚI -->
             <ImageView
                 android:id="@+id/btnRepeat"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:background="@drawable/bg_ctrl_square"
-                android:padding="14dp"
+                android:padding="11dp"
                 android:src="@drawable/ic_repeat"
-                app:tint="#9E9E9E" />
+                app:tint="#7C3AED" />
         </LinearLayout>
 
         <!-- 6. HÀNG CHỨC NĂNG DƯỚI CÙNG -->
