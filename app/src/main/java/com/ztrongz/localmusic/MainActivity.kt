@@ -372,11 +372,8 @@ class MainActivity : AppCompatActivity() {
 
             if (controller?.mediaItemCount == 0 && tracks.isNotEmpty()) {
                 val c = controller ?: return@addListener
-                val items = tracks.map { t ->
-                    MediaItem.Builder().setUri(t.uri).setMediaMetadata(
-                        MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist).build()
-                    ).build()
-                }
+                // ĐÃ SỬA: Dùng hàm buildMediaItem để lấy lại ảnh bìa khi mở app
+                val items = tracks.map { t -> buildMediaItem(t) }
                 c.setMediaItems(items)
             }
             updateMiniPlayerUI()
@@ -425,24 +422,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ĐÃ THÊM: Hàm dùng chung để tạo MediaItem kèm ảnh bìa
+    private fun buildMediaItem(track: Track): MediaItem {
+        val metadataBuilder = MediaMetadata.Builder()
+            .setTitle(track.title)
+            .setArtist(track.artist)
+
+        if (track.cover != null) {
+            val stream = ByteArrayOutputStream()
+            track.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+            metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+        } else {
+            metadataBuilder.setArtworkData(getDefaultArtworkBytes(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+        }
+
+        return MediaItem.Builder()
+            .setUri(track.uri)
+            .setMediaMetadata(metadataBuilder.build())
+            .build()
+    }
+
     private fun updatePlayerPlaylist() {
         val c = controller ?: return
         val wasPlaying = c.isPlaying
         val currentPos = c.currentMediaItemIndex
         val currentTime = c.currentPosition
 
-        val defaultArtworkBytes = getDefaultArtworkBytes()
-        val items = tracks.map { t ->
-            val metadataBuilder = MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist)
-            if (t.cover != null) {
-                val stream = ByteArrayOutputStream()
-                t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
-                metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-            } else {
-                metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-            }
-            MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
-        }
+        // ĐÃ SỬA: Dùng hàm buildMediaItem
+        val items = tracks.map { t -> buildMediaItem(t) }
 
         c.setMediaItems(items, if (currentPos < items.size) currentPos else 0, currentTime)
         if (wasPlaying) c.play()
@@ -450,19 +457,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun addTracksToPlaylist(newTracks: List<Track>) {
         val c = controller ?: return
-        val defaultArtworkBytes = getDefaultArtworkBytes()
-
-        val newItems = newTracks.map { t ->
-            val metadataBuilder = MediaMetadata.Builder().setTitle(t.title).setArtist(t.artist)
-            if (t.cover != null) {
-                val stream = ByteArrayOutputStream()
-                t.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
-                metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-            } else {
-                metadataBuilder.setArtworkData(defaultArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-            }
-            MediaItem.Builder().setUri(t.uri).setMediaMetadata(metadataBuilder.build()).build()
-        }
+        // ĐÃ SỬA: Dùng hàm buildMediaItem
+        val newItems = newTracks.map { t -> buildMediaItem(t) }
 
         if (c.mediaItemCount == 0) c.setMediaItems(newItems) else c.addMediaItems(newItems)
     }
