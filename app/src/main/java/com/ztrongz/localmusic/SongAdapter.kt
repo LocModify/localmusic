@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.ztrongz.localmusic.databinding.ItemSongBinding
+import java.util.concurrent.TimeUnit
 
 class SongAdapter(
     private var songs: List<Track>,
@@ -13,53 +15,56 @@ class SongAdapter(
     private val onMoreClick: (Track, View) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
-    class SongViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
-        val tvArtist: TextView = view.findViewById(R.id.tvArtist)
-        val tvDuration: TextView = view.findViewById(R.id.tvDuration)
-        val ivCover: ImageView = view.findViewById(R.id.ivCover)
-        val btnMore: ImageView = view.findViewById(R.id.btnMore)
-    }
+    private var displayList: List<Track> = songs
+
+    inner class SongViewHolder(val binding: ItemSongBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_song, parent, false)
-        return SongViewHolder(view)
+        val binding = ItemSongBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return SongViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: SongViewHolder, position: Int) {
-        val song = songs[position]
-        
-        holder.tvTitle.text = song.title
-        holder.tvDuration.text = formatDuration(song.durationMs)
+        val track = displayList[position]
+        with(holder.binding) {
+            tvSongTitle.text = track.title
+            tvSongArtist.text = track.artist
+            
+            // Lấy thời lượng từ thuộc tính 'duration'
+            tvSongDuration.text = formatTime(track.duration)
 
-        if (song.artist.isBlank()) {
-            holder.tvArtist.visibility = View.GONE
-        } else {
-            holder.tvArtist.visibility = View.VISIBLE
-            holder.tvArtist.text = song.artist
-        }
+            if (track.cover != null) {
+                ivSongCover.setImageBitmap(track.cover)
+            } else {
+                ivSongCover.setImageResource(R.drawable.bg_cover_default)
+            }
 
-        if (song.cover != null) {
-            holder.ivCover.setImageBitmap(song.cover)
-        } else {
-            holder.ivCover.setImageResource(R.drawable.bg_cover_default)
-        }
+            // Hiển thị trạng thái yêu thích (nếu có icon trái tim trên item)
+            if (track.isFavorite) {
+                ivFavoriteIcon.setImageResource(R.drawable.ic_heart_filled)
+                ivFavoriteIcon.setColorFilter(android.graphics.Color.parseColor("#FF3B5C"))
+            } else {
+                ivFavoriteIcon.setImageResource(R.drawable.ic_heart_outline)
+                ivFavoriteIcon.setColorFilter(android.graphics.Color.parseColor("#B45CFF"))
+            }
 
-        holder.itemView.setOnClickListener {
-            onSongClick(song)
-        }
-
-        holder.btnMore.setOnClickListener { view ->
-            onMoreClick(song, view)
+            root.setOnClickListener { onSongClick(track) }
+            btnMore.setOnClickListener { view -> onMoreClick(track, view) }
         }
     }
 
-    override fun getItemCount(): Int = songs.size
+    override fun getItemCount(): Int = displayList.size
 
-    fun updateData(newSongs: List<Track>) {
-        songs = newSongs
+    fun updateData(newList: List<Track>) {
+        displayList = newList
         notifyDataSetChanged()
     }
 
-    private fun formatDuration(durationMs: Long): String = TimeUtils.format(durationMs)
+    private fun formatTime(millis: Long): String {
+        return String.format(
+            "%02d:%02d",
+            TimeUnit.MILLISECONDS.toMinutes(millis),
+            TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+        )
+    }
 }
