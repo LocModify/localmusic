@@ -44,6 +44,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var btnPrevious: ImageView
     private lateinit var btnShuffle: ImageView
     private lateinit var btnRepeat: ImageView
+    private lateinit var btnPlaylistTop: ImageView // Thêm biến cho nút Hàng đợi
     private lateinit var imgAlbumArt: ImageView
     private lateinit var txtSongTitle: TextView
     private lateinit var txtArtist: TextView
@@ -86,6 +87,7 @@ class NowPlayingActivity : AppCompatActivity() {
         btnPrevious = findViewById(R.id.btnPrevious)
         btnShuffle = findViewById(R.id.btnShuffle)
         btnRepeat = findViewById(R.id.btnRepeat)
+        btnPlaylistTop = findViewById(R.id.btnPlaylistTop) // Ánh xạ nút Hàng đợi
         imgAlbumArt = findViewById(R.id.imgAlbumArt)
         txtSongTitle = findViewById(R.id.txtSongTitle)
         txtArtist = findViewById(R.id.txtArtist)
@@ -98,6 +100,12 @@ class NowPlayingActivity : AppCompatActivity() {
         setupCoverEffects()
 
         btnMinimize.setOnClickListener { closeActivity() }
+
+        // MỞ BOTTOM SHEET HÀNG ĐỢI
+        btnPlaylistTop.setOnClickListener {
+            val bottomSheet = QueueBottomSheet()
+            bottomSheet.show(supportFragmentManager, "QueueBottomSheet")
+        }
 
         rootLayout.onSwipeDownListener = {
             closeActivity()
@@ -203,7 +211,7 @@ class NowPlayingActivity : AppCompatActivity() {
         }, MoreExecutors.directExecutor())
     }
 
-    // Hàm gửi lệnh xuống Service để bật/tắt tính năng dừng cuối bài (Đã sửa)
+    // Hàm gửi lệnh xuống Service để bật/tắt tính năng dừng cuối bài
     private fun updatePauseAtEnd(pause: Boolean) {
         controller?.sendCustomCommand(
             SessionCommand("SET_PAUSE_AT_END", Bundle.EMPTY),
