@@ -3,33 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="8dp">
+    android:paddingVertical="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/itemContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:padding="8dp">
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp">
 
+        <!-- Số thứ tự -->
         <TextView
             android:id="@+id/tvIndex"
-            android:layout_width="24dp"
+            android:layout_width="28dp"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="1"
-            android:textColor="#7A5BA8"
-            android:textSize="14sp"
+            android:textColor="#9B8FC0"
+            android:textSize="15sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Ảnh bìa bo góc -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardThumbnail"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            app:cardCornerRadius="12dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="6dp"
+            app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/tvIndex"
@@ -43,6 +46,7 @@
                 android:src="@drawable/bg_cover_default" />
         </androidx.cardview.widget.CardView>
 
+        <!-- Tên bài + ca sĩ -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -59,10 +63,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:textColor="#1F1B2E"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tvQueueItemArtist"
@@ -75,28 +79,32 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Biểu tượng sóng âm (chỉ hiện ở bài đang phát) -->
         <ImageView
             android:id="@+id/ivPlayingIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_graphic_eq"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_eq_bars"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvDuration"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#7C3AED" />
 
+        <!-- Thời lượng -->
         <TextView
             android:id="@+id/tvDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00:00"
             android:textColor="#7A5BA8"
-            android:textSize="13sp"
+            android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnQueueMore"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Nút ba chấm -->
         <ImageView
             android:id="@+id/btnQueueMore"
             android:layout_width="32dp"
@@ -107,7 +115,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#7A5BA8" />
+            app:tint="#5B3FA8" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
