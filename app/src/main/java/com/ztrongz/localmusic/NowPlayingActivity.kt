@@ -98,7 +98,10 @@ class NowPlayingActivity : AppCompatActivity() {
 
         btnMinimize.setOnClickListener { closeActivity() }
 
-        rootLayout.onSwipeDownListener { closeActivity() }
+        // SỬA LỖI TẠI ĐÂY: Dùng dấu = để gán lambda thay vì gọi hàm
+        rootLayout.onSwipeDownListener = {
+            closeActivity()
+        }
 
         rootLayout.onDragProgressListener = { progress ->
             bgOverlay.alpha = progress
