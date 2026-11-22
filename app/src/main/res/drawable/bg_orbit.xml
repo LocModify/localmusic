@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Quỹ đạo hình elip mảnh quay quanh ảnh bìa -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#00FFFFFF" />
-    <stroke android:width="1.5dp" android:color="#B3C9A5FF" />
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="1dp"
+        android:color="#40DCC6FF" />
 </shape>
