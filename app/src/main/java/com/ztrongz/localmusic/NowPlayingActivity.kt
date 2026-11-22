@@ -14,13 +14,14 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.SeekBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -213,9 +214,8 @@ class NowPlayingActivity : AppCompatActivity() {
             c.shuffleModeEnabled = newState
             updateShuffleRepeatUI(newState, c.repeatMode)
             
-            // Hiện thông báo
             val msg = if (newState) "Bật xáo trộn" else "Tắt xáo trộn"
-            showCustomToast(msg)
+            showCustomPopup(msg)
         }
 
         // Xử lý nút Repeat (Xoay vòng 3 trạng thái: Tắt -> Tất cả -> 1 bài -> Tắt)
@@ -228,14 +228,13 @@ class NowPlayingActivity : AppCompatActivity() {
             c.repeatMode = nextMode
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
 
-            // Hiện thông báo
             val msg = when (nextMode) {
                 Player.REPEAT_MODE_OFF -> "Lặp lại tắt"
                 Player.REPEAT_MODE_ALL -> "Lặp lại tất cả"
                 Player.REPEAT_MODE_ONE -> "Lặp lại 1 bài"
                 else -> "Lặp lại tắt"
             }
-            showCustomToast(msg)
+            showCustomPopup(msg)
         }
 
         updateShuffleRepeatUI(c.shuffleModeEnabled, c.repeatMode)
@@ -254,22 +253,26 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // Hàm hiển thị Custom Toast (Nền trắng, bo góc, ở dưới)
-    private fun showCustomToast(message: String) {
+    // SỬA ĐỔI: Thay thế Toast bằng PopupWindow để tránh lỗi Deprecated trên GitHub Actions
+    private fun showCustomPopup(message: String) {
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val layout = inflater.inflate(R.layout.toast_layout, null)
-        val tvMessage = layout.findViewById<TextView>(R.id.tvToastMessage)
-        
-        tvMessage.text = message
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
 
-        val toast = Toast(applicationContext)
-        toast.duration = Toast.LENGTH_SHORT
-        toast.view = layout
-        toast.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 200) // Cách đáy 200px để không đè lên nút
-        toast.show()
+        val popup = PopupWindow(
+            layout,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            false
+        )
+        popup.elevation = 10f
+        // Hiển thị ở giữa màn hình theo chiều ngang, cách đáy 250px
+        popup.showAtLocation(rootLayout, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 250)
+
+        // Tự động đóng sau 1.5 giây
+        Handler(Looper.getMainLooper()).postDelayed({ popup.dismiss() }, 1500)
     }
 
-    // Cập nhật UI cho nút Shuffle và Repeat
     private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
         val grayColor = Color.parseColor("#9E9E9E")
         val purpleColor = Color.parseColor("#7C3AED")
