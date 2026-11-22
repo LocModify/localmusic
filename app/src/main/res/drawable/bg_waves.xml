@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Các dải lụa tím nhạt phía trên + làn sóng phía dưới + lấp lánh (vẽ bằng màu trong suốt chồng lớp) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="780dp"
+    android:viewportWidth="360"
+    android:viewportHeight="780">
+
+    <!-- ===== PHÍA TRÊN: dải lụa trái ===== -->
+    <path
+        android:fillColor="#38C9A5FF"
+        android:pathData="M0,0 L230,0 C215,35 185,62 140,82 C95,102 40,112 0,168 Z" />
+    <path
+        android:fillColor="#66FFFFFF"
+        android:pathData="M0,0 L140,0 C120,30 80,55 0,90 Z" />
+
+    <!-- ===== PHÍA TRÊN: dải lụa phải ===== -->
+    <path
+        android:fillColor="#26B45CFF"
+        android:pathData="M360,0 L150,0 C190,25 240,30 285,58 C325,83 345,95 360,128 Z" />
+    <path
+        android:fillColor="#66FFFFFF"
+        android:pathData="M360,0 L250,0 C285,18 330,30 360,60 Z" />
+
+    <!-- Vệt mờ hai bên giữa màn hình -->
+    <path
+        android:fillColor="#12C9A5FF"
+        android:pathData="M0,300 C30,330 60,420 0,470 Z" />
+    <path
+        android:fillColor="#14C9A5FF"
+        android:pathData="M360,420 C320,450 330,520 360,560 Z" />
+
+    <!-- ===== PHÍA DƯỚI: 3 làn sóng chồng nhau, càng thấp càng đậm ===== -->
+    <path
+        android:fillColor="#22C9A5FF"
+        android:pathData="M0,690 C50,655 125,648 195,682 C262,715 318,700 360,660 L360,780 L0,780 Z" />
+    <path
+        android:fillColor="#33B88CFF"
+        android:pathData="M0,722 C70,690 150,712 225,732 C285,748 330,722 360,700 L360,780 L0,780 Z" />
+    <path
+        android:fillColor="#4DA878FF"
+        android:pathData="M0,752 C85,728 175,758 255,745 C305,737 338,740 360,730 L360,780 L0,780 Z" />
+
+    <!-- Đường viền sáng mảnh trên mép sóng -->
+    <path
+        android:pathData="M0,692 C50,657 125,650 195,684 C262,717 318,702 360,662"
+        android:strokeColor="#99FFFFFF"
+        android:strokeWidth="1.5" />
+
+    <!-- ===== LẤP LÁNH ===== -->
+    <!-- Sao 4 cánh trên dải lụa -->
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M110,54 L111.5,58.5 L116,60 L111.5,61.5 L110,66 L108.5,61.5 L104,60 L108.5,58.5 Z" />
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M300,36 L301.2,39.8 L305,41 L301.2,42.2 L300,46 L298.8,42.2 L295,41 L298.8,39.8 Z" />
+    <!-- Chấm sáng trên sóng dưới -->
+    <path
+        android:fillColor="#E6FFFFFF"
+        android:pathData="M317.5,742 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z" />
+    <path
+        android:fillColor="#E6FFFFFF"
+        android:pathData="M58,706 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z" />
+    <path
+        android:fillColor="#E6FFFFFF"
+        android:pathData="M92,746 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 Z" />
+    <path
+        android:fillColor="#E6FFFFFF"
+        android:pathData="M298,692 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z" />
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M200,728 L201.2,731.8 L205,733 L201.2,734.2 L200,738 L198.8,734.2 L195,733 L198.8,731.8 Z" />
+</vector>
