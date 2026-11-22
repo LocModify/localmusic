@@ -11,6 +11,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
@@ -18,6 +20,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -58,7 +61,6 @@ class NowPlayingActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var isUserSeeking = false
 
-    // Dữ liệu ảnh mặc định (tạo giống hệt cách MainActivity tạo) để nhận biết bài chưa có ảnh bìa riêng
     private val defaultArtworkBytes: ByteArray by lazy {
         val bmp = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
         val stream = ByteArrayOutputStream()
@@ -98,7 +100,6 @@ class NowPlayingActivity : AppCompatActivity() {
             closeActivity()
         }
 
-        // Làm mờ cả nền và nội dung khi kéo xuống để lộ màn hình chính
         rootLayout.onDragProgressListener = { progress ->
             bgOverlay.alpha = progress
             contentContainer.alpha = progress
@@ -110,11 +111,9 @@ class NowPlayingActivity : AppCompatActivity() {
         connectController()
     }
 
-    // Tạo các hiệu ứng: ảnh bìa xoay, quỹ đạo quay, vầng sáng nhấp nháy, nốt nhạc bay
     private fun setupCoverEffects() {
         val density = resources.displayMetrics.density
 
-        // Ảnh bìa xoay chậm (20 giây/vòng), tạm dừng khi nhạc dừng
         coverSpinAnimator = ObjectAnimator.ofFloat(findViewById<View>(R.id.cardCoverInner), View.ROTATION, 0f, 360f).apply {
             duration = 20000
             interpolator = LinearInterpolator()
@@ -124,7 +123,6 @@ class NowPlayingActivity : AppCompatActivity() {
         }
         effectAnimators.add(coverSpinAnimator!!)
 
-        // Hào quang quanh nút Play: phập phồng sáng-mờ khi đang phát
         playGlowAnimator = ObjectAnimator.ofPropertyValuesHolder(
             findViewById<View>(R.id.vPlayGlow),
             PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.12f),
@@ -140,13 +138,11 @@ class NowPlayingActivity : AppCompatActivity() {
         }
         effectAnimators.add(playGlowAnimator!!)
 
-        // 2 quỹ đạo quay ngược chiều nhau
         val orbit1 = findViewById<View>(R.id.vOrbit1)
         val orbit2 = findViewById<View>(R.id.vOrbit2)
         effectAnimators.add(spin(orbit1, orbit1.rotation, orbit1.rotation + 360f, 40000))
         effectAnimators.add(spin(orbit2, orbit2.rotation, orbit2.rotation - 360f, 55000))
 
-        // Vầng sáng phập phồng
         val glow = findViewById<View>(R.id.vGlow)
         for (prop in listOf(View.SCALE_X, View.SCALE_Y)) {
             val a = ObjectAnimator.ofFloat(glow, prop, 1f, 1.06f).apply {
@@ -159,7 +155,6 @@ class NowPlayingActivity : AppCompatActivity() {
             effectAnimators.add(a)
         }
 
-        // Nốt nhạc bay lên xuống (mỗi nốt một nhịp khác nhau)
         val notes = listOf(R.id.note1, R.id.note2, R.id.note3, R.id.note4)
         val durations = listOf(2200L, 2600L, 3000L, 2400L)
         notes.forEachIndexed { i, id ->
@@ -186,7 +181,6 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun closeActivity() {
         finish()
-        // Hiệu ứng đóng: Trượt xuống, MainActivity hiện ra ngay lập tức
         overridePendingTransition(0, R.anim.slide_down)
     }
 
@@ -218,9 +212,13 @@ class NowPlayingActivity : AppCompatActivity() {
             val newState = !c.shuffleModeEnabled
             c.shuffleModeEnabled = newState
             updateShuffleRepeatUI(newState, c.repeatMode)
+            
+            // Hiện thông báo
+            val msg = if (newState) "Bật xáo trộn" else "Tắt xáo trộn"
+            showCustomToast(msg)
         }
 
-        // Xử lý nút Repeat
+        // Xử lý nút Repeat (Xoay vòng 3 trạng thái: Tắt -> Tất cả -> 1 bài -> Tắt)
         btnRepeat.setOnClickListener {
             val nextMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
@@ -229,9 +227,17 @@ class NowPlayingActivity : AppCompatActivity() {
             }
             c.repeatMode = nextMode
             updateShuffleRepeatUI(c.shuffleModeEnabled, nextMode)
+
+            // Hiện thông báo
+            val msg = when (nextMode) {
+                Player.REPEAT_MODE_OFF -> "Lặp lại tắt"
+                Player.REPEAT_MODE_ALL -> "Lặp lại tất cả"
+                Player.REPEAT_MODE_ONE -> "Lặp lại 1 bài"
+                else -> "Lặp lại tắt"
+            }
+            showCustomToast(msg)
         }
 
-        // Đồng bộ trạng thái ban đầu cho 2 nút khi mở màn hình
         updateShuffleRepeatUI(c.shuffleModeEnabled, c.repeatMode)
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -248,15 +254,28 @@ class NowPlayingActivity : AppCompatActivity() {
         })
     }
 
-    // Cập nhật UI cho nút Shuffle và Repeat theo thiết kế mới
-    private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
-        val grayColor = Color.parseColor("#9E9E9E") // Màu xám khi tắt
-        val purpleColor = Color.parseColor("#7C3AED") // Màu tím khi bật
+    // Hàm hiển thị Custom Toast (Nền trắng, bo góc, ở dưới)
+    private fun showCustomToast(message: String) {
+        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val layout = inflater.inflate(R.layout.toast_layout, null)
+        val tvMessage = layout.findViewById<TextView>(R.id.tvToastMessage)
+        
+        tvMessage.text = message
 
-        // 1. Cập nhật UI cho Shuffle (Chỉ đổi màu Icon)
+        val toast = Toast(applicationContext)
+        toast.duration = Toast.LENGTH_SHORT
+        toast.view = layout
+        toast.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 200) // Cách đáy 200px để không đè lên nút
+        toast.show()
+    }
+
+    // Cập nhật UI cho nút Shuffle và Repeat
+    private fun updateShuffleRepeatUI(isShuffleOn: Boolean, repeatMode: Int) {
+        val grayColor = Color.parseColor("#9E9E9E")
+        val purpleColor = Color.parseColor("#7C3AED")
+
         btnShuffle.imageTintList = ColorStateList.valueOf(if (isShuffleOn) purpleColor else grayColor)
 
-        // 2. Cập nhật UI cho Repeat (Đổi màu và đổi Icon)
         when (repeatMode) {
             Player.REPEAT_MODE_OFF -> {
                 btnRepeat.setImageResource(R.drawable.ic_repeat)
