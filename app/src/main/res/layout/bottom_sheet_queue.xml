@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_bottom_sheet_rounded">
 
-    <!-- Thanh kéo (Drag Handle) -->
     <View
         android:id="@+id/dragHandle"
         android:layout_width="40dp"
@@ -111,7 +110,6 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/dragHandle">
 
-        <!-- Nút Chọn Tất cả -->
         <LinearLayout
             android:id="@+id/btnSelectAll"
             android:layout_width="wrap_content"
@@ -152,7 +150,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/btnSelectAll" />
 
-        <!-- Nút Xóa (Thùng rác đỏ) và Đóng -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
