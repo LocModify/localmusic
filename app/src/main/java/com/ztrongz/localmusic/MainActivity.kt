@@ -423,7 +423,7 @@ class MainActivity : AppCompatActivity() {
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(track.title)
             .setArtist(track.artist)
-            .setDurationMs(track.duration) // <-- ĐÃ THÊM DÒNG NÀY ĐỂ LẤY THỜI LƯỢNG BÀI HÁT
+            .setDurationMs(track.duration) // <-- Đã sửa lỗi ở đây
 
         if (track.cover != null) {
             val stream = ByteArrayOutputStream()
