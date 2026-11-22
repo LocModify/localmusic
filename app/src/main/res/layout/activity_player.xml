@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_wave_gradient">
+
+    <!-- Nền sóng động ở dưới cùng -->
+    <com.scwang.wave.MultiWaveHeader
+        android:id="@+id/waveHeader"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        app:mwhVelocity="1.2"
+        app:mwhProgress="0.8"
+        app:mwhRunning="true"
+        app:mwhGradientAngle="45"
+        app:mwhWaveHeight="80dp"
+        app:mwhStartColor="#D8B4FE"
+        app:mwhCloseColor="#A78BFA"
+        app:mwhColorAlpha="0.4"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Nút thu nhỏ -->
+    <ImageView
+        android:id="@+id/btnMinimize"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="48dp"
+        android:src="@android:drawable/ic_menu_revert"
+        app:tint="#8B5CF6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvPlayerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="Đang phát"
+        android:textColor="#4C1D95"
+        android:textSize="16sp"
+        app:layout_constraintTop_toTopOf="@id/btnMinimize"
+        app:layout_constraintBottom_toBottomOf="@id/btnMinimize"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Menu -->
+    <ImageView
+        android:id="@+id/btnMore"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="48dp"
+        android:src="@drawable/ic_more_vert"
+        app:tint="#4C1D95"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Đĩa nhạc quay (Dùng CardView bọc ImageView để bo tròn) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardCover"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_marginTop="40dp"
+        app:cardCornerRadius="140dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnMinimize">
+
+        <ImageView
+            android:id="@+id/ivCover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/bg_cover_default" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Tên bài hát -->
+    <TextView
+        android:id="@+id/tvSongTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="32dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-black"
+        android:maxLines="1"
+        android:text="Tên bài hát"
+        android:textColor="#1F1B2E"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardCover" />
+
+    <!-- Ca sĩ -->
+    <TextView
+        android:id="@+id/tvArtist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginHorizontal="32dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif"
+        android:maxLines="1"
+        android:text="Ca sĩ"
+        android:textColor="#8E8AA0"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSongTitle" />
+
+    <!-- Nút Yêu thích -->
+    <ImageView
+        android:id="@+id/btnFavorite"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/bg_button_purple"
+        android:padding="12dp"
+        android:src="@drawable/ic_heart_outline"
+        app:tint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/tvArtist"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvSongTitle" />
+
+    <!-- Thanh tua nhạc -->
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="24dp"
+        android:progressDrawable="@drawable/custom_seekbar_progress"
+        android:thumb="@drawable/custom_seekbar_thumb"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvArtist" />
+
+    <TextView
+        android:id="@+id/tvCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="00:00"
+        android:textColor="#8E8AA0"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/seekBar" />
+
+    <TextView
+        android:id="@+id/tvTotalTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:text="00:00"
+        android:textColor="#8E8AA0"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/seekBar" />
+
+    <!-- Các nút điều khiển -->
+    <LinearLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tvCurrentTime">
+
+        <ImageView
+            android:id="@+id/btnShuffle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_button_purple"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_rotate"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/btnPrev"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="16dp"
+            android:src="@drawable/ic_prev"
+            app:tint="#1F1B2E" />
+
+        <ImageView
+            android:id="@+id/btnPlayPause"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_button_purple"
+            android:elevation="8dp"
+            android:padding="20dp"
+            android:src="@drawable/ic_play"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/btnNext"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="16dp"
+            android:src="@drawable/ic_next"
+            app:tint="#1F1B2E" />
+
+        <ImageView
+            android:id="@+id/btnRepeat"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_button_purple"
+            android:padding="10dp"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="@color/white" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
