@@ -22,9 +22,8 @@ class QueueAdapter(
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
 
     private val mutableItems = items.toMutableList()
-    private var currentPlayingIndex = -1
+    var currentPlayingIndex = -1 // Đã public để bên ngoài truy cập được
 
-    // Trạng thái chọn nhiều
     var isSelectionMode = false
         private set
     val selectedUris = mutableSetOf<String>()
@@ -67,16 +66,14 @@ class QueueAdapter(
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
 
-        // Xử lý UI khi ở chế độ chọn
         if (isSelectionMode) {
             holder.ivSelectCheckbox.visibility = View.VISIBLE
             holder.tvIndex.visibility = View.GONE
             holder.btnMore.visibility = View.GONE
             holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
 
-            // Đổi màu icon checkbox dựa trên trạng thái được chọn
             if (selectedUris.contains(uri)) {
-                holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline) // Hoặc icon check filled nếu có
+                holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline)
                 holder.ivSelectCheckbox.setColorFilter(Color.parseColor("#7C3AED"))
             } else {
                 holder.ivSelectCheckbox.setImageResource(R.drawable.ic_check_circle_outline)
@@ -86,7 +83,6 @@ class QueueAdapter(
             holder.ivSelectCheckbox.visibility = View.GONE
             holder.btnMore.visibility = View.VISIBLE
 
-            // Xử lý UI bình thường
             if (position == currentPlayingIndex) {
                 holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
                 holder.tvIndex.visibility = View.GONE
@@ -104,7 +100,6 @@ class QueueAdapter(
             }
         }
 
-        // Sự kiện Click
         holder.itemView.setOnClickListener {
             if (isSelectionMode) {
                 toggleSelection(uri)
@@ -113,7 +108,6 @@ class QueueAdapter(
             }
         }
 
-        // Sự kiện Long Click (Nhấn giữ) để bật chế độ chọn
         holder.itemView.setOnLongClickListener {
             if (!isSelectionMode) {
                 isSelectionMode = true
@@ -126,9 +120,8 @@ class QueueAdapter(
             onMoreClick(holder.bindingAdapterPosition, it)
         }
 
-        // Kéo thả (chỉ cho phép khi không ở chế độ chọn)
         holder.itemView.setOnLongClickListener {
-            if (isSelectionMode) return@setOnLongClickListener false // Không kéo thả khi đang chọn
+            if (isSelectionMode) return@setOnLongClickListener false
             onStartDrag(holder)
             true
         }
@@ -177,20 +170,6 @@ class QueueAdapter(
     fun onItemMove(fromPosition: Int, toPosition: Int) {
         Collections.swap(mutableItems, fromPosition, toPosition)
         notifyItemMoved(fromPosition, toPosition)
-    }
-
-    fun removeItem(position: Int) {
-        if (position in mutableItems.indices) {
-            mutableItems.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
-
-    fun addItem(position: Int, item: MediaItem) {
-        if (position <= mutableItems.size) {
-            mutableItems.add(position, item)
-            notifyItemInserted(position)
-        }
     }
 
     fun getCurrentList(): List<MediaItem> = mutableItems
