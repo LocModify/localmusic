@@ -3,53 +3,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="4dp">
+    android:paddingVertical="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/itemContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_q_glass_card"
-        android:minHeight="64dp"
-        android:paddingStart="10dp"
-        android:paddingTop="7dp"
-        android:paddingEnd="4dp"
-        android:paddingBottom="7dp">
+        android:background="@android:color/transparent"
+        android:padding="8dp">
 
-        <!-- Vòng tròn chọn (chế độ chọn nhiều) - cùng vị trí với số thứ tự -->
+        <!-- Ô chọn (Checkbox) - Ẩn mặc định -->
         <ImageView
             android:id="@+id/ivSelectCheckbox"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
-            android:src="@drawable/ic_check_circle_outline"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:visibility="gone"
+            android:src="@drawable/ic_check_circle_outline"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#9E9E9E" />
+            app:tint="#7A5BA8" />
 
-        <!-- Số thứ tự trong vòng tròn -->
+        <!-- Số thứ tự - Hiện mặc định -->
         <TextView
             android:id="@+id/tvIndex"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="@drawable/bg_q_index_circle"
+            android:layout_width="24dp"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:text="1"
-            android:textColor="#6D28D9"
+            android:textColor="#7A5BA8"
             android:textSize="14sp"
-            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardThumbnail"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginStart="10dp"
-            app:cardCornerRadius="14dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/tvIndex"
@@ -69,10 +62,10 @@
             android:layout_marginStart="12dp"
             android:layout_marginEnd="8dp"
             android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/cardThumbnail"
             app:layout_constraintEnd_toStartOf="@id/tvDuration"
             app:layout_constraintStart_toEndOf="@id/cardThumbnail"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="@id/cardThumbnail">
 
             <TextView
                 android:id="@+id/tvQueueItemTitle"
@@ -95,11 +88,10 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Không còn dùng trong danh sách mới (bài đang phát nằm ở thẻ ghim trên cùng) -->
         <ImageView
             android:id="@+id/ivPlayingIcon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_graphic_eq"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -110,29 +102,26 @@
         <TextView
             android:id="@+id/tvDuration"
             android:layout_width="wrap_content"
-            android:layout_height="26dp"
-            android:background="@drawable/bg_q_duration_pill"
-            android:gravity="center"
-            android:paddingHorizontal="10dp"
+            android:layout_height="wrap_content"
             android:text="00:00"
-            android:textColor="#5B21B6"
-            android:textSize="12sp"
-            android:textStyle="bold"
+            android:textColor="#7A5BA8"
+            android:textSize="13sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnQueueMore"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Nút 3 chấm (Sẽ bị ẩn khi ở chế độ chọn) -->
         <ImageView
             android:id="@+id/btnQueueMore"
-            android:layout_width="34dp"
+            android:layout_width="32dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="5dp"
+            android:padding="4dp"
             android:src="@drawable/ic_more_vert"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#6D28D9" />
+            app:tint="#7A5BA8" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
