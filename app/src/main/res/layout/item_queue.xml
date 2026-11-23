@@ -2,36 +2,39 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingVertical="8dp">
+    android:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/itemContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:padding="8dp">
+        android:minHeight="50dp"
+        android:paddingStart="6dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="4dp"
+        android:paddingBottom="4dp">
 
-        <!-- Ô chọn (Checkbox) - Ẩn mặc định -->
+        <!-- Vòng tròn chọn (chế độ chọn nhiều) - cùng chỗ với số thứ tự -->
         <ImageView
             android:id="@+id/ivSelectCheckbox"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:visibility="gone"
             android:src="@drawable/ic_check_circle_outline"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#7A5BA8" />
+            app:tint="#9E9E9E" />
 
-        <!-- Số thứ tự - Hiện mặc định -->
+        <!-- Số thứ tự -->
         <TextView
             android:id="@+id/tvIndex"
-            android:layout_width="24dp"
+            android:layout_width="18dp"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="1"
-            android:textColor="#7A5BA8"
+            android:textColor="#8C79B8"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,9 +42,9 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardThumbnail"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="50dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="10dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -74,18 +77,18 @@
                 android:ellipsize="marquee"
                 android:fadingEdge="horizontal"
                 android:fadingEdgeLength="14dp"
+                android:fontFamily="sans-serif-medium"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:requiresFadingEdge="horizontal"
                 android:singleLine="true"
                 android:textColor="#1F1B2E"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/tvQueueItemArtist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:ellipsize="marquee"
                 android:fadingEdge="horizontal"
                 android:fadingEdgeLength="14dp"
@@ -93,21 +96,20 @@
                 android:requiresFadingEdge="horizontal"
                 android:singleLine="true"
                 android:textColor="#7A5BA8"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Sóng nhạc nhảy theo nhạc (chỉ hiện ở bài đang phát) -->
+        <!-- Sóng nhạc nhảy (chỉ hiện ở bài đang phát), nằm sát mép phải -->
         <com.ztrongz.localmusic.PlayingBarsView
             android:id="@+id/ivPlayingIcon"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_marginEnd="4dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnQueueMore"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Chữ tên bài luôn dừng ở mép trái của sóng nhạc / thời lượng, không đè lên -->
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/textEndBarrier"
             android:layout_width="wrap_content"
@@ -116,29 +118,32 @@
             app:barrierMargin="-4dp"
             app:constraint_referenced_ids="ivPlayingIcon,tvDuration" />
 
+        <!-- Thời lượng trong viên thuốc -->
         <TextView
             android:id="@+id/tvDuration"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/qs_duration_pill"
+            android:gravity="center"
+            android:paddingHorizontal="9dp"
             android:text="00:00"
-            android:textColor="#7A5BA8"
-            android:textSize="13sp"
+            android:textColor="#5B4B8A"
+            android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnQueueMore"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Nút 3 chấm (Sẽ bị ẩn khi ở chế độ chọn) -->
         <ImageView
             android:id="@+id/btnQueueMore"
-            android:layout_width="32dp"
-            android:layout_height="48dp"
+            android:layout_width="30dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="4dp"
+            android:padding="3dp"
             android:src="@drawable/ic_more_vert"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#7A5BA8" />
+            app:tint="#7C3AED" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
