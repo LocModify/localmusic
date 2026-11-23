@@ -6,67 +6,6 @@
     android:background="@drawable/bg_q_screen"
     android:clipChildren="true">
 
-    <!-- ===== TRANG TRÍ NỀN (đĩa than, nốt nhạc, ngôi sao) ===== -->
-    <ImageView
-        android:layout_width="240dp"
-        android:layout_height="240dp"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_q_vinyl"
-        android:translationX="70dp"
-        android:translationY="-30dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:layout_marginTop="14dp"
-        android:layout_marginEnd="120dp"
-        android:alpha="0.55"
-        android:importantForAccessibility="no"
-        android:rotation="-12"
-        android:src="@drawable/ic_note_double"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#B79CF5" />
-
-    <ImageView
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:layout_marginTop="86dp"
-        android:layout_marginEnd="16dp"
-        android:alpha="0.7"
-        android:importantForAccessibility="no"
-        android:rotation="14"
-        android:src="@drawable/ic_note_double"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#C7B2F9" />
-
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginStart="96dp"
-        android:layout_marginTop="40dp"
-        android:alpha="0.9"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_sparkles"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#FFFFFF" />
-
-    <ImageView
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="170dp"
-        android:alpha="0.9"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_sparkles"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="#FFFFFF" />
-
     <!-- ===== HÀNG TRÊN CÙNG: nút Back (hoặc thanh chọn nhiều đè lên đúng vị trí đó) ===== -->
     <ImageView
         android:id="@+id/btnBack"
@@ -371,11 +310,9 @@
 
         <com.ztrongz.localmusic.PlayingBarsView
             android:id="@+id/nowBars"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/bg_q_circle"
-            android:padding="6dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/ivNowChevron"
             app:layout_constraintTop_toTopOf="parent" />
