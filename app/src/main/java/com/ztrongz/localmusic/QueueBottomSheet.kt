@@ -6,6 +6,15 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.AnimationSet
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.LayoutAnimationController
+import android.view.animation.TranslateAnimation
+import androidx.core.view.WindowCompat
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.transition.Fade
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +31,6 @@ import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -122,6 +130,13 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             sheet.layoutParams = lp
             sheet.setBackgroundColor(Color.TRANSPARENT)
         }
+        // Tràn viền: nền tím phủ cả sau thanh trạng thái (tránh dải xám ở trên cùng)
+        d.window?.let { w ->
+            WindowCompat.setDecorFitsSystemWindows(w, false)
+            w.statusBarColor = Color.TRANSPARENT
+            w.navigationBarColor = Color.TRANSPARENT
+            WindowCompat.getInsetsController(w, w.decorView).isAppearanceLightStatusBars = true
+        }
         d.behavior.apply {
             skipCollapsed = true
             isFitToContents = false
@@ -168,6 +183,28 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         rvQueue.layoutManager = LinearLayoutManager(requireContext())
         rvQueue.adapter = adapter
         itemTouchHelper.attachToRecyclerView(rvQueue)
+
+        // Animation thêm/xóa/dời hàng mượt hơn, tắt hiệu ứng "nháy" khi cập nhật nội dung
+        (rvQueue.itemAnimator as? DefaultItemAnimator)?.apply {
+            supportsChangeAnimations = false
+            addDuration = 240
+            removeDuration = 220
+            moveDuration = 260
+        }
+
+        // Các hàng lần lượt trượt nhẹ + mờ dần vào khi mở bảng
+        val set = AnimationSet(true).apply {
+            addAnimation(AlphaAnimation(0f, 1f))
+            addAnimation(
+                TranslateAnimation(
+                    Animation.RELATIVE_TO_SELF, 0f, Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0.35f, Animation.RELATIVE_TO_SELF, 0f
+                )
+            )
+            duration = 360
+            interpolator = DecelerateInterpolator(1.6f)
+        }
+        rvQueue.layoutAnimation = LayoutAnimationController(set, 0.08f)
     }
 
     // Chỉ kéo thả đổi vị trí (chạm vào số thứ tự rồi kéo), KHÔNG vuốt để xóa
@@ -256,7 +293,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             lastSelectionMode = adapter.isSelectionMode
             TransitionManager.beginDelayedTransition(
                 rootView as ViewGroup,
-                AutoTransition().apply { duration = 200 }
+                Fade().apply {
+                    duration = 180
+                    excludeTarget(rvQueue, true)   // không animate danh sách => không giật
+                    excludeChildren(rvQueue, true)
+                }
             )
         }
 
@@ -378,7 +419,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         // Danh sách: mọi bài TRỪ bài đang phát (thứ tự đúng như trong Player)
         rowToPlayer = computeRowMap(c)
         val rows = rowToPlayer.map { c.getMediaItemAt(it) }
-        adapter.updateItems(rows, -1)
+        val firstLoad = adapter.itemCount == 0 && rows.isNotEmpty()
+        adapter.updateItems(rows, -1, rowToPlayer.map { it + 1 })
+        if (firstLoad) rvQueue.scheduleLayoutAnimation()
     }
 
     private fun updateNowCard(c: MediaController, cur: Int) {
@@ -397,7 +440,15 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         // Chỉ giải mã ảnh bìa khi đổi bài
         val uri = item.localConfiguration?.uri.toString()
         if (uri != lastNowUri) {
+            val firstTime = lastNowUri == null
             lastNowUri = uri
+            if (!firstTime) {
+                // Chuyển bài: nội dung thẻ mờ dần vào
+                listOf<View>(ivNowCover, tvNowTitle, tvNowArtist).forEach {
+                    it.alpha = 0f
+                    it.animate().alpha(1f).setDuration(260).start()
+                }
+            }
             val art = md.artworkData
             if (art != null) {
                 ivNowCover.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.size))
