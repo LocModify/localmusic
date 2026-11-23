@@ -34,6 +34,7 @@ class QueueAdapter(
         const val PAYLOAD_MODE = "mode"       // vào/ra chế độ chọn nhiều (có hiệu ứng mờ dần)
         const val PAYLOAD_TOGGLE = "toggle"   // tick/bỏ tick (có hiệu ứng nảy nhẹ)
         const val PAYLOAD_REBIND = "rebind"   // vẽ lại đầy đủ nhưng không nháy
+        const val PAYLOAD_PLAYSTATE = "playstate" // chỉ bật/tắt sóng nhạc
     }
 
     private val mutableItems = mutableListOf<MediaItem>()
@@ -42,6 +43,17 @@ class QueueAdapter(
     // Vị trí bài đang phát (-1 nếu không có)
     var currentPlayingIndex = -1
         private set
+
+    // Nhạc đang phát hay tạm dừng (để sóng nhạc ở bài hiện tại nhảy / đứng yên)
+    private var isPlayerPlaying = false
+
+    fun setPlayerPlaying(playing: Boolean) {
+        if (isPlayerPlaying == playing) return
+        isPlayerPlaying = playing
+        if (currentPlayingIndex in mutableItems.indices) {
+            notifyItemChanged(currentPlayingIndex, PAYLOAD_PLAYSTATE)
+        }
+    }
 
     // Đang ở chế độ chọn nhiều hay không
     var isSelectionMode = false
@@ -57,7 +69,7 @@ class QueueAdapter(
         val tvArtist: TextView = view.findViewById(R.id.tvQueueItemArtist)
         val tvDuration: TextView = view.findViewById(R.id.tvDuration)
         val ivThumbnail: ImageView = view.findViewById(R.id.ivQueueThumbnail)
-        val ivPlayingIcon: ImageView = view.findViewById(R.id.ivPlayingIcon)
+        val ivPlayingIcon: PlayingBarsView = view.findViewById(R.id.ivPlayingIcon)
         val btnMore: ImageView = view.findViewById(R.id.btnQueueMore)
         val ivSelectCheckbox: ImageView = view.findViewById(R.id.ivSelectCheckbox)
     }
@@ -94,14 +106,20 @@ class QueueAdapter(
             holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
             holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
             holder.ivPlayingIcon.visibility = View.VISIBLE
+            holder.ivPlayingIcon.setPlaying(isPlayerPlaying)
             holder.tvDuration.visibility = View.GONE
         } else {
             holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
             holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
             holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
+            holder.ivPlayingIcon.setPlaying(false)
             holder.ivPlayingIcon.visibility = View.GONE
             holder.tvDuration.visibility = View.VISIBLE
         }
+
+        // Tên dài: chữ tự chạy lặp lại (marquee cần isSelected = true)
+        holder.tvTitle.isSelected = true
+        holder.tvArtist.isSelected = true
 
         applySelectionState(holder, position)
 
@@ -142,6 +160,10 @@ class QueueAdapter(
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int, payloads: MutableList<Any>) {
         if (payloads.isEmpty() || payloads.contains(PAYLOAD_REBIND)) {
             onBindViewHolder(holder, position)
+            return
+        }
+        if (payloads.contains(PAYLOAD_PLAYSTATE)) {
+            holder.ivPlayingIcon.setPlaying(isPlayerPlaying && position == currentPlayingIndex)
             return
         }
         applySelectionState(holder, position)
