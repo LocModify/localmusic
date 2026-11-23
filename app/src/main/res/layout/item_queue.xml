@@ -63,7 +63,7 @@
             android:layout_marginEnd="8dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@id/cardThumbnail"
-            app:layout_constraintEnd_toStartOf="@id/tvDuration"
+            app:layout_constraintEnd_toStartOf="@id/textEndBarrier"
             app:layout_constraintStart_toEndOf="@id/cardThumbnail"
             app:layout_constraintTop_toTopOf="@id/cardThumbnail">
 
@@ -71,8 +71,12 @@
                 android:id="@+id/tvQueueItemTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:fadingEdgeLength="14dp"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:requiresFadingEdge="horizontal"
+                android:singleLine="true"
                 android:textColor="#1F1B2E"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -82,22 +86,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:fadingEdgeLength="14dp"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:requiresFadingEdge="horizontal"
+                android:singleLine="true"
                 android:textColor="#7A5BA8"
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <ImageView
+        <!-- Sóng nhạc nhảy theo nhạc (chỉ hiện ở bài đang phát) -->
+        <com.ztrongz.localmusic.PlayingBarsView
             android:id="@+id/ivPlayingIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_graphic_eq"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="4dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvDuration"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#7C3AED" />
+            app:layout_constraintEnd_toStartOf="@id/btnQueueMore"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Chữ tên bài luôn dừng ở mép trái của sóng nhạc / thời lượng, không đè lên -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/textEndBarrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="start"
+            app:barrierMargin="-4dp"
+            app:constraint_referenced_ids="ivPlayingIcon,tvDuration" />
 
         <TextView
             android:id="@+id/tvDuration"
