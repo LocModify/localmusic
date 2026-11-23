@@ -6,77 +6,58 @@
     android:viewportWidth="100"
     android:viewportHeight="100">
 
-    <!-- Mặt trăng khuyết -->
-    <path android:pathData="M40,15 A 40 40 0 1 0 85 70 A 45 45 0 1 1 40 15 Z">
+    <!-- Vầng sáng (Glow) phía sau để hòa hợp với nền hồng -->
+    <path android:pathData="M50,50m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="50" android:centerY="50"
+                android:gradientRadius="40"
+                android:startColor="#E9D5FF" 
+                android:endColor="#00000000" />
+        </aapt:attr>
+    </path>
+
+    <!-- Mặt trăng khuyết mềm mại -->
+    <path android:pathData="M45,15 A 35,35 0 1,0 80,70 A 45,45 0 1,1 45,15 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:startX="20" android:startY="20"
                 android:endX="80" android:endY="80"
-                android:startColor="#E0C3FC"
-                android:endColor="#8E2DE2"
+                android:startColor="#D8B4FE"
+                android:endColor="#9333EA"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Vòng hào quang (Orbit) -->
+    <!-- Vòng hào quang (Orbit) mảnh và sáng -->
     <path
-        android:pathData="M15,55 C 30,85 85,85 90,45"
-        android:strokeColor="#D4B3FF"
-        android:strokeWidth="2"
+        android:pathData="M15,60 C 20,90 85,85 85,45"
+        android:strokeColor="#D8B4FE"
+        android:strokeWidth="1.5"
         android:strokeLineCap="round"
         android:fillColor="#00000000" />
     
     <!-- Hạt nhỏ trên vòng hào quang -->
-    <path android:pathData="M15,55 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" android:fillColor="#E0C3FC"/>
-    <path android:pathData="M75,78 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" android:fillColor="#E0C3FC"/>
+    <path android:pathData="M15,60 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" android:fillColor="#F3E8FF"/>
+    <path android:pathData="M70,80 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" android:fillColor="#F3E8FF"/>
 
-    <!-- Thân nốt nhạc -->
+    <!-- Nốt nhạc phối màu Gradient bóng bẩy -->
     <path
-        android:pathData="M60,35 L60,65 M75,28 L75,58"
-        android:strokeColor="#C084FC"
-        android:strokeWidth="4"
-        android:fillColor="#00000000" />
-
-    <!-- Thanh ngang nốt nhạc -->
-    <path android:pathData="M60,35 L75,28 L75,36 L60,43 Z">
+        android:pathData="M62,30 L62,65 C60,64 56,66 55,70 C54,74 57,78 61,77 C65,76 68,72 68,68 C68,65 66,63 64,62 L64,42 L78,38 L78,60 C76,59 72,61 71,65 C70,69 73,73 77,72 C81,71 84,67 84,63 C84,60 82,58 80,57 L80,28 Z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:startX="60" android:startY="28"
-                android:endX="75" android:endY="43"
-                android:startColor="#F3E8FF"
+                android:startX="55" android:startY="28"
+                android:endX="84" android:endY="78"
+                android:startColor="#FFFFFF"
                 android:endColor="#A855F7"
                 android:type="linear" />
         </aapt:attr>
     </path>
 
-    <!-- Đầu nốt nhạc 1 -->
-    <path android:pathData="M53,65 C53,61 63,61 63,65 C63,69 53,69 53,65 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="53" android:startY="61"
-                android:endX="63" android:endY="69"
-                android:startColor="#F3E8FF"
-                android:endColor="#A855F7"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Đầu nốt nhạc 2 -->
-    <path android:pathData="M68,58 C68,54 78,54 78,58 C78,62 68,62 68,58 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="68" android:startY="54"
-                android:endX="78" android:endY="62"
-                android:startColor="#F3E8FF"
-                android:endColor="#A855F7"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- Các ngôi sao lấp lánh -->
-    <path android:pathData="M80,15 L82,22 L88,24 L82,26 L80,33 L78,26 L72,24 L78,22 Z" android:fillColor="#FFFFFF"/>
-    <path android:pathData="M20,30 L21,33 L24,34 L21,35 L20,38 L19,35 L16,34 L19,33 Z" android:fillColor="#FFFFFF"/>
-    <path android:pathData="M85,70 L86,72 L88,73 L86,74 L85,76 L84,74 L82,73 L84,72 Z" android:fillColor="#FFFFFF"/>
-    <path android:pathData="M30,80 L31,82 L33,83 L31,84 L30,86 L29,84 L27,83 L29,82 Z" android:fillColor="#FFFFFF"/>
+    <!-- Các ngôi sao lấp lánh nhỏ xinh -->
+    <path android:pathData="M80,18 L81,24 L87,25 L81,26 L80,32 L79,26 L73,25 L79,24 Z" android:fillColor="#FFFFFF"/>
+    <path android:pathData="M25,30 L26,32 L28,33 L26,34 L25,36 L24,34 L22,33 L24,32 Z" android:fillColor="#FFFFFF"/>
+    <path android:pathData="M85,75 L86,77 L88,78 L86,79 L85,81 L84,79 L82,78 L84,77 Z" android:fillColor="#FFFFFF"/>
 
 </vector>
