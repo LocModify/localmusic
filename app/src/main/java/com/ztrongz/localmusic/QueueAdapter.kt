@@ -37,6 +37,7 @@ class QueueAdapter(
     }
 
     private val mutableItems = mutableListOf<MediaItem>()
+    private val numbers = mutableListOf<Int>() // số thứ tự thật của từng hàng trong hàng đợi
     private val bitmapCache = HashMap<String, android.graphics.Bitmap?>()
 
     // Vị trí bài đang phát (-1 nếu không có)
@@ -76,7 +77,7 @@ class QueueAdapter(
 
         holder.tvTitle.text = metadata.title ?: "Unknown Title"
         holder.tvArtist.text = metadata.artist ?: "Unknown Artist"
-        holder.tvIndex.text = (position + 1).toString()
+        holder.tvIndex.text = (numbers.getOrNull(position) ?: (position + 1)).toString()
         holder.tvDuration.text = formatTime(metadata.durationMs ?: 0L)
 
         val artworkData = metadata.artworkData
@@ -259,7 +260,21 @@ class QueueAdapter(
     }
 
     // ====== Dữ liệu ======
-    fun updateItems(newItems: List<MediaItem>, playingIndex: Int) {
+    fun updateItems(newItems: List<MediaItem>, playingIndex: Int, labels: List<Int>? = null) {
+        val newNumbers = labels ?: newItems.indices.map { it + 1 }
+
+        // Không có gì thay đổi => bỏ qua, tránh vẽ lại thừa (gây giật)
+        if (newItems.size == mutableItems.size && playingIndex == currentPlayingIndex &&
+            newNumbers == numbers &&
+            newItems.indices.all { i ->
+                val o = mutableItems[i]
+                val n = newItems[i]
+                uriOf(o) == uriOf(n) &&
+                    o.mediaMetadata.title == n.mediaMetadata.title &&
+                    o.mediaMetadata.artist == n.mediaMetadata.artist
+            }
+        ) return
+
         val old = mutableItems.toList()
         val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
             override fun getOldListSize() = old.size
@@ -274,9 +289,11 @@ class QueueAdapter(
 
         mutableItems.clear()
         mutableItems.addAll(newItems)
+        numbers.clear()
+        numbers.addAll(newNumbers)
         currentPlayingIndex = playingIndex
         diff.dispatchUpdatesTo(this)
-        // Vẽ lại số thứ tự / highlight bài đang phát mà không nháy
+        // Cập nhật số thứ tự mà không nháy (payload)
         notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_REBIND)
 
         // Bỏ các bài đã chọn nhưng không còn trong hàng đợi
@@ -286,6 +303,7 @@ class QueueAdapter(
 
     fun onItemMove(from: Int, to: Int) {
         Collections.swap(mutableItems, from, to)
+        if (from < numbers.size && to < numbers.size) Collections.swap(numbers, from, to)
         // Cập nhật vị trí bài đang phát theo thao tác kéo
         currentPlayingIndex = when (currentPlayingIndex) {
             from -> to
