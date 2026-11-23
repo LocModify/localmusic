@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thẻ "đang phát": sáng hơn, viền tím nhạt phát sáng -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <stroke android:width="3dp" android:color="#33B57BFF" />
+            <corners android:radius="34dp" />
+        </shape>
+    </item>
+    <item
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#E6E6D8FF"
+                android:startColor="#F2FFFFFF" />
+            <stroke android:width="1.5dp" android:color="#FFFFFFFF" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+</layer-list>
