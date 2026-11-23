@@ -4,12 +4,21 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="#FFFFFFFF">
-    <!-- Icon Shuffle chuẩn -->
+    <!-- Icon Shuffle (Giống hệt bên trên) -->
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M10.59,9.17L5.41,4 4,5.41l5.17,5.17 1.42,-1.41zM14.5,4l2.04,2.04L4,18.59 5.41,20 17.96,7.46 20,9.5V4h-5.5zM14.83,13.41l-1.41,1.41 3.13,3.13L14.5,20H20v-5.5l-2.04,2.04 -3.13,-3.13z" />
-    <!-- Dấu gạch chéo (Tắt) -->
+        android:pathData="M10.59,9.17L5.41,4 4,5.41l5.17,5.17 1.42,-1.41z" />
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M3.27,3L2,4.27L19.73,22L21,20.73L3.27,3Z" />
+        android:pathData="M14.5,4l2.04,2.04L4,18.59 5.41,20 17.96,7.46 20,9.5V4h-5.5z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14.83,13.41l-1.41,1.41 3.13,3.13L14.5,20H20v-5.5l-2.04,2.04 -3.13,-3.13z" />
+    
+    <!-- Dấu gạch chéo màu đen mờ (để dễ nhìn thấy trên nền sáng) hoặc màu trắng -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M3.5,3.5 L20.5,20.5" />
 </vector>
