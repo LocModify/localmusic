@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -38,6 +39,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var btnShuffleBottom: ImageView
     private lateinit var btnRepeatBottom: ImageView
+    private lateinit var btnShuffleHolder: View
+    private lateinit var btnRepeatHolder: View
+    private lateinit var tvShuffleLabel: TextView
+    private lateinit var tvRepeatLabel: TextView
     private lateinit var tvPlaylistSubtitle: TextView
 
     private lateinit var layoutNormalHeader: View
@@ -65,6 +70,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         rvQueue = view.findViewById(R.id.rvQueue)
         btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
+        btnShuffleHolder = view.findViewById(R.id.btnShuffleHolder)
+        btnRepeatHolder = view.findViewById(R.id.btnRepeatHolder)
+        tvShuffleLabel = view.findViewById(R.id.tvShuffleLabel)
+        tvRepeatLabel = view.findViewById(R.id.tvRepeatLabel)
         tvPlaylistSubtitle = view.findViewById(R.id.tvPlaylistSubtitle)
         
         layoutNormalHeader = view.findViewById(R.id.layoutNormalHeader)
@@ -142,6 +151,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             onSelectionChanged = { updateSelectionUI() }
         )
 
+        adapter.setPlayerPlaying(c.isPlaying)
         rvQueue.layoutManager = LinearLayoutManager(requireContext())
         rvQueue.adapter = adapter
         itemTouchHelper.attachToRecyclerView(rvQueue)
@@ -234,15 +244,30 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    // Hiệu ứng nhấn: nút thu nhỏ nhẹ rồi bật lại (có nảy)
+    private fun addPressEffect(v: View) {
+        v.setOnTouchListener { view, ev ->
+            when (ev.actionMasked) {
+                MotionEvent.ACTION_DOWN ->
+                    view.animate().scaleX(0.94f).scaleY(0.94f).setDuration(90).start()
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    view.animate().scaleX(1f).scaleY(1f).setDuration(220)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(3f)).start()
+            }
+            false // vẫn cho phép onClick chạy
+        }
+    }
+
     private fun setupBottomBar() {
         val c = controller ?: return
 
-        btnShuffleBottom.setOnClickListener {
+        // Bấm cả vùng (icon + chữ) đều được
+        btnShuffleHolder.setOnClickListener {
             c.shuffleModeEnabled = !c.shuffleModeEnabled
             updateHeaderUI()
         }
 
-        btnRepeatBottom.setOnClickListener {
+        btnRepeatHolder.setOnClickListener {
             c.repeatMode = when (c.repeatMode) {
                 Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
                 Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
@@ -251,7 +276,29 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             updateHeaderUI()
         }
 
-        // ĐÃ XÓA ĐOẠN CODE XỬ LÝ NÚT XÓA HÀNG ĐỢI Ở ĐÂY
+        // Xóa hàng đợi: chỉ xóa các bài PHÍA SAU bài đang phát
+        val btnClear = rootView.findViewById<View>(R.id.btnClearQueue)
+        btnClear.setOnClickListener {
+            val currentIndex = c.currentMediaItemIndex
+            if (currentIndex + 1 < c.mediaItemCount) {
+                adapter.exitSelection()
+                c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
+                updateUI(scrollToCurrent = false)
+                Toast.makeText(requireContext(), "Đã xóa toàn bộ hàng đợi", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Hàng đợi đang trống", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Bóng phát sáng màu tím quanh nút Xóa (Android 9+)
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            btnClear.outlineAmbientShadowColor = Color.parseColor("#7C3AED")
+            btnClear.outlineSpotShadowColor = Color.parseColor("#7C3AED")
+        }
+
+        addPressEffect(btnShuffleHolder)
+        addPressEffect(btnRepeatHolder)
+        addPressEffect(btnClear)
 
         updateHeaderUI()
     }
@@ -260,23 +307,21 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         val c = controller ?: return
         val gray = Color.parseColor("#9E9E9E")
         val purple = Color.parseColor("#7C3AED")
+        val labelOff = Color.parseColor("#7A5BA8")
 
-        btnShuffleBottom.imageTintList = ColorStateList.valueOf(if (c.shuffleModeEnabled) purple else gray)
+        // Ngẫu nhiên: bật => icon + chữ tím đậm, nền viên thuốc tím nhạt
+        val shuffleOn = c.shuffleModeEnabled
+        btnShuffleBottom.imageTintList = ColorStateList.valueOf(if (shuffleOn) purple else gray)
+        tvShuffleLabel.setTextColor(if (shuffleOn) purple else labelOff)
+        btnShuffleHolder.setBackgroundResource(if (shuffleOn) R.drawable.bg_bar_btn_active else 0)
 
-        when (c.repeatMode) {
-            Player.REPEAT_MODE_OFF -> {
-                btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
-                btnRepeatBottom.imageTintList = ColorStateList.valueOf(gray)
-            }
-            Player.REPEAT_MODE_ALL -> {
-                btnRepeatBottom.setImageResource(R.drawable.ic_repeat)
-                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purple)
-            }
-            else -> {
-                btnRepeatBottom.setImageResource(R.drawable.ic_repeat_one)
-                btnRepeatBottom.imageTintList = ColorStateList.valueOf(purple)
-            }
-        }
+        val repeatOn = c.repeatMode != Player.REPEAT_MODE_OFF
+        btnRepeatBottom.setImageResource(
+            if (c.repeatMode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat
+        )
+        btnRepeatBottom.imageTintList = ColorStateList.valueOf(if (repeatOn) purple else gray)
+        tvRepeatLabel.setTextColor(if (repeatOn) purple else labelOff)
+        btnRepeatHolder.setBackgroundResource(if (repeatOn) R.drawable.bg_bar_btn_active else 0)
     }
 
     private fun observePlayer() {
@@ -287,6 +332,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             }
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 updateUI(scrollToCurrent = false)
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (::adapter.isInitialized) adapter.setPlayerPlaying(isPlaying)
             }
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = updateHeaderUI()
             override fun onRepeatModeChanged(repeatMode: Int) = updateHeaderUI()
