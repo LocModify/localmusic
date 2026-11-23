@@ -35,8 +35,8 @@ import com.google.common.util.concurrent.MoreExecutors
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
-        // Tỉ lệ chiều cao bảng so với màn hình (0.72 giống ảnh demo, 1.0 = toàn màn hình)
-        private const val SHEET_HEIGHT_RATIO = 0.72f
+        // Tỉ lệ chiều cao bảng so với màn hình (1.0 = toàn màn hình, 0.72 = giống ảnh demo)
+        private const val SHEET_HEIGHT_RATIO = 1.0f
     }
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
@@ -84,6 +84,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             }
         }
         view.clipToOutline = true
+
+        // Toàn màn hình: đẩy thanh kéo (và cả nội dung bên dưới) xuống dưới thanh trạng thái
+        val handle = view.findViewById<View>(R.id.dragHandle)
+        (handle.layoutParams as ViewGroup.MarginLayoutParams).topMargin += getStatusBarHeight()
 
         // Ảnh nền phóng vừa chiều rộng, căn SÁT ĐÁY (thấy phần sóng tím ở dưới giống demo)
         val bg = view.findViewById<ImageView>(R.id.bgImage)
@@ -146,7 +150,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             peekHeight = sheetH
             state = BottomSheetBehavior.STATE_EXPANDED
         }
-        d.window?.setDimAmount(0.18f) // nền phía sau chỉ tối nhẹ để vẫn thấy màn hình phát nhạc
+        d.window?.setDimAmount(0.4f)
 
         d.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP &&
