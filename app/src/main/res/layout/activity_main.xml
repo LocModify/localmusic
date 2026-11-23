@@ -19,26 +19,17 @@
         android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- LOGO LUNAR MUSIC BẰNG CODE (Bọc nền tối để nổi bật) -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardBackgroundColor="#1E1B4B"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="2dp">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_lunar_vector" />
-        </androidx.cardview.widget.CardView>
+        <!-- LOGO LUNAR MUSIC (Bằng Vector Code, hòa hợp với nền) -->
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_lunar_vector" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:fontFamily="sans-serif-black"
             android:text="Music"
