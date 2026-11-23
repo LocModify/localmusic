@@ -7,7 +7,10 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.graphics.Matrix
+import android.graphics.Outline
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -30,6 +33,11 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 
 class QueueBottomSheet : BottomSheetDialogFragment() {
+
+    companion object {
+        // Tỉ lệ chiều cao bảng so với màn hình (0.72 giống ảnh demo, 1.0 = toàn màn hình)
+        private const val SHEET_HEIGHT_RATIO = 0.72f
+    }
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
@@ -67,6 +75,29 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rootView = view
+
+        // Bo tròn 2 góc trên của bảng (cắt luôn cả ảnh nền)
+        val radius = 32f * resources.displayMetrics.density
+        view.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(v: View, outline: Outline) {
+                outline.setRoundRect(0, 0, v.width, v.height + radius.toInt(), radius)
+            }
+        }
+        view.clipToOutline = true
+
+        // Ảnh nền phóng vừa chiều rộng, căn SÁT ĐÁY (thấy phần sóng tím ở dưới giống demo)
+        val bg = view.findViewById<ImageView>(R.id.bgImage)
+        bg.addOnLayoutChangeListener { v, l, t, r, b, _, _, _, _ ->
+            val dr = bg.drawable ?: return@addOnLayoutChangeListener
+            val w = (r - l).toFloat()
+            val h = (b - t).toFloat()
+            if (w <= 0f || h <= 0f) return@addOnLayoutChangeListener
+            val s = maxOf(w / dr.intrinsicWidth, h / dr.intrinsicHeight)
+            val m = Matrix()
+            m.setScale(s, s)
+            m.postTranslate((w - dr.intrinsicWidth * s) / 2f, h - dr.intrinsicHeight * s)
+            bg.imageMatrix = m
+        }
         rvQueue = view.findViewById(R.id.rvQueue)
         btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
@@ -82,9 +113,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         ivSelectAllIcon = view.findViewById(R.id.ivSelectAllIcon)
         btnSelectAll = view.findViewById(R.id.btnSelectAll)
         bottomBar = view.findViewById(R.id.bottomBar)
-
-        // Chừa chỗ cho thanh trạng thái vì sheet phủ toàn màn hình
-        view.setPadding(0, getStatusBarHeight(), 0, 0)
 
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
@@ -102,22 +130,23 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onStart()
         val d = dialog as? BottomSheetDialog ?: return
 
-        // === Làm sheet phủ TOÀN MÀN HÌNH ===
+        // Bảng cao bằng SHEET_HEIGHT_RATIO chiều cao màn hình (1.0 = phủ toàn màn hình)
+        val screenH = resources.displayMetrics.heightPixels
+        val sheetH = (screenH * SHEET_HEIGHT_RATIO).toInt()
         val sheet = d.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
         if (sheet != null) {
             val lp = sheet.layoutParams
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+            lp.height = sheetH
             sheet.layoutParams = lp
             sheet.setBackgroundColor(Color.TRANSPARENT)
         }
         d.behavior.apply {
+            isFitToContents = true
             skipCollapsed = true
-            isFitToContents = false
-            expandedOffset = 0
-            peekHeight = resources.displayMetrics.heightPixels
+            peekHeight = sheetH
             state = BottomSheetBehavior.STATE_EXPANDED
         }
-        d.window?.setDimAmount(0.4f)
+        d.window?.setDimAmount(0.18f) // nền phía sau chỉ tối nhẹ để vẫn thấy màn hình phát nhạc
 
         d.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP &&
