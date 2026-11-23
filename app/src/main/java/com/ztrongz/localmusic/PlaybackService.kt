@@ -41,14 +41,14 @@ class PlaybackService : MediaSessionService() {
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
 
-        // Lắng nghe sự thay đổi trạng thái của Player để cập nhật lại thông báo
+        // Lắng nghe sự thay đổi trạng thái của Player
         player.addListener(object : Player.Listener {
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                updateNotificationLayout()
+                updateAllControllers()
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
-                updateNotificationLayout()
+                updateAllControllers()
             }
         })
 
@@ -68,10 +68,10 @@ class PlaybackService : MediaSessionService() {
                         .build()
                 }
 
+                // SỬA LỖI ĐẢO NGƯỢC: Truyền session trực tiếp vào đây thay vì dùng biến toàn cục
                 override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
                     super.onPostConnect(session, controller)
-                    // Cập nhật icon ngay khi vừa kết nối (mở thông báo)
-                    updateNotificationLayout()
+                    session.setCustomLayout(controller, buildCustomLayout(session.player))
                 }
 
                 override fun onCustomCommand(
@@ -89,7 +89,6 @@ class PlaybackService : MediaSessionService() {
                         }
                         ACTION_SHUFFLE -> {
                             session.player.shuffleModeEnabled = !session.player.shuffleModeEnabled
-                            // Không cần gọi updateNotificationLayout() ở đây vì Listener ở trên đã tự bắt sự kiện
                         }
                         ACTION_REPEAT -> {
                             val currentMode = session.player.repeatMode
@@ -99,7 +98,6 @@ class PlaybackService : MediaSessionService() {
                                 else -> Player.REPEAT_MODE_OFF
                             }
                             session.player.repeatMode = newMode
-                            // Không cần gọi updateNotificationLayout() ở đây vì Listener ở trên đã tự bắt sự kiện
                         }
                         else -> return super.onCustomCommand(session, controller, customCommand, args)
                     }
@@ -111,27 +109,21 @@ class PlaybackService : MediaSessionService() {
         mediaSession = session
     }
 
-    // Hàm cập nhật icon động cho thông báo
-    private fun updateNotificationLayout() {
-        val session = mediaSession ?: return
-        val player = session.player
-
-        // 1. Xác định icon Shuffle (Bật/Tắt)
+    // Hàm tạo danh sách nút bấm (Tách riêng ra cho gọn)
+    private fun buildCustomLayout(player: Player): List<CommandButton> {
         val shuffleIcon = if (player.shuffleModeEnabled) {
             R.drawable.ic_shuffle_on
         } else {
             R.drawable.ic_shuffle_off
         }
 
-        // 2. Xác định icon Repeat (Tắt / Lặp tất cả / Lặp 1 bài)
         val repeatIcon = when (player.repeatMode) {
             Player.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all
             Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
             else -> R.drawable.ic_repeat_off
         }
 
-        // 3. Tạo lại danh sách nút bấm với icon mới
-        val customLayout = listOf(
+        return listOf(
             CommandButton.Builder()
                 .setDisplayName("Shuffle")
                 .setIconResId(shuffleIcon)
@@ -143,8 +135,12 @@ class PlaybackService : MediaSessionService() {
                 .setSessionCommand(SessionCommand(ACTION_REPEAT, Bundle.EMPTY))
                 .build()
         )
+    }
 
-        // 4. Gửi cập nhật cho tất cả các controller (bao gồm cả thông báo và app)
+    // Hàm cập nhật cho tất cả các controller đang kết nối
+    private fun updateAllControllers() {
+        val session = mediaSession ?: return
+        val customLayout = buildCustomLayout(session.player)
         for (controller in session.connectedControllers) {
             session.setCustomLayout(controller, customLayout)
         }
