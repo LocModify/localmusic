@@ -276,29 +276,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             updateHeaderUI()
         }
 
-        // Xóa hàng đợi: chỉ xóa các bài PHÍA SAU bài đang phát
-        val btnClear = rootView.findViewById<View>(R.id.btnClearQueue)
-        btnClear.setOnClickListener {
-            val currentIndex = c.currentMediaItemIndex
-            if (currentIndex + 1 < c.mediaItemCount) {
-                adapter.exitSelection()
-                c.removeMediaItems(currentIndex + 1, c.mediaItemCount)
-                updateUI(scrollToCurrent = false)
-                Toast.makeText(requireContext(), "Đã xóa toàn bộ hàng đợi", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Hàng đợi đang trống", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Bóng phát sáng màu tím quanh nút Xóa (Android 9+)
-        if (android.os.Build.VERSION.SDK_INT >= 28) {
-            btnClear.outlineAmbientShadowColor = Color.parseColor("#7C3AED")
-            btnClear.outlineSpotShadowColor = Color.parseColor("#7C3AED")
-        }
-
         addPressEffect(btnShuffleHolder)
         addPressEffect(btnRepeatHolder)
-        addPressEffect(btnClear)
 
         updateHeaderUI()
     }
