@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -17,6 +18,7 @@ import com.google.common.util.concurrent.ListenableFuture
 class PlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
+    private var exoPlayer: ExoPlayer? = null
 
     companion object {
         private const val ACTION_SET_PAUSE_AT_END = "SET_PAUSE_AT_END"
@@ -40,6 +42,38 @@ class PlaybackService : MediaSessionService() {
 
         player.repeatMode = Player.REPEAT_MODE_OFF
         player.shuffleModeEnabled = false
+        exoPlayer = player
+
+        // SỬA LỖI NÚT BỊ ĐẢO CHỖ Ở THÔNG BÁO:
+        // Khi đang ở bài cuối (nhất là bật shuffle, repeat tắt) ExoPlayer báo "không có bài kế tiếp"
+        // => hệ thống đẩy nút Shuffle vào ô "Next" và dịch các nút khác. Ta luôn báo là có thể
+        // chuyển bài, và khi hết bài thì quay lại bài đầu thay vì đứng yên.
+        val sessionPlayer = object : ForwardingPlayer(player) {
+            override fun getAvailableCommands(): Player.Commands {
+                return super.getAvailableCommands().buildUpon()
+                    .add(Player.COMMAND_SEEK_TO_NEXT)
+                    .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                    .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                    .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                    .build()
+            }
+
+            override fun isCommandAvailable(command: Int): Boolean {
+                return availableCommands.contains(command)
+            }
+
+            override fun seekToNext() = seekToNextMediaItem()
+
+            override fun seekToNextMediaItem() {
+                if (hasNextMediaItem()) {
+                    super.seekToNextMediaItem()
+                } else if (mediaItemCount > 0) {
+                    // Hết danh sách: quay về bài đầu tiên theo thứ tự phát hiện tại
+                    val first = currentTimeline.getFirstWindowIndex(shuffleModeEnabled)
+                    if (first != C.INDEX_UNSET) seekTo(first, 0L)
+                }
+            }
+        }
 
         // Lắng nghe sự thay đổi trạng thái của Player
         player.addListener(object : Player.Listener {
@@ -52,7 +86,7 @@ class PlaybackService : MediaSessionService() {
             }
         })
 
-        val session = MediaSession.Builder(this, player)
+        val session = MediaSession.Builder(this, sessionPlayer)
             .setCallback(object : MediaSession.Callback {
                 override fun onConnect(
                     session: MediaSession,
@@ -83,9 +117,7 @@ class PlaybackService : MediaSessionService() {
                     when (customCommand.customAction) {
                         ACTION_SET_PAUSE_AT_END -> {
                             val pause = args.getBoolean("pause")
-                            if (session.player is ExoPlayer) {
-                                (session.player as ExoPlayer).pauseAtEndOfMediaItems = pause
-                            }
+                            exoPlayer?.pauseAtEndOfMediaItems = pause
                         }
                         ACTION_SHUFFLE -> {
                             session.player.shuffleModeEnabled = !session.player.shuffleModeEnabled
@@ -151,10 +183,9 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        mediaSession?.run {
-            player.release()
-            release()
-        }
+        exoPlayer?.release()
+        exoPlayer = null
+        mediaSession?.release()
         mediaSession = null
         super.onDestroy()
     }
