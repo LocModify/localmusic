@@ -3,107 +3,108 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_bottom_sheet_rounded">
+    android:background="@drawable/bg_q_screen"
+    android:clipChildren="true">
 
-    <View
-        android:id="@+id/dragHandle"
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_marginTop="12dp"
-        android:background="#D1C4E9"
+    <!-- ===== TRANG TRÍ NỀN (đĩa than, nốt nhạc, ngôi sao) ===== -->
+    <ImageView
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_q_vinyl"
+        android:translationX="70dp"
+        android:translationY="-30dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="120dp"
+        android:alpha="0.55"
+        android:importantForAccessibility="no"
+        android:rotation="-12"
+        android:src="@drawable/ic_note_double"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#B79CF5" />
+
+    <ImageView
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="86dp"
+        android:layout_marginEnd="16dp"
+        android:alpha="0.7"
+        android:importantForAccessibility="no"
+        android:rotation="14"
+        android:src="@drawable/ic_note_double"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#C7B2F9" />
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="40dp"
+        android:alpha="0.9"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_sparkles"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#FFFFFF" />
+
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="170dp"
+        android:alpha="0.9"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_sparkles"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="#FFFFFF" />
+
+    <!-- ===== HÀNG TRÊN CÙNG: nút Back (hoặc thanh chọn nhiều đè lên đúng vị trí đó) ===== -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_q_circle"
+        android:padding="10dp"
+        android:src="@drawable/ic_q_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- KHU VỰC 1: HEADER BÌNH THƯỜNG -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutNormalHeader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/layoutSelectionHeader">
-
-        <!-- Đã sửa lại độ rộng để không bị đè lên các nút bên phải -->
-        <TextView
-            android:id="@+id/tvPlaylistTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="20dp"
-            android:text="Danh sách phát"
-            android:textColor="#1F1B2E"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tvPlaylistSubtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="0 bài hát • 0 phút"
-            android:textColor="#7A5BA8"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
-            app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
-
-        <!-- Nút Add (Đã căn lại theo chiều dọc với Title) -->
-        <ImageView
-            android:id="@+id/btnAddSong"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:padding="8dp"
-            android:src="@drawable/ic_add_purple"
-            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-            app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
-            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-            app:tint="#7C3AED" />
-
-        <!-- Nút More -->
-        <ImageView
-            android:id="@+id/btnMoreOptions"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:padding="8dp"
-            android:src="@drawable/ic_more_vert"
-            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-            app:tint="#7C3AED" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- THANH CHỌN NHIỀU (nằm TRÊN chữ "Danh sách phát", mặc định ẩn) -->
+    <!-- THANH CHỌN NHIỀU (nằm TRÊN cùng, trên chữ "Danh sách phát", mặc định ẩn) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutSelectionHeader"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="12dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/dragHandle">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Bên trái: Tất cả (ĐÃ SỬA LẠI CHO GỌN) -->
         <LinearLayout
             android:id="@+id/btnSelectAll"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginStart="20dp"
+            android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Hiệu ứng chạm được chuyển vào đây, bao phủ vừa vặn nút tròn -->
             <ImageView
                 android:id="@+id/ivSelectAllIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:src="@drawable/ic_check_circle_outline"
                 app:tint="#7A5BA8" />
 
@@ -122,14 +123,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Đã chọn 0"
-            android:textColor="#7A5BA8"
+            android:textColor="#6D28D9"
             android:textSize="14sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Nút X: thoát chế độ chọn -->
         <ImageView
             android:id="@+id/btnExitSelection"
             android:layout_width="40dp"
@@ -143,7 +144,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#1F1B2E" />
 
-        <!-- Bên phải (đối diện): thùng rác đỏ -->
         <ImageView
             android:id="@+id/btnDeleteSelected"
             android:layout_width="40dp"
@@ -158,68 +158,318 @@
             app:tint="#FF3B30" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Danh sách nhạc -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/topBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="btnBack,layoutSelectionHeader" />
+
+    <!-- ===== TIÊU ĐỀ ===== -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutNormalHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        app:layout_constraintTop_toBottomOf="@id/topBarrier">
+
+        <ImageView
+            android:id="@+id/ivHeaderIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/bg_q_circle"
+            android:padding="10dp"
+            android:src="@drawable/ic_eq_bars"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#7C3AED" />
+
+        <LinearLayout
+            android:id="@+id/titleBlock"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/pillPlaying"
+            app:layout_constraintStart_toEndOf="@id/ivHeaderIcon"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvPlaylistTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text="Danh sách phát"
+                android:textColor="#1F1B2E"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:autoSizeMaxTextSize="18sp"
+                app:autoSizeMinTextSize="13sp"
+                app:autoSizeTextType="uniform" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_note_double"
+                    app:tint="#7C3AED" />
+
+                <TextView
+                    android:id="@+id/tvPlaylistSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:maxLines="1"
+                    android:text="0 bài hát • 00:00"
+                    android:textColor="#7A5BA8"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillPlaying"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_pill_button_light"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_np_play"
+                app:tint="#7C3AED" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="Đang phát"
+                android:textColor="#7C3AED"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btnAddSong"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_q_circle"
+            android:padding="7dp"
+            android:src="@drawable/ic_add_purple"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#7C3AED" />
+
+        <ImageView
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_q_circle"
+            android:padding="7dp"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#7C3AED" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ===== THẺ BÀI ĐANG PHÁT (ghim trên cùng) ===== -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardNowPlaying"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_q_now_card"
+        android:elevation="2dp"
+        android:minHeight="66dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutNormalHeader">
+
+        <TextView
+            android:id="@+id/tvNowIndex"
+            android:layout_width="28dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="#B39DDB"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardNowCover"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="6dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvNowIndex"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivNowCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_cover_default" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/nowBars"
+            app:layout_constraintStart_toEndOf="@id/cardNowCover"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvNowTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#1F1B2E"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvNowArtist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#7C3AED"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <com.ztrongz.localmusic.PlayingBarsView
+            android:id="@+id/nowBars"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_q_circle"
+            android:padding="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ivNowChevron"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivNowChevron"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_q_chevron"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ===== DANH SÁCH ===== -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQueue"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="100dp"
+        android:paddingHorizontal="14dp"
+        android:paddingBottom="110dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutNormalHeader" />
+        app:layout_constraintTop_toBottomOf="@id/cardNowPlaying" />
 
-    <!-- Thanh công cụ nổi dưới cùng (Đã xóa nút Xóa) -->
+    <!-- ===== THANH DƯỚI: Ngẫu nhiên | Lặp lại ===== -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_floating_bottom_bar"
-        android:elevation="8dp"
+        android:layout_height="58dp"
+        android:layout_marginHorizontal="34dp"
+        android:layout_marginBottom="28dp"
+        android:background="@drawable/bg_q_bottom_bar"
+        android:elevation="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <ImageView
-            android:id="@+id/btnShuffleBottom"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_shuffle"
-            app:tint="#9E9E9E" />
+        <LinearLayout
+            android:id="@+id/btnShuffleHolder"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="Ngẫu nhiên"
-            android:textColor="#7A5BA8"
-            android:textSize="13sp" />
+            <ImageView
+                android:id="@+id/btnShuffleBottom"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_shuffle"
+                app:tint="#9E9E9E" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Ngẫu nhiên"
+                android:textColor="#4C1D95"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <View
             android:layout_width="1dp"
-            android:layout_height="20dp"
-            android:layout_marginHorizontal="16dp"
-            android:background="#E6D6FF" />
+            android:layout_height="26dp"
+            android:background="#D9C8FF" />
 
-        <ImageView
-            android:id="@+id/btnRepeatBottom"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_repeat"
-            app:tint="#9E9E9E" />
+        <LinearLayout
+            android:id="@+id/btnRepeatHolder"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="Lặp lại"
-            android:textColor="#7A5BA8"
-            android:textSize="13sp" />
+            <ImageView
+                android:id="@+id/btnRepeatBottom"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_repeat"
+                app:tint="#9E9E9E" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Lặp lại"
+                android:textColor="#4C1D95"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
