@@ -1,26 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shuffle BẬT (thông báo): biểu tượng đậm, rõ nét + chấm tròn nhỏ phía dưới -->
+<!-- Shuffle (thông báo) BẬT: sáng rõ. Không dấu chấm, không gạch chéo -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="#FFFFFFFF">
-    <group
-        android:scaleX="0.78"
-        android:scaleY="0.78"
-        android:translateX="2.64"
-        android:translateY="-0.4">
-        <path
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="2.8"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round"
-            android:pathData="M2,18 L3.4,18 C4.7,18 5.9,17.4 6.7,16.3 L12.8,7.7 C13.5,6.6 14.8,6 16.1,6 L22,6 M18,2 L22,6 L18,10 M2,6 L3.9,6 C5.4,6 6.8,6.9 7.5,8.2 M22,18 L16.1,18 C14.8,18 13.5,17.3 12.8,16.2 L12.3,15.4 M18,14 L22,18 L18,22" />
-    </group>
-    <!-- Chấm báo hiệu đang bật -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,19.2 m-1.8,0 a1.8,1.8 0 1,0 3.6,0 a1.8,1.8 0 1,0 -3.6,0" />
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeAlpha="1.0"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M2,18 L3.4,18 C4.7,18 5.9,17.4 6.7,16.3 L12.8,7.7 C13.5,6.6 14.8,6 16.1,6 L22,6 M18,2 L22,6 L18,10 M2,6 L3.9,6 C5.4,6 6.8,6.9 7.5,8.2 M22,18 L16.1,18 C14.8,18 13.5,17.3 12.8,16.2 L12.3,15.4 M18,14 L22,18 L18,22" />
 </vector>
