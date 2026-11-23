@@ -90,13 +90,11 @@ class QueueAdapter(
 
         // ----- Màu sắc / nền: bài đang phát được tô tím -----
         if (isCurrent) {
-            holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
             holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
             holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
             holder.ivPlayingIcon.visibility = View.VISIBLE
             holder.tvDuration.visibility = View.GONE
         } else {
-            holder.itemContainer.setBackgroundColor(Color.TRANSPARENT)
             holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
             holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
             holder.ivPlayingIcon.visibility = View.GONE
@@ -179,6 +177,12 @@ class QueueAdapter(
         holder.btnMore.alpha = 1f
         holder.ivSelectCheckbox.scaleX = 1f
         holder.ivSelectCheckbox.scaleY = 1f
+
+        // Nền thẻ: kính mờ; đang được chọn thì viền tím
+        val selected = isSelectionMode && selectedUris.contains(uriOf(item))
+        holder.itemContainer.setBackgroundResource(
+            if (selected) R.drawable.bg_q_item_selected else R.drawable.bg_q_glass_card
+        )
 
         if (isSelectionMode) {
             holder.tvIndex.visibility = View.INVISIBLE
