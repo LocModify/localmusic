@@ -19,10 +19,20 @@
         android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <!-- ĐÃ THAY THẾ HÌNH TAI NGHE BẰNG LOGO LUNAR MUSIC TẠI ĐÂY -->
+        <androidx.cardview.widget.CardView
             android:layout_width="52dp"
             android:layout_height="52dp"
-            android:src="@drawable/ic_logo_vector" />
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo_lunar_music" />
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:layout_width="0dp"
@@ -95,7 +105,7 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- CATEGORIES: 4 nút chia đều chiều rộng, không cuộn ngang nên không bị cắt góc -->
+    <!-- CATEGORIES -->
     <LinearLayout
         android:id="@+id/categoriesLayout"
         android:layout_width="match_parent"
@@ -195,7 +205,7 @@
         app:layout_constraintBottom_toTopOf="@+id/miniPlayerLayout"
         app:layout_constraintTop_toBottomOf="@id/categoriesLayout" />
 
-    <!-- MINI PLAYER (Đã đổi ID thành miniPlayerLayout) -->
+    <!-- MINI PLAYER -->
     <LinearLayout
         android:id="@+id/miniPlayerLayout"
         android:layout_width="match_parent"
