@@ -103,8 +103,8 @@ class QueueAdapter(
         // ----- Màu sắc / nền: bài đang phát được tô tím -----
         if (isCurrent) {
             holder.itemContainer.setBackgroundResource(R.drawable.bg_current_track_highlight)
-            holder.tvTitle.setTextColor(Color.parseColor("#7C3AED"))
-            holder.tvArtist.setTextColor(Color.parseColor("#7C3AED"))
+            holder.tvTitle.setTextColor(Color.parseColor("#1F1B2E"))
+            holder.tvArtist.setTextColor(Color.parseColor("#7A5BA8"))
             holder.ivPlayingIcon.visibility = View.VISIBLE
             holder.ivPlayingIcon.setPlaying(isPlayerPlaying)
             holder.tvDuration.visibility = View.GONE
@@ -219,7 +219,8 @@ class QueueAdapter(
             }
         } else {
             holder.ivSelectCheckbox.visibility = View.GONE
-            holder.btnMore.visibility = View.VISIBLE
+            // Bài đang phát: ẩn nút ba chấm, chỗ đó dành cho sóng nhạc
+            holder.btnMore.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
             holder.tvIndex.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
         }
     }
