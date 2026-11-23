@@ -3,107 +3,65 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_bottom_sheet_rounded">
+    android:background="#F1EAFF">
 
-    <View
-        android:id="@+id/dragHandle"
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_marginTop="12dp"
-        android:background="#D1C4E9"
+    <!-- Ảnh nền (sóng tím, ngôi sao) - code tự căn sát đáy -->
+    <ImageView
+        android:id="@+id/bgImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:scaleType="matrix"
+        android:src="@drawable/bg_queue_sheet"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- KHU VỰC 1: HEADER BÌNH THƯỜNG -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutNormalHeader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/layoutSelectionHeader">
+    <!-- Lớp kính trắng mờ phía trên -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:background="@drawable/qs_top_glass"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Đã sửa lại độ rộng để không bị đè lên các nút bên phải -->
-        <TextView
-            android:id="@+id/tvPlaylistTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="20dp"
-            android:text="Danh sách phát"
-            android:textColor="#1F1B2E"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tvPlaylistSubtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="0 bài hát • 0 phút"
-            android:textColor="#7A5BA8"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
-            app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
-
-        <!-- Nút Add (Đã căn lại theo chiều dọc với Title) -->
-        <ImageView
-            android:id="@+id/btnAddSong"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:padding="8dp"
-            android:src="@drawable/ic_q_add_music"
-            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-            app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
-            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-            app:tint="#7C3AED" />
-
-        <!-- Nút More -->
-        <ImageView
-            android:id="@+id/btnMoreOptions"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="20dp"
-            android:background="@drawable/bg_pill_button_light"
-            android:padding="8dp"
-            android:src="@drawable/ic_more_vert"
-            app:layout_constraintBottom_toBottomOf="@id/tvPlaylistTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvPlaylistTitle"
-            app:tint="#7C3AED" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <View
+        android:id="@+id/dragHandle"
+        android:layout_width="44dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/qs_handle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- THANH CHỌN NHIỀU (nằm TRÊN chữ "Danh sách phát", mặc định ẩn) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutSelectionHeader"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="8dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/dragHandle">
 
-        <!-- Bên trái: Tất cả (ĐÃ SỬA LẠI CHO GỌN) -->
         <LinearLayout
             android:id="@+id/btnSelectAll"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Hiệu ứng chạm được chuyển vào đây, bao phủ vừa vặn nút tròn -->
             <ImageView
                 android:id="@+id/ivSelectAllIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:src="@drawable/ic_check_circle_outline"
                 app:tint="#7A5BA8" />
 
@@ -122,14 +80,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Đã chọn 0"
-            android:textColor="#7A5BA8"
+            android:textColor="#6D28D9"
             android:textSize="14sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Nút X: thoát chế độ chọn -->
         <ImageView
             android:id="@+id/btnExitSelection"
             android:layout_width="40dp"
@@ -143,12 +101,11 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#1F1B2E" />
 
-        <!-- Bên phải (đối diện): thùng rác đỏ -->
         <ImageView
             android:id="@+id/btnDeleteSelected"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
             android:src="@drawable/ic_delete"
@@ -158,45 +115,109 @@
             app:tint="#FF3B30" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Danh sách nhạc -->
+    <!-- TIÊU ĐỀ -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutNormalHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutSelectionHeader">
+
+        <TextView
+            android:id="@+id/tvPlaylistTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            android:text="Danh sách phát"
+            android:textColor="#1F1B2E"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPlaylistSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            android:text="0 bài hát • 00:00"
+            android:textColor="#7A5BA8"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/btnAddSong"
+            app:layout_constraintStart_toStartOf="@id/tvPlaylistTitle"
+            app:layout_constraintTop_toBottomOf="@id/tvPlaylistTitle" />
+
+        <ImageView
+            android:id="@+id/btnAddSong"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/qs_circle_btn"
+            android:elevation="2dp"
+            android:padding="7dp"
+            android:src="@drawable/ic_q_add_music"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnMoreOptions"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#7C3AED" />
+
+        <ImageView
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/qs_circle_btn"
+            android:elevation="2dp"
+            android:padding="7dp"
+            android:src="@drawable/ic_more_horiz"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#7C3AED" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- DANH SÁCH -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQueue"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="100dp"
+        android:paddingHorizontal="14dp"
+        android:paddingBottom="96dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutNormalHeader" />
 
-    <!-- Thanh dưới: Phát ngẫu nhiên | Lặp lại | Xóa hàng đợi -->
+    <!-- THANH DƯỚI: Ngẫu nhiên | Lặp lại (hai nửa bằng nhau) -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:layout_marginHorizontal="28dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_floating_bottom_bar"
-        android:elevation="10dp"
+        android:layout_height="52dp"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginBottom="26dp"
+        android:background="@drawable/qs_bottom_bar"
+        android:elevation="6dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="8dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:id="@+id/btnShuffleHolder"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="6dp">
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/btnShuffleBottom"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_shuffle"
                 app:tint="#9E9E9E" />
 
@@ -204,35 +225,31 @@
                 android:id="@+id/tvShuffleLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
-                android:text="Phát ngẫu nhiên"
+                android:text="Ngẫu nhiên"
                 android:textColor="#7A5BA8"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                app:autoSizeMaxTextSize="13sp"
-                app:autoSizeMinTextSize="9sp"
-                app:autoSizeTextType="uniform" />
+                android:textSize="15sp" />
         </LinearLayout>
 
         <View
             android:layout_width="1dp"
-            android:layout_height="22dp"
-            android:background="#E6D6FF" />
+            android:layout_height="26dp"
+            android:background="#D9CBF5" />
 
         <LinearLayout
             android:id="@+id/btnRepeatHolder"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingHorizontal="6dp">
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/btnRepeatBottom"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_repeat"
                 app:tint="#9E9E9E" />
 
@@ -240,12 +257,12 @@
                 android:id="@+id/tvRepeatLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="10dp"
+                android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:text="Lặp lại"
                 android:textColor="#7A5BA8"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textSize="15sp" />
         </LinearLayout>
     </LinearLayout>
 
