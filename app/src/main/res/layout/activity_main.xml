@@ -19,7 +19,7 @@
         android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- LOGO + CHỮ "Lunar Music" (có hiệu ứng phát sáng, lấp lánh, bồng bềnh) -->
+        <!-- LOGO + CHỮ "Lunar Music": trăng đứng yên, vòng quay quanh trăng, nốt nhạc + sao chuyển động -->
         <com.ztrongz.localmusic.LunarLogoLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -29,21 +29,27 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Khung logo 84x56dp: quầng sáng + trăng + 3 ngôi sao -->
+            <!-- Khung logo 96x60dp, các lớp xếp từ dưới lên: vòng sau -> quầng sáng -> trăng -> nốt -> vòng trước -> sao -->
             <FrameLayout
-                android:layout_width="84dp"
-                android:layout_height="56dp"
+                android:layout_width="96dp"
+                android:layout_height="60dp"
                 android:clipChildren="false"
                 android:clipToPadding="false">
+
+                <com.ztrongz.localmusic.OrbitRingView
+                    android:id="@+id/ringBack"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="back" />
 
                 <ImageView
                     android:id="@+id/ivLunarGlow"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:alpha="0.1"
+                    android:alpha="0.12"
                     android:importantForAccessibility="no"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/logo_lunar_header"
+                    android:src="@drawable/logo_moon"
                     app:tint="#8B5CF6" />
 
                 <ImageView
@@ -52,24 +58,38 @@
                     android:layout_height="match_parent"
                     android:importantForAccessibility="no"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/logo_lunar_header" />
+                    android:src="@drawable/logo_moon" />
+
+                <ImageView
+                    android:id="@+id/ivLunarNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/logo_note" />
+
+                <com.ztrongz.localmusic.OrbitRingView
+                    android:id="@+id/ringFront"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:tag="front" />
 
                 <ImageView
                     android:id="@+id/ivSparkle1"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginStart="51dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_marginStart="82dp"
+                    android:layout_marginTop="2dp"
                     android:alpha="0"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_logo_sparkle" />
 
                 <ImageView
                     android:id="@+id/ivSparkle2"
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
-                    android:layout_marginStart="70dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginTop="24dp"
                     android:alpha="0"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_logo_sparkle" />
@@ -78,67 +98,40 @@
                     android:id="@+id/ivSparkle3"
                     android:layout_width="9dp"
                     android:layout_height="9dp"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginStart="73dp"
+                    android:layout_marginTop="50dp"
                     android:alpha="0"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_logo_sparkle" />
             </FrameLayout>
 
-            <!-- Chữ: "Lunar" to đậm, dưới là "— Music —" nhỏ giãn chữ như trong ảnh -->
-            <LinearLayout
+            <!-- Chữ Lunar Music (ảnh chữ theo đúng logo) + quầng sáng phía sau -->
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="2dp"
                 android:clipChildren="false"
-                android:clipToPadding="false"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
+                android:clipToPadding="false">
 
-                <TextView
-                    android:id="@+id/tvLunar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
-                    android:includeFontPadding="false"
-                    android:letterSpacing="0.02"
-                    android:shadowColor="#CC8B5CF6"
-                    android:shadowRadius="8"
-                    android:text="Lunar"
-                    android:textColor="#6D28D9"
-                    android:textSize="32sp"
-                    android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/ivWordGlow"
+                    android:layout_width="121dp"
+                    android:layout_height="54dp"
+                    android:alpha="0.3"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/logo_word_glow" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <View
-                        android:layout_width="12dp"
-                        android:layout_height="1dp"
-                        android:background="#A78BFA" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="5dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:includeFontPadding="false"
-                        android:letterSpacing="0.3"
-                        android:text="Music"
-                        android:textColor="#8B5CF6"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="12dp"
-                        android:layout_height="1dp"
-                        android:background="#A78BFA" />
-                </LinearLayout>
-            </LinearLayout>
+                <ImageView
+                    android:id="@+id/ivWord"
+                    android:layout_width="121dp"
+                    android:layout_height="54dp"
+                    android:contentDescription="Lunar Music"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/logo_word" />
+            </FrameLayout>
         </com.ztrongz.localmusic.LunarLogoLayout>
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="52dp"
