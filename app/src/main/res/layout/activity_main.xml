@@ -19,12 +19,13 @@
         android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- LOGO LUNAR MUSIC (Bằng Vector Code, hòa hợp với nền) -->
+        <!-- LOGO LUNAR MUSIC (ảnh trăng lưỡi liềm + nốt nhạc, nền trong suốt, hòa vào nền) -->
         <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="84dp"
+            android:layout_height="56dp"
+            android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_lunar_vector" />
+            android:src="@drawable/logo_lunar_header" />
 
         <TextView
             android:layout_width="0dp"
