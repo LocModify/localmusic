@@ -37,6 +37,11 @@
             android:exported="false"
             android:theme="@style/Theme.LocalMusic.Transparent" />
 
+        <!-- Màn hình chọn nhiều bài để thêm vào danh sách phát -->
+        <activity
+            android:name=".PickSongsActivity"
+            android:exported="false" />
+
         <service
             android:name=".PlaybackService"
             android:exported="true"
