@@ -6,4 +6,5 @@
     <color name="purple_light">#F5EAFF</color>
     <color name="text_black">#1F1B2E</color> <!-- Chữ chính -->
     <color name="text_gray">#8A87A0</color> <!-- Chữ phụ -->
+    <color name="ic_launcher_background">#170B5E</color> <!-- Nền icon app (tím đậm trùng màu viền ảnh logo) -->
 </resources>
