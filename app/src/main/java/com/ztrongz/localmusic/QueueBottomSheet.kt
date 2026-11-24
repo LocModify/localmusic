@@ -16,9 +16,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.graphics.Matrix
-import android.graphics.Outline
 import android.view.View
-import android.view.ViewOutlineProvider
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -44,8 +42,8 @@ import com.google.common.util.concurrent.MoreExecutors
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
-        // Tỉ lệ chiều cao bảng so với màn hình (1.0 = toàn màn hình, 0.72 = giống ảnh demo)
-        private const val SHEET_HEIGHT_RATIO = 1.0f
+        // Tỉ lệ chiều cao bảng so với màn hình (1.0 = toàn màn hình, 0.85 = giống ảnh demo)
+        private const val SHEET_HEIGHT_RATIO = 0.88f 
     }
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
@@ -100,8 +98,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         rootView = view
 
-        // Bo tròn góc trên: KHÔNG cắt cả bảng bằng clipToOutline nữa (rất nặng khi vuốt),
-        // mà chỉ bo riêng ảnh nền (ShapeableImageView) và lớp kính mờ phía trên.
         // Toàn màn hình: đẩy thanh kéo (và cả nội dung bên dưới) xuống dưới thanh trạng thái
         val handle = view.findViewById<View>(R.id.dragHandle)
         (handle.layoutParams as ViewGroup.MarginLayoutParams).topMargin += getStatusBarHeight()
@@ -163,7 +159,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onStart()
         val d = dialog as? BottomSheetDialog ?: return
 
-        // Bảng cao bằng SHEET_HEIGHT_RATIO chiều cao màn hình (1.0 = phủ toàn màn hình)
+        // Bảng cao bằng SHEET_HEIGHT_RATIO chiều cao màn hình
         val screenH = resources.displayMetrics.heightPixels
         val sheetH = (screenH * SHEET_HEIGHT_RATIO).toInt()
         val sheet = d.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
@@ -218,7 +214,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         popup.showAsDropDown(anchor, offsetX, 0)
     }
 
-    // ===== Bảng dùng chung: thẻ trắng bo góc giống menu ba chấm =====
+    // ===== Bảng dùng chung: thẻ trắng bo góc, thu nhỏ vừa vặn giống BottomSheet =====
     private class PanelRow(val text: String, val color: Int = Color.parseColor("#1F1B2E"), val onClick: () -> Unit)
 
     private fun showPanel(
@@ -232,9 +228,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         val v = layoutInflater.inflate(R.layout.dialog_queue_panel, null)
         dialog.setContentView(v)
+        
+        // SỬA ĐỔI: Cấu hình Dialog hiển thị dưới đáy màn hình (BottomSheet style)
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            setGravity(android.view.Gravity.BOTTOM) // Đẩy xuống dưới đáy
+            // Hiệu ứng trượt lên mượt mà của Material 3
+            attributes.windowAnimations = com.google.android.material.R.style.Animation_Material3_BottomSheetDialog
         }
 
         v.findViewById<TextView>(R.id.tvPanelTitle).text = title
