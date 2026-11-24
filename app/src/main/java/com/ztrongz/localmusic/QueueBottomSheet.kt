@@ -1,6 +1,7 @@
 package com.ztrongz.localmusic
 
 import android.content.ComponentName
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -16,6 +17,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
@@ -61,6 +63,13 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var bottomBar: View
 
     private var playerListener: Player.Listener? = null
+
+    // Mở màn hình "Thêm bài hát"; khi quay lại thì làm mới danh sách (bài mới đã được thêm vào Player)
+    private val pickLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (::adapter.isInitialized) updateUI(scrollToCurrent = false)
+    }
     private var isDragging = false
     private var lastSelectionMode = false
 
@@ -113,6 +122,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         btnSelectAll = view.findViewById(R.id.btnSelectAll)
         bottomBar = view.findViewById(R.id.bottomBar)
 
+        // Nút +♪: mở màn hình chọn nhiều bài từ thư viện để thêm vào danh sách phát
+        val btnAddSong = view.findViewById<View>(R.id.btnAddSong)
+        addPressEffect(btnAddSong)
+        btnAddSong.setOnClickListener { openPicker() }
+
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
         controllerFuture.addListener({
@@ -155,6 +169,21 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                 true
             } else false
         }
+    }
+
+    // Gửi danh sách uri đang có trong hàng đợi sang để màn hình chọn đánh dấu "Đã có"
+    private fun openPicker() {
+        val c = controller
+        val queueUris = ArrayList<String>()
+        if (c != null) {
+            for (i in 0 until c.mediaItemCount) {
+                c.getMediaItemAt(i).localConfiguration?.uri?.toString()?.let { queueUris.add(it) }
+            }
+        }
+        val intent = Intent(requireContext(), PickSongsActivity::class.java)
+            .putStringArrayListExtra(PickSongsActivity.EXTRA_QUEUE_URIS, queueUris)
+        pickLauncher.launch(intent)
+        requireActivity().overridePendingTransition(R.anim.slide_up, 0)
     }
 
     private fun getStatusBarHeight(): Int {
