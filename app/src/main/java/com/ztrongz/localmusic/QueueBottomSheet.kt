@@ -9,14 +9,14 @@ import android.graphics.drawable.ColorDrawable
 import java.text.Collator
 import java.util.Locale
 import android.widget.PopupWindow
-import android.app.Dialog
-import android.view.Window
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.graphics.Matrix
+import android.graphics.Outline
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -42,8 +42,8 @@ import com.google.common.util.concurrent.MoreExecutors
 class QueueBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
-        // Tỉ lệ chiều cao bảng so với màn hình (1.0 = toàn màn hình, 0.85 = giống ảnh demo)
-        private const val SHEET_HEIGHT_RATIO = 0.88f 
+        // Tỉ lệ chiều cao bảng so với màn hình (1.0 = toàn màn hình, 0.72 = giống ảnh demo)
+        private const val SHEET_HEIGHT_RATIO = 1.0f
     }
 
     private lateinit var controllerFuture: ListenableFuture<MediaController>
@@ -98,6 +98,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         rootView = view
 
+        // Bo tròn góc trên: KHÔNG cắt cả bảng bằng clipToOutline nữa (rất nặng khi vuốt),
+        // mà chỉ bo riêng ảnh nền (ShapeableImageView) và lớp kính mờ phía trên.
         // Toàn màn hình: đẩy thanh kéo (và cả nội dung bên dưới) xuống dưới thanh trạng thái
         val handle = view.findViewById<View>(R.id.dragHandle)
         (handle.layoutParams as ViewGroup.MarginLayoutParams).topMargin += getStatusBarHeight()
@@ -159,7 +161,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onStart()
         val d = dialog as? BottomSheetDialog ?: return
 
-        // Bảng cao bằng SHEET_HEIGHT_RATIO chiều cao màn hình
+        // Bảng cao bằng SHEET_HEIGHT_RATIO chiều cao màn hình (1.0 = phủ toàn màn hình)
         val screenH = resources.displayMetrics.heightPixels
         val sheetH = (screenH * SHEET_HEIGHT_RATIO).toInt()
         val sheet = d.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
@@ -214,7 +216,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         popup.showAsDropDown(anchor, offsetX, 0)
     }
 
-    // ===== Bảng dùng chung: thẻ trắng bo góc, thu nhỏ vừa vặn giống BottomSheet =====
+    // ===== Bảng dùng chung: thẻ trắng bo góc, nhỏ gọn, hiện ngay cạnh nút "..." =====
     private class PanelRow(val text: String, val color: Int = Color.parseColor("#1F1B2E"), val onClick: () -> Unit)
 
     private fun showPanel(
@@ -224,19 +226,15 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         okText: String? = null,
         onOk: (() -> Unit)? = null
     ) {
-        val dialog = Dialog(requireContext())
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         val v = layoutInflater.inflate(R.layout.dialog_queue_panel, null)
-        dialog.setContentView(v)
-        
-        // SỬA ĐỔI: Cấu hình Dialog hiển thị dưới đáy màn hình (BottomSheet style)
-        dialog.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setGravity(android.view.Gravity.BOTTOM) // Đẩy xuống dưới đáy
-            // Hiệu ứng trượt lên mượt mà của Material 3
-            attributes.windowAnimations = com.google.android.material.R.style.Animation_Material3_BottomSheetDialog
-        }
+        val popup = PopupWindow(
+            v,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popup.elevation = 15f
 
         v.findViewById<TextView>(R.id.tvPanelTitle).text = title
         if (message != null) {
@@ -248,19 +246,23 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val tv = layoutInflater.inflate(R.layout.item_queue_menu_row, container, false) as TextView
             tv.text = row.text
             tv.setTextColor(row.color)
-            tv.setOnClickListener { dialog.dismiss(); row.onClick() }
+            tv.setOnClickListener { popup.dismiss(); row.onClick() }
             container.addView(tv)
         }
 
         if (okText != null && onOk != null) {
             v.findViewById<View>(R.id.panelButtons).visibility = View.VISIBLE
-            v.findViewById<View>(R.id.btnPanelCancel).setOnClickListener { dialog.dismiss() }
+            v.findViewById<View>(R.id.btnPanelCancel).setOnClickListener { popup.dismiss() }
             v.findViewById<TextView>(R.id.btnPanelOk).apply {
                 text = okText
-                setOnClickListener { dialog.dismiss(); onOk() }
+                setOnClickListener { popup.dismiss(); onOk() }
             }
         }
-        dialog.show()
+
+        // Hiện ngay dưới nút "...", căn mép phải với nút (giống menu ba chấm)
+        val anchor = rootView.findViewById<View>(R.id.btnMoreOptions)
+        v.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        popup.showAsDropDown(anchor, anchor.width - v.measuredWidth, 0)
     }
 
     // Bảng chọn kiểu sắp xếp
