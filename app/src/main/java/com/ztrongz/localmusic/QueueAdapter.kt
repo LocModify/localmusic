@@ -290,6 +290,14 @@ class QueueAdapter(
         onSelectionChanged()
     }
 
+    /** Vào chế độ chọn nhiều mà chưa tick bài nào (dùng cho menu "Xóa nhiều") */
+    fun enterSelectionMode() {
+        if (isSelectionMode) return
+        isSelectionMode = true
+        notifyItemRangeChanged(0, mutableItems.size, PAYLOAD_MODE)
+        onSelectionChanged()
+    }
+
     /** Giữ lâu: vào chế độ chọn và tick bài đó */
     private fun startSelection(uri: String) {
         isSelectionMode = true
