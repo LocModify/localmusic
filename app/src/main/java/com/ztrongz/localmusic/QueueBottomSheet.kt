@@ -5,6 +5,11 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import java.text.Collator
+import java.util.Locale
+import android.widget.PopupWindow
+import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -136,6 +141,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         addPressEffect(btnAddSong)
         btnAddSong.setOnClickListener { openPicker() }
 
+        // Nút "...": menu tùy chọn cho cả hàng đợi
+        val btnMore = view.findViewById<View>(R.id.btnMoreOptions)
+        addPressEffect(btnMore)
+        btnMore.setOnClickListener { showQueueOptions(it) }
+
         val token = SessionToken(requireContext(), ComponentName(requireContext(), PlaybackService::class.java))
         controllerFuture = MediaController.Builder(requireContext(), token).buildAsync()
         controllerFuture.addListener({
@@ -178,6 +188,127 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                 true
             } else false
         }
+    }
+
+    // ===== Menu tùy chọn hàng đợi =====
+    private fun showQueueOptions(anchor: View) {
+        val popupView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_queue_options, null)
+        val popup = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popup.elevation = 15f
+
+        popupView.findViewById<View>(R.id.btnQoSort).setOnClickListener {
+            popup.dismiss()
+            showSortDialog()
+        }
+        popupView.findViewById<View>(R.id.btnQoDuplicates).setOnClickListener {
+            popup.dismiss()
+            removeDuplicates()
+        }
+        popupView.findViewById<View>(R.id.btnQoClear).setOnClickListener {
+            popup.dismiss()
+            confirmClearQueue()
+        }
+
+        // Căn mép phải menu với mép phải nút, hiện ngay bên dưới nút
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val offsetX = anchor.width - popupView.measuredWidth
+        popup.showAsDropDown(anchor, offsetX, 0)
+    }
+
+    // Hộp chọn kiểu sắp xếp
+    private fun showSortDialog() {
+        val options = arrayOf("Tên bài hát (A → Z)", "Ca sĩ (A → Z)", "Thời lượng (ngắn → dài)", "Thời lượng (dài → ngắn)")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Sắp xếp danh sách")
+            .setItems(options) { _, which -> sortQueue(which) }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    // Sắp xếp bằng cách di chuyển từng bài (moveMediaItem) => bài đang phát KHÔNG bị ngắt
+    private fun sortQueue(mode: Int) {
+        val c = controller ?: return
+        if (c.mediaItemCount < 2) return
+        val collator = Collator.getInstance(Locale("vi"))
+        val mirror = (0 until c.mediaItemCount).map { c.getMediaItemAt(it) }.toMutableList()
+
+        val sorted = when (mode) {
+            0 -> mirror.sortedWith { a, b ->
+                collator.compare(a.mediaMetadata.title?.toString() ?: "", b.mediaMetadata.title?.toString() ?: "")
+            }
+            1 -> mirror.sortedWith { a, b ->
+                collator.compare(a.mediaMetadata.artist?.toString() ?: "", b.mediaMetadata.artist?.toString() ?: "")
+            }
+            2 -> mirror.sortedBy { it.mediaMetadata.durationMs ?: 0L }
+            else -> mirror.sortedByDescending { it.mediaMetadata.durationMs ?: 0L }
+        }
+
+        for (i in sorted.indices) {
+            val j = mirror.indexOfFirst { it === sorted[i] }
+            if (j != i) {
+                c.moveMediaItem(j, i)
+                mirror.add(i, mirror.removeAt(j))
+            }
+        }
+        updateUI(scrollToCurrent = true)
+        Toast.makeText(requireContext(), "Đã sắp xếp danh sách", Toast.LENGTH_SHORT).show()
+    }
+
+    // Xóa bài trùng (cùng đường dẫn file): giữ 1 bản, ưu tiên giữ bản đang phát
+    private fun removeDuplicates() {
+        val c = controller ?: return
+        val count = c.mediaItemCount
+        if (count < 2) return
+        val current = c.currentMediaItemIndex
+        val keep = HashMap<String, Int>() // uri -> vị trí bản được giữ
+        for (i in 0 until count) {
+            val uri = c.getMediaItemAt(i).localConfiguration?.uri.toString()
+            if (!keep.containsKey(uri)) keep[uri] = i
+        }
+        // Nếu bản đang phát là bản trùng thì giữ chính nó
+        val currentUri = c.getMediaItemAt(current).localConfiguration?.uri.toString()
+        keep[currentUri] = current
+
+        var removed = 0
+        for (i in count - 1 downTo 0) {
+            val uri = c.getMediaItemAt(i).localConfiguration?.uri.toString()
+            if (keep[uri] != i) {
+                c.removeMediaItem(i)
+                removed++
+            }
+        }
+        updateUI(scrollToCurrent = false)
+        Toast.makeText(
+            requireContext(),
+            if (removed > 0) "Đã xóa $removed bài trùng lặp" else "Không có bài trùng lặp",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    // Xóa hàng đợi: xóa hết, chỉ giữ lại bài đang phát (nhạc không bị ngắt)
+    private fun confirmClearQueue() {
+        val c = controller ?: return
+        if (c.mediaItemCount <= 1) {
+            Toast.makeText(requireContext(), "Hàng đợi không còn bài nào để xóa", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Xóa hàng đợi?")
+            .setMessage("Tất cả bài hát sẽ bị xóa khỏi danh sách phát, trừ bài đang phát.")
+            .setPositiveButton("Xóa") { _, _ ->
+                val cur = c.currentMediaItemIndex
+                if (cur + 1 < c.mediaItemCount) c.removeMediaItems(cur + 1, c.mediaItemCount)
+                if (cur > 0) c.removeMediaItems(0, cur)
+                updateUI(scrollToCurrent = false)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 
     // Gửi danh sách uri đang có trong hàng đợi sang để màn hình chọn đánh dấu "Đã có"
