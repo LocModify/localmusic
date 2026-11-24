@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bảng dùng chung (sắp xếp / xóa / xác nhận): thẻ trắng bo góc 20dp giống menu ba chấm -->
+<!-- Bảng dùng chung (sắp xếp / xóa / xác nhận) -->
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="32dp"
+    android:layout_marginHorizontal="24dp"
+    android:layout_marginBottom="24dp" 
     app:cardBackgroundColor="#FFFFFF"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="12dp">
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/tvPanelTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-medium"
-            android:paddingStart="12dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="6dp"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp"
             android:textColor="#1F1B2E"
             android:textSize="18sp" />
 
@@ -31,8 +34,8 @@
             android:id="@+id/tvPanelMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:paddingBottom="8dp"
             android:textColor="#6B6585"
             android:textSize="14sp"
@@ -52,17 +55,17 @@
             android:gravity="end"
             android:orientation="horizontal"
             android:paddingTop="8dp"
+            android:paddingHorizontal="8dp"
             android:visibility="gone">
 
             <TextView
                 android:id="@+id/btnPanelCancel"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:background="@drawable/bg_ripple_round"
+                android:background="?attr/selectableItemBackground"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
+                android:paddingHorizontal="16dp"
                 android:text="Hủy"
                 android:textColor="#7C3AED"
                 android:textSize="15sp" />
@@ -71,12 +74,11 @@
                 android:id="@+id/btnPanelOk"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/bg_ripple_round"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackground"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
+                android:paddingHorizontal="16dp"
                 android:textColor="#FF0000"
                 android:textSize="15sp" />
         </LinearLayout>
