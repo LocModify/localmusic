@@ -1,6 +1,7 @@
 package com.ztrongz.localmusic
 
 import android.content.ComponentName
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -63,6 +64,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private lateinit var bottomBar: View
 
     private var playerListener: Player.Listener? = null
+
+    // Activity đặt vào để biết khi bảng đóng (dùng để bật lại hiệu ứng ở màn hình Now Playing)
+    var onDismissed: (() -> Unit)? = null
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDismissed?.invoke()
+    }
 
     // Mở màn hình "Thêm bài hát"; khi quay lại thì làm mới danh sách (bài mới đã được thêm vào Player)
     private val pickLauncher = registerForActivityResult(
