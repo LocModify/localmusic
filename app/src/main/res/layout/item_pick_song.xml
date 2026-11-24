@@ -59,9 +59,13 @@
                 android:id="@+id/tvPickTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:fadingEdgeLength="14dp"
                 android:fontFamily="sans-serif-medium"
-                android:maxLines="1"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:requiresFadingEdge="horizontal"
+                android:singleLine="true"
                 android:textColor="#1F1B2E"
                 android:textSize="15sp" />
 
@@ -70,8 +74,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
-                android:ellipsize="end"
-                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:fadingEdgeLength="14dp"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:requiresFadingEdge="horizontal"
+                android:singleLine="true"
                 android:textColor="#7A5BA8"
                 android:textSize="12sp" />
         </LinearLayout>
