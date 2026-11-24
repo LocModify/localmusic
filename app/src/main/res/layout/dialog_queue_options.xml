@@ -39,34 +39,9 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
-        <!-- Xóa các bài trùng lặp -->
+        <!-- Xóa (mở bảng: xóa bài này / xóa nhiều / xóa tất cả) -->
         <LinearLayout
-            android:id="@+id/btnQoDuplicates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_q_duplicate" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:fontFamily="sans-serif-medium"
-                android:text="Xóa bài trùng lặp"
-                android:textColor="#1F1B2E"
-                android:textSize="15sp" />
-        </LinearLayout>
-
-        <!-- Xóa hàng đợi -->
-        <LinearLayout
-            android:id="@+id/btnQoClear"
+            android:id="@+id/btnQoDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackground"
@@ -84,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-medium"
-                android:text="Xóa hàng đợi"
+                android:text="Xóa"
                 android:textColor="#FF0000"
                 android:textSize="15sp" />
         </LinearLayout>
