@@ -2,8 +2,12 @@ package com.ztrongz.localmusic
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -15,6 +19,7 @@ import android.view.animation.OvershootInterpolator
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import java.util.Collections
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -35,10 +40,18 @@ class QueueAdapter(
         const val PAYLOAD_TOGGLE = "toggle"   // tick/bỏ tick (có hiệu ứng nảy nhẹ)
         const val PAYLOAD_REBIND = "rebind"   // vẽ lại đầy đủ nhưng không nháy
         const val PAYLOAD_PLAYSTATE = "playstate" // chỉ bật/tắt sóng nhạc
+
+        // Giải mã ảnh bìa ở luồng nền (1 luồng dùng chung) để cuộn / mở bảng không bị giật
+        private val thumbExecutor = Executors.newSingleThreadExecutor()
+        private const val THUMB_TARGET_PX = 192   // cạnh ngắn của ảnh sau khi thu nhỏ (px). Tăng = nét hơn nhưng nặng hơn
+        private const val THUMB_CACHE_SIZE = 64   // số ảnh bìa giữ trong bộ nhớ
     }
 
     private val mutableItems = mutableListOf<MediaItem>()
-    private val bitmapCache = HashMap<String, android.graphics.Bitmap?>()
+    private val bitmapCache = LruCache<String, Bitmap>(THUMB_CACHE_SIZE)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    // Các view đang chờ ảnh của cùng một bài (tránh giải mã trùng)
+    private val pendingThumbs = HashMap<String, MutableList<(Bitmap) -> Unit>>()
 
     // Vị trí bài đang phát (-1 nếu không có)
     var currentPlayingIndex = -1
@@ -79,6 +92,34 @@ class QueueAdapter(
         return QueueViewHolder(view)
     }
 
+    // Giải mã ảnh bìa ở luồng nền, thu nhỏ bằng inSampleSize rồi trả kết quả về luồng chính
+    private fun loadThumbAsync(uri: String, data: ByteArray, onLoaded: (Bitmap) -> Unit) {
+        val waiting = pendingThumbs[uri]
+        if (waiting != null) { waiting.add(onLoaded); return }
+        pendingThumbs[uri] = mutableListOf(onLoaded)
+
+        thumbExecutor.execute {
+            val bmp: Bitmap? = try {
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(data, 0, data.size, bounds)
+                var sample = 1
+                val shortSide = minOf(bounds.outWidth, bounds.outHeight)
+                while (shortSide / (sample * 2) >= THUMB_TARGET_PX) sample *= 2
+                val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+                BitmapFactory.decodeByteArray(data, 0, data.size, opts)
+            } catch (e: Exception) {
+                null
+            }
+            mainHandler.post {
+                val callbacks = pendingThumbs.remove(uri)
+                if (bmp != null) {
+                    bitmapCache.put(uri, bmp)
+                    callbacks?.forEach { it(bmp) }
+                }
+            }
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
         val mediaItem = mutableItems[position]
@@ -91,11 +132,20 @@ class QueueAdapter(
         holder.tvIndex.text = (position + 1).toString()
         holder.tvDuration.text = formatTime(metadata.durationMs ?: 0L)
 
+        // Ảnh bìa: có sẵn trong cache thì gắn ngay, chưa có thì hiện ảnh mặc định rồi giải mã nền
         val artworkData = metadata.artworkData
+        holder.ivThumbnail.tag = uri
         if (artworkData != null) {
-            // Cache ảnh bìa để cuộn/vẽ lại không bị giật
-            val bmp = bitmapCache.getOrPut(uri) { BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size) }
-            holder.ivThumbnail.setImageBitmap(bmp)
+            val cached = bitmapCache.get(uri)
+            if (cached != null) {
+                holder.ivThumbnail.setImageBitmap(cached)
+            } else {
+                holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
+                loadThumbAsync(uri, artworkData) { bmp ->
+                    // View có thể đã được tái sử dụng cho bài khác: chỉ gắn nếu còn đúng bài
+                    if (holder.ivThumbnail.tag == uri) holder.ivThumbnail.setImageBitmap(bmp)
+                }
+            }
         } else {
             holder.ivThumbnail.setImageResource(R.drawable.bg_cover_default)
         }
