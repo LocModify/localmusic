@@ -9,7 +9,8 @@ import android.graphics.drawable.ColorDrawable
 import java.text.Collator
 import java.util.Locale
 import android.widget.PopupWindow
-import androidx.appcompat.app.AlertDialog
+import android.app.Dialog
+import android.view.Window
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -206,13 +207,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             popup.dismiss()
             showSortDialog()
         }
-        popupView.findViewById<View>(R.id.btnQoDuplicates).setOnClickListener {
+        popupView.findViewById<View>(R.id.btnQoDelete).setOnClickListener {
             popup.dismiss()
-            removeDuplicates()
-        }
-        popupView.findViewById<View>(R.id.btnQoClear).setOnClickListener {
-            popup.dismiss()
-            confirmClearQueue()
+            showDeletePanel()
         }
 
         // Căn mép phải menu với mép phải nút, hiện ngay bên dưới nút
@@ -221,14 +218,107 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         popup.showAsDropDown(anchor, offsetX, 0)
     }
 
-    // Hộp chọn kiểu sắp xếp
+    // ===== Bảng dùng chung: thẻ trắng bo góc giống menu ba chấm =====
+    private class PanelRow(val text: String, val color: Int = Color.parseColor("#1F1B2E"), val onClick: () -> Unit)
+
+    private fun showPanel(
+        title: String,
+        rows: List<PanelRow>,
+        message: String? = null,
+        okText: String? = null,
+        onOk: (() -> Unit)? = null
+    ) {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val v = layoutInflater.inflate(R.layout.dialog_queue_panel, null)
+        dialog.setContentView(v)
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+
+        v.findViewById<TextView>(R.id.tvPanelTitle).text = title
+        if (message != null) {
+            v.findViewById<TextView>(R.id.tvPanelMessage).apply { text = message; visibility = View.VISIBLE }
+        }
+
+        val container = v.findViewById<ViewGroup>(R.id.panelRows)
+        for (row in rows) {
+            val tv = layoutInflater.inflate(R.layout.item_queue_menu_row, container, false) as TextView
+            tv.text = row.text
+            tv.setTextColor(row.color)
+            tv.setOnClickListener { dialog.dismiss(); row.onClick() }
+            container.addView(tv)
+        }
+
+        if (okText != null && onOk != null) {
+            v.findViewById<View>(R.id.panelButtons).visibility = View.VISIBLE
+            v.findViewById<View>(R.id.btnPanelCancel).setOnClickListener { dialog.dismiss() }
+            v.findViewById<TextView>(R.id.btnPanelOk).apply {
+                text = okText
+                setOnClickListener { dialog.dismiss(); onOk() }
+            }
+        }
+        dialog.show()
+    }
+
+    // Bảng chọn kiểu sắp xếp
     private fun showSortDialog() {
-        val options = arrayOf("Tên bài hát (A → Z)", "Ca sĩ (A → Z)", "Thời lượng (ngắn → dài)", "Thời lượng (dài → ngắn)")
-        AlertDialog.Builder(requireContext())
-            .setTitle("Sắp xếp danh sách")
-            .setItems(options) { _, which -> sortQueue(which) }
-            .setNegativeButton("Hủy", null)
-            .show()
+        showPanel(
+            title = "Sắp xếp danh sách",
+            rows = listOf(
+                PanelRow("Tên bài hát (A → Z)") { sortQueue(0) },
+                PanelRow("Ca sĩ (A → Z)") { sortQueue(1) },
+                PanelRow("Thời lượng (ngắn → dài)") { sortQueue(2) },
+                PanelRow("Thời lượng (dài → ngắn)") { sortQueue(3) }
+            )
+        )
+    }
+
+    // Bảng "Xóa": xóa bài này / xóa nhiều / xóa tất cả
+    private fun showDeletePanel() {
+        val red = Color.parseColor("#FF0000")
+        showPanel(
+            title = "Xóa",
+            rows = listOf(
+                PanelRow("Xóa bài này") { deleteCurrentSong() },
+                PanelRow("Xóa nhiều") { if (::adapter.isInitialized) adapter.enterSelectionMode() },
+                PanelRow("Xóa tất cả", red) { confirmClearAll() }
+            )
+        )
+    }
+
+    // Xóa bài đang phát khỏi hàng đợi (nhạc tự chuyển sang bài kế tiếp)
+    private fun deleteCurrentSong() {
+        val c = controller ?: return
+        if (c.mediaItemCount <= 1) {
+            Toast.makeText(requireContext(), "Hàng đợi chỉ còn 1 bài, không thể xóa", Toast.LENGTH_SHORT).show()
+            return
+        }
+        c.removeMediaItem(c.currentMediaItemIndex)
+        updateUI(scrollToCurrent = false)
+        Toast.makeText(requireContext(), "Đã xóa bài đang phát", Toast.LENGTH_SHORT).show()
+    }
+
+    // Xóa tất cả: giữ lại duy nhất bài đang phát (nhạc không bị ngắt)
+    private fun confirmClearAll() {
+        val c = controller ?: return
+        if (c.mediaItemCount <= 1) {
+            Toast.makeText(requireContext(), "Hàng đợi không còn bài nào để xóa", Toast.LENGTH_SHORT).show()
+            return
+        }
+        showPanel(
+            title = "Xóa tất cả?",
+            rows = emptyList(),
+            message = "Tất cả bài hát sẽ bị xóa khỏi danh sách phát, trừ bài đang phát.",
+            okText = "Xóa",
+            onOk = {
+                val cur = c.currentMediaItemIndex
+                if (cur + 1 < c.mediaItemCount) c.removeMediaItems(cur + 1, c.mediaItemCount)
+                if (cur > 0) c.removeMediaItems(0, cur)
+                updateUI(scrollToCurrent = false)
+            }
+        )
     }
 
     // Sắp xếp bằng cách di chuyển từng bài (moveMediaItem) => bài đang phát KHÔNG bị ngắt
@@ -258,57 +348,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         }
         updateUI(scrollToCurrent = true)
         Toast.makeText(requireContext(), "Đã sắp xếp danh sách", Toast.LENGTH_SHORT).show()
-    }
-
-    // Xóa bài trùng (cùng đường dẫn file): giữ 1 bản, ưu tiên giữ bản đang phát
-    private fun removeDuplicates() {
-        val c = controller ?: return
-        val count = c.mediaItemCount
-        if (count < 2) return
-        val current = c.currentMediaItemIndex
-        val keep = HashMap<String, Int>() // uri -> vị trí bản được giữ
-        for (i in 0 until count) {
-            val uri = c.getMediaItemAt(i).localConfiguration?.uri.toString()
-            if (!keep.containsKey(uri)) keep[uri] = i
-        }
-        // Nếu bản đang phát là bản trùng thì giữ chính nó
-        val currentUri = c.getMediaItemAt(current).localConfiguration?.uri.toString()
-        keep[currentUri] = current
-
-        var removed = 0
-        for (i in count - 1 downTo 0) {
-            val uri = c.getMediaItemAt(i).localConfiguration?.uri.toString()
-            if (keep[uri] != i) {
-                c.removeMediaItem(i)
-                removed++
-            }
-        }
-        updateUI(scrollToCurrent = false)
-        Toast.makeText(
-            requireContext(),
-            if (removed > 0) "Đã xóa $removed bài trùng lặp" else "Không có bài trùng lặp",
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
-    // Xóa hàng đợi: xóa hết, chỉ giữ lại bài đang phát (nhạc không bị ngắt)
-    private fun confirmClearQueue() {
-        val c = controller ?: return
-        if (c.mediaItemCount <= 1) {
-            Toast.makeText(requireContext(), "Hàng đợi không còn bài nào để xóa", Toast.LENGTH_SHORT).show()
-            return
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle("Xóa hàng đợi?")
-            .setMessage("Tất cả bài hát sẽ bị xóa khỏi danh sách phát, trừ bài đang phát.")
-            .setPositiveButton("Xóa") { _, _ ->
-                val cur = c.currentMediaItemIndex
-                if (cur + 1 < c.mediaItemCount) c.removeMediaItems(cur + 1, c.mediaItemCount)
-                if (cur > 0) c.removeMediaItems(0, cur)
-                updateUI(scrollToCurrent = false)
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
     }
 
     // Gửi danh sách uri đang có trong hàng đợi sang để màn hình chọn đánh dấu "Đã có"
