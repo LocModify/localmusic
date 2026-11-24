@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.LruCache
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -32,6 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import org.json.JSONArray
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.Executors
 
 class NowPlayingActivity : AppCompatActivity() {
 
@@ -66,6 +68,16 @@ class NowPlayingActivity : AppCompatActivity() {
 
     // Biến quản lý Popup thông báo để không bị đè lên nhau
     private var customPopup: PopupWindow? = null
+
+    // ----- Ảnh bìa: giải mã ở luồng nền để đổi bài không bị giật -----
+    private val artExecutor = Executors.newSingleThreadExecutor()
+    private val artCache = LruCache<String, Bitmap>(8)   // giữ vài ảnh bìa đã xử lý
+    private var lastArtUri: String? = null               // bài đang hiển thị ảnh bìa
+    private val ART_TARGET_PX = 900                      // cạnh ngắn tối đa của ảnh bìa sau khi thu nhỏ (px)
+
+    // Các hiệu ứng đang bị tạm dừng vì bảng Danh sách phát mở (để trả lại đúng khi đóng bảng)
+    private val pausedByQueue = mutableListOf<ObjectAnimator>()
+    private var queueOpen = false
 
     private val defaultArtworkBytes: ByteArray by lazy {
         val bmp = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
@@ -104,6 +116,9 @@ class NowPlayingActivity : AppCompatActivity() {
         // MỞ BOTTOM SHEET HÀNG ĐỢI
         btnPlaylistTop.setOnClickListener {
             val bottomSheet = QueueBottomSheet()
+            // Bảng đang che màn hình: tạm dừng các hiệu ứng lặp phía sau cho nhẹ máy, đóng bảng thì chạy lại
+            pauseEffectsForQueue()
+            bottomSheet.onDismissed = { resumeEffectsAfterQueue() }
             bottomSheet.show(supportFragmentManager, "QueueBottomSheet")
         }
 
@@ -180,6 +195,27 @@ class NowPlayingActivity : AppCompatActivity() {
             }
             effectAnimators.add(a)
         }
+    }
+
+    private fun pauseEffectsForQueue() {
+        queueOpen = true
+        pausedByQueue.clear()
+        for (an in effectAnimators) {
+            if (an.isRunning && !an.isPaused) {
+                an.pause()
+                pausedByQueue.add(an)
+            }
+        }
+    }
+
+    private fun resumeEffectsAfterQueue() {
+        for (an in pausedByQueue) {
+            if (an.isPaused) an.resume()
+        }
+        pausedByQueue.clear()
+        queueOpen = false
+        // Đồng bộ lại theo trạng thái phát hiện tại (ví dụ đang tạm dừng thì xoay/glow phải đứng yên)
+        updatePlayPauseIcon(controller?.isPlaying ?: false)
     }
 
     private fun spin(v: View, from: Float, to: Float, ms: Long): ObjectAnimator =
@@ -331,7 +367,9 @@ class NowPlayingActivity : AppCompatActivity() {
         }
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playbackState == Player.STATE_READY) {
-                updateUI()
+                // Chỉ cập nhật thời lượng (nhẹ), không giải mã lại ảnh bìa
+                updateDurationUI()
+                updatePlayPauseIcon(controller?.isPlaying ?: false)
                 startSeekBarUpdater()
             }
         }
@@ -352,35 +390,74 @@ class NowPlayingActivity : AppCompatActivity() {
         txtSongTitle.text = metadata.title ?: "Unknown Title"
         txtArtist.text = metadata.artist ?: "Unknown Artist"
 
-        val artworkData = metadata.artworkData
-        if (artworkData == null || artworkData.contentEquals(defaultArtworkBytes)) {
-            imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
-        } else {
-            val decoded = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-            val bitmap = if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
-            if (bitmap != null) imgAlbumArt.setImageBitmap(bitmap)
-            else imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
+        // Chỉ đổi ảnh bìa khi thật sự sang bài khác
+        val uri = getCurrentTrackUri()
+        if (uri != lastArtUri) {
+            lastArtUri = uri
+            showArtwork(uri, metadata.artworkData)
         }
 
+        updateDurationUI()
+        updatePlayPauseIcon(c.isPlaying)
+        updateFavoriteUI()
+    }
+
+    private fun updateDurationUI() {
+        val c = controller ?: return
         val duration = c.duration
         if (duration > 0) {
             txtTotalTime.text = formatTime(duration)
             seekBar.max = duration.toInt()
         }
+    }
 
-        updatePlayPauseIcon(c.isPlaying)
-        updateFavoriteUI()
+    // Ảnh bìa: có trong cache thì gắn ngay; chưa có thì giải mã + cắt viền đen ở luồng nền
+    private fun showArtwork(uri: String?, data: ByteArray?) {
+        if (uri == null || data == null || data.contentEquals(defaultArtworkBytes)) {
+            imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
+            return
+        }
+        val cached = artCache.get(uri)
+        if (cached != null) {
+            imgAlbumArt.setImageBitmap(cached)
+            return
+        }
+        artExecutor.execute {
+            val bmp: Bitmap? = try {
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(data, 0, data.size, bounds)
+                var sample = 1
+                val shortSide = minOf(bounds.outWidth, bounds.outHeight)
+                while (shortSide / (sample * 2) >= ART_TARGET_PX) sample *= 2
+                val decoded = BitmapFactory.decodeByteArray(
+                    data, 0, data.size, BitmapFactory.Options().apply { inSampleSize = sample }
+                )
+                if (decoded != null) BitmapUtils.trimBlackBars(decoded) else null
+            } catch (e: Exception) {
+                null
+            }
+            runOnUiThread {
+                // Có thể đã chuyển sang bài khác trong lúc giải mã: bỏ kết quả cũ
+                if (isDestroyed || lastArtUri != uri) return@runOnUiThread
+                if (bmp != null) {
+                    artCache.put(uri, bmp)
+                    imgAlbumArt.setImageBitmap(bmp)
+                } else {
+                    imgAlbumArt.setImageResource(R.drawable.bg_cover_default)
+                }
+            }
+        }
     }
 
     private fun updatePlayPauseIcon(isPlaying: Boolean) {
         val spin = coverSpinAnimator
         if (spin != null) {
-            if (isPlaying && spin.isPaused) spin.resume()
+            if (isPlaying && spin.isPaused && !queueOpen) spin.resume()
             if (!isPlaying && spin.isRunning && !spin.isPaused) spin.pause()
         }
         val glow = playGlowAnimator
         if (glow != null) {
-            if (isPlaying && glow.isPaused) glow.resume()
+            if (isPlaying && glow.isPaused && !queueOpen) glow.resume()
             if (!isPlaying && glow.isRunning && !glow.isPaused) {
                 glow.pause()
             }
@@ -472,6 +549,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun formatTime(millis: Long): String = TimeUtils.format(millis)
 
     override fun onDestroy() {
+        artExecutor.shutdown()
         effectAnimators.forEach { it.cancel() }
         effectAnimators.clear()
         handler.removeCallbacks(seekBarUpdater)
