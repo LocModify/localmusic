@@ -76,15 +76,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         rootView = view
 
-        // Bo tròn 2 góc trên của bảng (cắt luôn cả ảnh nền)
-        val radius = 32f * resources.displayMetrics.density
-        view.outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(v: View, outline: Outline) {
-                outline.setRoundRect(0, 0, v.width, v.height + radius.toInt(), radius)
-            }
-        }
-        view.clipToOutline = true
-
+        // Bo tròn góc trên: KHÔNG cắt cả bảng bằng clipToOutline nữa (rất nặng khi vuốt),
+        // mà chỉ bo riêng ảnh nền (ShapeableImageView) và lớp kính mờ phía trên.
         // Toàn màn hình: đẩy thanh kéo (và cả nội dung bên dưới) xuống dưới thanh trạng thái
         val handle = view.findViewById<View>(R.id.dragHandle)
         (handle.layoutParams as ViewGroup.MarginLayoutParams).topMargin += getStatusBarHeight()
@@ -103,6 +96,8 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             bg.imageMatrix = m
         }
         rvQueue = view.findViewById(R.id.rvQueue)
+        rvQueue.setHasFixedSize(true)
+        rvQueue.setItemViewCacheSize(10)
         btnShuffleBottom = view.findViewById(R.id.btnShuffleBottom)
         btnRepeatBottom = view.findViewById(R.id.btnRepeatBottom)
         btnShuffleHolder = view.findViewById(R.id.btnShuffleHolder)
