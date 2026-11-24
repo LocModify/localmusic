@@ -355,6 +355,9 @@ private class PickAdapter(
         val item = items[position]
         holder.tvTitle.text = item.title
         holder.tvArtist.text = item.artist.ifBlank { "Unknown Artist" }
+        // Tên dài: chữ tự chạy lặp lại (marquee cần isSelected = true)
+        holder.tvTitle.isSelected = true
+        holder.tvArtist.isSelected = true
         if (item.thumb != null) holder.ivThumb.setImageBitmap(item.thumb)
         else holder.ivThumb.setImageResource(R.drawable.bg_cover_default)
         holder.itemView.setOnClickListener {
