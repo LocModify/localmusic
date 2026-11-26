@@ -217,7 +217,12 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     }
 
     // ===== Bảng dùng chung: thẻ trắng bo góc, nhỏ gọn, hiện ngay cạnh nút "..." =====
-    private class PanelRow(val text: String, val color: Int = Color.parseColor("#1F1B2E"), val onClick: () -> Unit)
+    private class PanelRow(
+        val text: String,
+        val color: Int = Color.parseColor("#1F1B2E"),
+        val iconRes: Int = 0,   // icon đầu dòng (0 = không có)
+        val onClick: () -> Unit
+    )
 
     private fun showPanel(
         title: String,
@@ -236,7 +241,9 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         popup.elevation = 15f
 
-        v.findViewById<TextView>(R.id.tvPanelTitle).text = title
+        v.findViewById<TextView>(R.id.tvPanelTitle).apply {
+            if (title.isBlank()) visibility = View.GONE else text = title   // không có tiêu đề thì ẩn luôn
+        }
         if (message != null) {
             v.findViewById<TextView>(R.id.tvPanelMessage).apply { text = message; visibility = View.VISIBLE }
         }
@@ -246,6 +253,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val tv = layoutInflater.inflate(R.layout.item_queue_menu_row, container, false) as TextView
             tv.text = row.text
             tv.setTextColor(row.color)
+            if (row.iconRes != 0) tv.setCompoundDrawablesRelativeWithIntrinsicBounds(row.iconRes, 0, 0, 0)
             tv.setOnClickListener { popup.dismiss(); row.onClick() }
             container.addView(tv)
         }
@@ -282,11 +290,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
     private fun showDeletePanel() {
         val red = Color.parseColor("#FF0000")
         showPanel(
-            title = "Xóa",
+            title = "",   // không cần tiêu đề
             rows = listOf(
-                PanelRow("Xóa bài này") { deleteCurrentSong() },
-                PanelRow("Xóa nhiều") { if (::adapter.isInitialized) adapter.enterSelectionMode() },
-                PanelRow("Xóa tất cả", red) { confirmClearAll() }
+                PanelRow("Xóa bài này", red, R.drawable.ic_qd_one) { deleteCurrentSong() },
+                PanelRow("Xóa nhiều", red, R.drawable.ic_qd_multi) { if (::adapter.isInitialized) adapter.enterSelectionMode() },
+                PanelRow("Xóa tất cả", red, R.drawable.ic_qd_all) { confirmClearAll() }
             )
         )
     }
