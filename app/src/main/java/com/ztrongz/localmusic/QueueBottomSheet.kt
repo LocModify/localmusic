@@ -278,10 +278,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         showPanel(
             title = "Sắp xếp danh sách",
             rows = listOf(
-                PanelRow("Tên bài hát (A → Z)") { sortQueue(0) },
-                PanelRow("Ca sĩ (A → Z)") { sortQueue(1) },
-                PanelRow("Thời lượng (ngắn → dài)") { sortQueue(2) },
-                PanelRow("Thời lượng (dài → ngắn)") { sortQueue(3) }
+                PanelRow("Tên bài hát (A → Z)", iconRes = R.drawable.ic_qs_alpha) { sortQueue(0) },
+                PanelRow("Ca sĩ (A → Z)", iconRes = R.drawable.ic_qs_person) { sortQueue(1) },
+                PanelRow("Thời lượng (ngắn → dài)", iconRes = R.drawable.ic_qs_time_up) { sortQueue(2) },
+                PanelRow("Thời lượng (dài → ngắn)", iconRes = R.drawable.ic_qs_time_down) { sortQueue(3) }
             )
         )
     }
