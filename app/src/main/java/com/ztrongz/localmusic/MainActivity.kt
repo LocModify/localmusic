@@ -270,6 +270,7 @@ class MainActivity : AppCompatActivity() {
         val ivHeart = popupView.findViewById<ImageView>(R.id.ivMenuHeart)
         val tvFavorite = popupView.findViewById<TextView>(R.id.tvMenuFavorite)
         val btnRename = popupView.findViewById<View>(R.id.btnMenuRename)
+        val btnShare = popupView.findViewById<View>(R.id.btnMenuShare)
         val btnDelete = popupView.findViewById<View>(R.id.btnMenuDelete)
 
         tvFavorite.setTextColor(Color.parseColor("#1F1B2E"))
@@ -294,6 +295,11 @@ class MainActivity : AppCompatActivity() {
         btnRename.setOnClickListener {
             popupWindow.dismiss()
             showRenameDialog(position)
+        }
+
+        btnShare.setOnClickListener {
+            popupWindow.dismiss()
+            ShareHelper.shareSong(this, track.uri, track.title)
         }
 
         btnDelete.setOnClickListener {
