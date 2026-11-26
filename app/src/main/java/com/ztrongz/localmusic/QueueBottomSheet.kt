@@ -9,6 +9,8 @@ import android.graphics.drawable.ColorDrawable
 import java.text.Collator
 import java.util.Locale
 import android.widget.PopupWindow
+import androidx.appcompat.app.AlertDialog
+import android.widget.EditText
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -205,6 +207,10 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             popup.dismiss()
             showSortDialog()
         }
+        popupView.findViewById<View>(R.id.btnQoSave).setOnClickListener {
+            popup.dismiss()
+            showSavePlaylistDialog()
+        }
         popupView.findViewById<View>(R.id.btnQoDelete).setOnClickListener {
             popup.dismiss()
             showDeletePanel()
@@ -284,6 +290,39 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                 PanelRow("Thời lượng (dài → ngắn)", iconRes = R.drawable.ic_qs_time_down) { sortQueue(3) }
             )
         )
+    }
+
+    // Lưu toàn bộ hàng đợi thành một thư mục (hiện ở tab "Thư mục" ngoài màn hình chính)
+    private fun showSavePlaylistDialog() {
+        val c = controller ?: return
+        if (c.mediaItemCount == 0) {
+            Toast.makeText(requireContext(), "Danh sách phát đang trống", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_save_playlist, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+
+        val edt = view.findViewById<EditText>(R.id.edtPlaylistName)
+        edt.setText("Danh sách phát ${PlaylistStore.getAll(requireContext()).size + 1}")
+        edt.selectAll()
+
+        view.findViewById<View>(R.id.btnSaveCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<View>(R.id.btnSaveOk).setOnClickListener {
+            val name = edt.text.toString().trim()
+            if (name.isEmpty()) {
+                Toast.makeText(requireContext(), "Hãy nhập tên thư mục", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val uris = (0 until c.mediaItemCount).mapNotNull {
+                c.getMediaItemAt(it).localConfiguration?.uri?.toString()
+            }
+            PlaylistStore.add(requireContext(), name, uris)
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Đã lưu vào Thư mục", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show()
     }
 
     // Menu dấu 3 chấm cạnh từng bài trong hàng đợi: chia sẻ file nhạc
