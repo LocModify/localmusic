@@ -21,6 +21,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -49,6 +51,19 @@ class MainActivity : AppCompatActivity() {
 
     private var isShowingFavorites = false
     private var currentQuery = ""
+
+    // Tab "Thư mục": isShowingFolders = đang ở tab; openFolder != null = đang mở bên trong 1 thư mục
+    private lateinit var folderAdapter: FolderAdapter
+    private var isShowingFolders = false
+    private var openFolder: SavedPlaylist? = null
+    private var defaultSearchHint: CharSequence? = null
+
+    // Nút Back: đang mở thư mục thì quay về danh sách thư mục
+    private val backCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            closeFolder()
+        }
+    }
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -93,8 +108,15 @@ class MainActivity : AppCompatActivity() {
                 if (index != -1) showSongOptions(index, view)
             }
         )
+        folderAdapter = FolderAdapter(
+            countOf = { p -> tracks.count { t -> p.uris.contains(t.uri.toString()) } },
+            onFolderClick = { p -> openFolderView(p) },
+            onMoreClick = { p, view -> showFolderMenu(p, view) }
+        )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = songAdapter
+        defaultSearchHint = binding.etSearch.hint
+        onBackPressedDispatcher.addCallback(this, backCallback)
 
         setupCategoryChips()
         setupSearchBar()
@@ -135,6 +157,16 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // Chỉ cập nhật trạng thái Yêu thích, KHÔNG đồng bộ xóa bài từ Player
         refreshFavoriteStatus()
+
+        // Quay lại từ màn hình khác: cập nhật tab Thư mục (có thể vừa lưu thêm thư mục mới)
+        if (isShowingFolders) {
+            openFolder = openFolder?.let { f -> PlaylistStore.getAll(this).firstOrNull { it.name == f.name } }
+            if (openFolder == null) {
+                backCallback.isEnabled = false
+                binding.etSearch.hint = defaultSearchHint
+            }
+            filterAndShowSongs()
+        }
     }
 
     private fun refreshFavoriteStatus() {
@@ -172,33 +204,110 @@ class MainActivity : AppCompatActivity() {
     private fun setupCategoryChips() {
         binding.chipAll.setOnClickListener {
             isShowingFavorites = false
-            updateChipUI(binding.chipAll, binding.chipFav)
+            leaveFolders()
+            highlightChip(binding.chipAll)
             filterAndShowSongs()
         }
 
         binding.chipFav.setOnClickListener {
             isShowingFavorites = true
-            updateChipUI(binding.chipFav, binding.chipAll)
+            leaveFolders()
+            highlightChip(binding.chipFav)
+            filterAndShowSongs()
+        }
+
+        binding.chipFolder.setOnClickListener {
+            isShowingFavorites = false
+            isShowingFolders = true
+            openFolder = null            // bấm lại chip = về danh sách thư mục
+            backCallback.isEnabled = false
+            binding.etSearch.hint = defaultSearchHint
+            highlightChip(binding.chipFolder)
+            if (PlaylistStore.getAll(this).isEmpty()) {
+                Toast.makeText(this, "Chưa có thư mục. Hãy lưu từ Danh sách phát (nút ...)", Toast.LENGTH_LONG).show()
+            }
             filterAndShowSongs()
         }
     }
 
-    private fun updateChipUI(activeChip: View, inactiveChip: View) {
-        activeChip.setBackgroundResource(R.drawable.bg_category_active)
-        if (activeChip is TextView) {
-            activeChip.setTextColor(Color.WHITE)
-            activeChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.white)
+    // Thoát khỏi tab Thư mục
+    private fun leaveFolders() {
+        isShowingFolders = false
+        openFolder = null
+        backCallback.isEnabled = false
+        binding.etSearch.hint = defaultSearchHint
+    }
+
+    private fun openFolderView(p: SavedPlaylist) {
+        openFolder = p
+        backCallback.isEnabled = true
+        binding.etSearch.hint = "Tìm trong \"${p.name}\"..."
+        filterAndShowSongs()
+    }
+
+    private fun closeFolder() {
+        openFolder = null
+        backCallback.isEnabled = false
+        binding.etSearch.hint = defaultSearchHint
+        filterAndShowSongs()
+    }
+
+    // Menu dấu 3 chấm của thư mục: xóa thư mục (không xóa bài hát)
+    private fun showFolderMenu(p: SavedPlaylist, anchor: View) {
+        val popupView = LayoutInflater.from(this).inflate(R.layout.dialog_folder_menu, null)
+        val popup = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popup.elevation = 15f
+
+        popupView.findViewById<View>(R.id.btnFolderDelete).setOnClickListener {
+            popup.dismiss()
+            PlaylistStore.delete(this, p.name)
+            Toast.makeText(this, "Đã xóa thư mục", Toast.LENGTH_SHORT).show()
+            filterAndShowSongs()
         }
 
-        inactiveChip.setBackgroundResource(R.drawable.bg_category_inactive)
-        if (inactiveChip is TextView) {
-            inactiveChip.setTextColor(Color.parseColor("#1F1B2E"))
-            inactiveChip.compoundDrawableTintList = ContextCompat.getColorStateList(this, android.R.color.black)
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        popup.showAsDropDown(anchor, anchor.width - popupView.measuredWidth - 16, 0)
+    }
+
+    // Tô sáng chip đang chọn, các chip còn lại về trạng thái thường
+    private fun highlightChip(active: View) {
+        listOf(binding.chipAll, binding.chipFav, binding.chipFolder).forEach { chip ->
+            val isActive = chip === active
+            chip.setBackgroundResource(if (isActive) R.drawable.bg_category_active else R.drawable.bg_category_inactive)
+            if (chip is TextView) {
+                chip.setTextColor(if (isActive) Color.WHITE else Color.parseColor("#1F1B2E"))
+                chip.compoundDrawableTintList = ContextCompat.getColorStateList(
+                    this, if (isActive) android.R.color.white else android.R.color.black
+                )
+            }
         }
     }
 
     private fun filterAndShowSongs() {
+        // Tab Thư mục (chưa mở thư mục nào): hiện danh sách thư mục
+        if (isShowingFolders && openFolder == null) {
+            if (binding.recyclerView.adapter !== folderAdapter) binding.recyclerView.adapter = folderAdapter
+            var folders: List<SavedPlaylist> = PlaylistStore.getAll(this)
+            if (currentQuery.isNotEmpty()) {
+                folders = folders.filter { it.name.contains(currentQuery, ignoreCase = true) }
+            }
+            folderAdapter.updateData(folders)
+            return
+        }
+        if (binding.recyclerView.adapter !== songAdapter) binding.recyclerView.adapter = songAdapter
+
         var displayList: List<Track> = tracks
+
+        // Đang mở 1 thư mục: chỉ hiện các bài thuộc thư mục đó
+        openFolder?.let { f ->
+            displayList = displayList.filter { f.uris.contains(it.uri.toString()) }
+        }
 
         if (isShowingFavorites) {
             displayList = displayList.filter { it.isFavorite }
