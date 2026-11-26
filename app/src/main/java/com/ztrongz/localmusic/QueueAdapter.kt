@@ -269,8 +269,8 @@ class QueueAdapter(
             }
         } else {
             holder.ivSelectCheckbox.visibility = View.GONE
-            // Bài đang phát: ẩn nút ba chấm, chỗ đó dành cho sóng nhạc
-            holder.btnMore.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
+            // Bài đang phát vẫn hiện nút ba chấm (để chia sẻ); sóng nhạc nằm bên trái nút
+            holder.btnMore.visibility = View.VISIBLE
             holder.tvIndex.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
         }
     }
