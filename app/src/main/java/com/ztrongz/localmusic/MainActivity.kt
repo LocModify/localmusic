@@ -8,15 +8,20 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupWindow
@@ -40,6 +45,7 @@ import com.ztrongz.localmusic.databinding.ActivityMainBinding
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -57,6 +63,12 @@ class MainActivity : AppCompatActivity() {
     private var isShowingFolders = false
     private var openFolder: SavedPlaylist? = null
     private var defaultSearchHint: CharSequence? = null
+
+    // Tab hiện tại: 0 = Tất cả, 1 = Yêu thích, 2 = Thư mục (vuốt trái/phải để đổi tab)
+    private var currentTab = 0
+    private var isSwitching = false
+    private lateinit var swipeDetector: GestureDetector
+    private var swipeStartedInList = false
 
     // Nút Back: đang mở thư mục thì quay về danh sách thư mục
     private val backCallback = object : OnBackPressedCallback(false) {
@@ -118,6 +130,7 @@ class MainActivity : AppCompatActivity() {
         defaultSearchHint = binding.etSearch.hint
         onBackPressedDispatcher.addCallback(this, backCallback)
         binding.folderBackBar.setOnClickListener { closeFolder() }   // thanh "← Tên thư mục"
+        setupSwipeTabs()
 
         setupCategoryChips()
         setupSearchBar()
@@ -203,32 +216,111 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryChips() {
-        binding.chipAll.setOnClickListener {
-            isShowingFavorites = false
-            leaveFolders()
-            highlightChip(binding.chipAll)
-            filterAndShowSongs()
-        }
+        binding.chipAll.setOnClickListener { selectTab(0) }
+        binding.chipFav.setOnClickListener { selectTab(1) }
+        binding.chipFolder.setOnClickListener { selectTab(2) }
+    }
 
-        binding.chipFav.setOnClickListener {
-            isShowingFavorites = true
-            leaveFolders()
-            highlightChip(binding.chipFav)
-            filterAndShowSongs()
+    // Chuyển tab (có hiệu ứng trượt). Chip được tô sáng ngay để cảm giác phản hồi nhanh.
+    private fun selectTab(index: Int) {
+        if (isSwitching) return
+        val chips = listOf(binding.chipAll, binding.chipFav, binding.chipFolder)
+        val dir = when {
+            index > currentTab -> 1
+            index < currentTab -> -1
+            else -> 0
         }
+        // Bấm lại đúng tab đang đứng: chỉ có tác dụng khi đang mở trong 1 thư mục (về danh sách thư mục)
+        if (dir == 0 && !(index == 2 && openFolder != null)) return
 
-        binding.chipFolder.setOnClickListener {
-            isShowingFavorites = false
-            isShowingFolders = true
-            openFolder = null            // bấm lại chip = về danh sách thư mục
-            backCallback.isEnabled = false
-            binding.etSearch.hint = defaultSearchHint
-            highlightChip(binding.chipFolder)
-            if (PlaylistStore.getAll(this).isEmpty()) {
-                Toast.makeText(this, "Chưa có thư mục. Hãy lưu từ Danh sách phát (nút ...)", Toast.LENGTH_LONG).show()
+        highlightChip(chips[index])
+        animateListSwitch(if (dir == 0) -1 else dir) {
+            when (index) {
+                0 -> { isShowingFavorites = false; leaveFolders() }
+                1 -> { isShowingFavorites = true; leaveFolders() }
+                else -> {
+                    isShowingFavorites = false
+                    isShowingFolders = true
+                    openFolder = null
+                    backCallback.isEnabled = false
+                    binding.etSearch.hint = defaultSearchHint
+                    if (PlaylistStore.getAll(this).isEmpty()) {
+                        Toast.makeText(this, "Chưa có thư mục. Hãy lưu từ Danh sách phát (nút ...)", Toast.LENGTH_LONG).show()
+                    }
+                }
             }
+            currentTab = index
             filterAndShowSongs()
         }
+    }
+
+    // Hiệu ứng đổi danh sách: danh sách cũ trượt ra + mờ dần, đổi dữ liệu, danh sách mới trượt vào từ phía đối diện
+    // dir = 1: đi tới (nội dung trượt sang trái), dir = -1: đi lùi (trượt sang phải)
+    private fun animateListSwitch(dir: Int, change: () -> Unit) {
+        val rv = binding.recyclerView
+        isSwitching = true
+        val distance = rv.width * 0.18f          // quãng trượt (tăng số này = trượt xa hơn)
+        rv.animate().cancel()
+        rv.animate()
+            .translationX(-dir * distance)
+            .alpha(0f)
+            .setDuration(130)                     // thời gian trượt ra (ms)
+            .setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                change()
+                rv.scrollToPosition(0)
+                rv.translationX = dir * distance
+                rv.animate()
+                    .translationX(0f)
+                    .alpha(1f)
+                    .setDuration(240)             // thời gian trượt vào (ms)
+                    .setInterpolator(DecelerateInterpolator(1.6f))
+                    .withEndAction { isSwitching = false }
+                    .start()
+            }
+            .start()
+    }
+
+    // ===== Vuốt ngang trên danh sách để đổi tab =====
+    private fun setupSwipeTabs() {
+        val minDistance = resources.displayMetrics.density * 70f   // phải vuốt ít nhất ~70dp
+        swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                if (e1 == null) return false
+                val dx = e2.x - e1.x
+                val dy = e2.y - e1.y
+                // chỉ tính khi vuốt đủ dài, đủ nhanh và chủ yếu theo chiều ngang (không nhầm với cuộn dọc)
+                if (abs(dx) > minDistance && abs(dx) > abs(dy) * 1.5f && abs(velocityX) > 500f) {
+                    onSwipeTab(if (dx < 0) 1 else -1)
+                    return true
+                }
+                return false
+            }
+        })
+    }
+
+    private fun onSwipeTab(dir: Int) {
+        if (isSwitching) return
+        // Đang mở trong thư mục: vuốt sang phải = quay về danh sách thư mục
+        if (openFolder != null) {
+            if (dir == -1) closeFolder()
+            return
+        }
+        val target = currentTab + dir
+        if (target in 0..2) selectTab(target)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (::swipeDetector.isInitialized) {
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                // Chỉ nhận vuốt khi ngón tay bắt đầu trong vùng danh sách
+                val rect = Rect()
+                swipeStartedInList = binding.recyclerView.getGlobalVisibleRect(rect) &&
+                    rect.contains(ev.rawX.toInt(), ev.rawY.toInt())
+            }
+            if (swipeStartedInList) swipeDetector.onTouchEvent(ev)
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     // Thoát khỏi tab Thư mục
@@ -240,17 +332,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFolderView(p: SavedPlaylist) {
-        openFolder = p
-        backCallback.isEnabled = true
-        binding.etSearch.hint = "Tìm trong \"${p.name}\"..."
-        filterAndShowSongs()
+        if (isSwitching) return
+        animateListSwitch(1) {
+            openFolder = p
+            backCallback.isEnabled = true
+            binding.etSearch.hint = "Tìm trong \"${p.name}\"..."
+            filterAndShowSongs()
+        }
     }
 
     private fun closeFolder() {
-        openFolder = null
-        backCallback.isEnabled = false
-        binding.etSearch.hint = defaultSearchHint
-        filterAndShowSongs()
+        if (isSwitching) return
+        animateListSwitch(-1) {
+            openFolder = null
+            backCallback.isEnabled = false
+            binding.etSearch.hint = defaultSearchHint
+            filterAndShowSongs()
+        }
     }
 
     // Menu dấu 3 chấm của thư mục: xóa thư mục (không xóa bài hát)
@@ -292,7 +390,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun filterAndShowSongs() {
         // Thanh quay lại chỉ hiện khi đang mở bên trong 1 thư mục
-        binding.folderBackBar.visibility = if (openFolder != null) View.VISIBLE else View.GONE
+        val bar = binding.folderBackBar
+        if (openFolder != null) {
+            if (bar.visibility != View.VISIBLE) {
+                bar.alpha = 0f
+                bar.visibility = View.VISIBLE
+                bar.animate().alpha(1f).setDuration(220).start()   // thanh quay lại hiện dần
+            }
+        } else {
+            bar.animate().cancel()
+            bar.alpha = 1f
+            bar.visibility = View.GONE
+        }
         binding.tvFolderTitle.text = openFolder?.name ?: ""
 
         // Tab Thư mục (chưa mở thư mục nào): hiện danh sách thư mục
