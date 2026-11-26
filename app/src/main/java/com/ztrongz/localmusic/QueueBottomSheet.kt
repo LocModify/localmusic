@@ -205,10 +205,6 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             popup.dismiss()
             showSortDialog()
         }
-        popupView.findViewById<View>(R.id.btnQoShare).setOnClickListener {
-            popup.dismiss()
-            sharePlaylist()
-        }
         popupView.findViewById<View>(R.id.btnQoDelete).setOnClickListener {
             popup.dismiss()
             showDeletePanel()
@@ -290,31 +286,30 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         )
     }
 
-    // Chia sẻ playlist: gửi danh sách bài hát (dạng chữ) sang Zalo, Messenger, Ghi chú...
-    private fun sharePlaylist() {
+    // Menu dấu 3 chấm cạnh từng bài trong hàng đợi: chia sẻ file nhạc
+    private fun showRowMenu(index: Int, anchor: View) {
         val c = controller ?: return
-        val count = c.mediaItemCount
-        if (count == 0) {
-            Toast.makeText(requireContext(), "Danh sách phát đang trống", Toast.LENGTH_SHORT).show()
-            return
+        if (index !in 0 until c.mediaItemCount) return
+        val item = c.getMediaItemAt(index)
+        val title = item.mediaMetadata.title?.toString()?.takeIf { it.isNotBlank() } ?: "Bài hát"
+
+        val popupView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_queue_row_menu, null)
+        val popup = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popup.elevation = 15f
+
+        popupView.findViewById<View>(R.id.btnRowShare).setOnClickListener {
+            popup.dismiss()
+            ShareHelper.shareSong(requireContext(), item.localConfiguration?.uri, title)
         }
-        val sb = StringBuilder("Danh sách phát Lunar Music ($count bài)\n\n")
-        for (i in 0 until count) {
-            val md = c.getMediaItemAt(i).mediaMetadata
-            val title = md.title?.toString()?.takeIf { it.isNotBlank() } ?: "Không rõ tên"
-            val artist = md.artist?.toString()?.takeIf { it.isNotBlank() && !it.contains("unknown", ignoreCase = true) }
-            sb.append("${i + 1}. ").append(title)
-            if (artist != null) sb.append(" - ").append(artist)
-            val sec = (md.durationMs ?: 0L) / 1000
-            if (sec > 0) sb.append(String.format(" (%d:%02d)", sec / 60, sec % 60))
-            sb.append('\n')
-        }
-        val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Danh sách phát Lunar Music")
-            putExtra(Intent.EXTRA_TEXT, sb.toString().trimEnd())
-        }
-        startActivity(Intent.createChooser(send, "Chia sẻ danh sách phát"))
+
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        popup.showAsDropDown(anchor, anchor.width - popupView.measuredWidth, 0)
     }
 
     // Bảng "Xóa": xóa bài này / xóa nhiều / xóa tất cả
@@ -423,9 +418,7 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
                 }
             },
             onStartDrag = { vh -> itemTouchHelper.startDrag(vh) },
-            onMoreClick = { _, _ ->
-                Toast.makeText(requireContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show()
-            },
+            onMoreClick = { index, view -> showRowMenu(index, view) },
             onSelectionChanged = { updateSelectionUI() }
         )
 
