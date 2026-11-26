@@ -117,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = songAdapter
         defaultSearchHint = binding.etSearch.hint
         onBackPressedDispatcher.addCallback(this, backCallback)
+        binding.folderBackBar.setOnClickListener { closeFolder() }   // thanh "← Tên thư mục"
 
         setupCategoryChips()
         setupSearchBar()
@@ -290,6 +291,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun filterAndShowSongs() {
+        // Thanh quay lại chỉ hiện khi đang mở bên trong 1 thư mục
+        binding.folderBackBar.visibility = if (openFolder != null) View.VISIBLE else View.GONE
+        binding.tvFolderTitle.text = openFolder?.name ?: ""
+
         // Tab Thư mục (chưa mở thư mục nào): hiện danh sách thư mục
         if (isShowingFolders && openFolder == null) {
             if (binding.recyclerView.adapter !== folderAdapter) binding.recyclerView.adapter = folderAdapter
