@@ -10,6 +10,7 @@ import java.text.Collator
 import java.util.Locale
 import android.widget.PopupWindow
 import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.doAfterTextChanged
 import android.widget.EditText
 import android.os.Bundle
 import android.view.KeyEvent
@@ -305,8 +306,14 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
         dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
         val edt = view.findViewById<EditText>(R.id.edtPlaylistName)
-        edt.setText("Danh sách phát ${PlaylistStore.getAll(requireContext()).size + 1}")
+        // Tên mặc định: tìm số nhỏ nhất chưa bị trùng
+        var n = PlaylistStore.getAll(requireContext()).size + 1
+        while (PlaylistStore.exists(requireContext(), "Danh sách phát $n")) n++
+        edt.setText("Danh sách phát $n")
         edt.selectAll()
+
+        val tvError = view.findViewById<TextView>(R.id.tvSaveError)
+        edt.doAfterTextChanged { tvError.visibility = View.GONE }   // gõ lại thì ẩn báo lỗi
 
         view.findViewById<View>(R.id.btnSaveCancel).setOnClickListener { dialog.dismiss() }
         view.findViewById<View>(R.id.btnSaveOk).setOnClickListener {
@@ -318,7 +325,11 @@ class QueueBottomSheet : BottomSheetDialogFragment() {
             val uris = (0 until c.mediaItemCount).mapNotNull {
                 c.getMediaItemAt(it).localConfiguration?.uri?.toString()
             }
-            PlaylistStore.add(requireContext(), name, uris)
+            // Tên trùng: báo lỗi, không lưu, giữ nguyên hộp thoại để đặt tên khác
+            if (!PlaylistStore.add(requireContext(), name, uris)) {
+                tvError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
             dialog.dismiss()
             Toast.makeText(requireContext(), "Đã lưu vào Thư mục", Toast.LENGTH_SHORT).show()
         }
