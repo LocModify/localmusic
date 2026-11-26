@@ -15,9 +15,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
-import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.VelocityTracker
+import android.view.ViewConfiguration
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
@@ -46,6 +47,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import kotlin.math.abs
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,8 +69,12 @@ class MainActivity : AppCompatActivity() {
     // Tab hiện tại: 0 = Tất cả, 1 = Yêu thích, 2 = Thư mục (vuốt trái/phải để đổi tab)
     private var currentTab = 0
     private var isSwitching = false
-    private lateinit var swipeDetector: GestureDetector
-    private var swipeStartedInList = false
+    // Trạng thái kéo (vuốt) ngang trên danh sách
+    private var swipeTracking = false     // đang theo dõi cú chạm bắt đầu trong vùng danh sách
+    private var swipeDragging = false     // đã khóa là vuốt ngang -> danh sách đi theo ngón tay
+    private var swipeStartX = 0f
+    private var swipeStartY = 0f
+    private var swipeVelocity: VelocityTracker? = null
 
     // Nút Back: đang mở thư mục thì quay về danh sách thư mục
     private val backCallback = object : OnBackPressedCallback(false) {
@@ -130,7 +136,6 @@ class MainActivity : AppCompatActivity() {
         defaultSearchHint = binding.etSearch.hint
         onBackPressedDispatcher.addCallback(this, backCallback)
         binding.folderBackBar.setOnClickListener { closeFolder() }   // thanh "← Tên thư mục"
-        setupSwipeTabs()
 
         setupCategoryChips()
         setupSearchBar()
@@ -244,9 +249,6 @@ class MainActivity : AppCompatActivity() {
                     openFolder = null
                     backCallback.isEnabled = false
                     binding.etSearch.hint = defaultSearchHint
-                    if (PlaylistStore.getAll(this).isEmpty()) {
-                        Toast.makeText(this, "Chưa có thư mục. Hãy lưu từ Danh sách phát (nút ...)", Toast.LENGTH_LONG).show()
-                    }
                 }
             }
             currentTab = index
@@ -260,11 +262,14 @@ class MainActivity : AppCompatActivity() {
         val rv = binding.recyclerView
         isSwitching = true
         val distance = rv.width * 0.18f          // quãng trượt (tăng số này = trượt xa hơn)
+        // Quãng trượt ra: nếu vừa kéo bằng tay thì trượt tiếp từ vị trí hiện tại, không bị giật lùi
+        val exitDistance = maxOf(distance, abs(rv.translationX) + rv.width * 0.08f)
         rv.animate().cancel()
         rv.animate()
-            .translationX(-dir * distance)
+            .translationX(-dir * exitDistance)
             .alpha(0f)
-            .setDuration(130)                     // thời gian trượt ra (ms)
+            .setDuration(120)                     // thời gian trượt ra (ms)
+            .withLayer()
             .setInterpolator(AccelerateInterpolator())
             .withEndAction {
                 change()
@@ -273,52 +278,118 @@ class MainActivity : AppCompatActivity() {
                 rv.animate()
                     .translationX(0f)
                     .alpha(1f)
-                    .setDuration(240)             // thời gian trượt vào (ms)
-                    .setInterpolator(DecelerateInterpolator(1.6f))
+                    .setDuration(260)             // thời gian trượt vào (ms)
+                    .withLayer()
+                    .setInterpolator(DecelerateInterpolator(1.8f))
                     .withEndAction { isSwitching = false }
                     .start()
             }
             .start()
     }
 
-    // ===== Vuốt ngang trên danh sách để đổi tab =====
-    private fun setupSwipeTabs() {
-        val minDistance = resources.displayMetrics.density * 70f   // phải vuốt ít nhất ~70dp
-        swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-                if (e1 == null) return false
-                val dx = e2.x - e1.x
-                val dy = e2.y - e1.y
-                // chỉ tính khi vuốt đủ dài, đủ nhanh và chủ yếu theo chiều ngang (không nhầm với cuộn dọc)
-                if (abs(dx) > minDistance && abs(dx) > abs(dy) * 1.5f && abs(velocityX) > 500f) {
-                    onSwipeTab(if (dx < 0) 1 else -1)
-                    return true
-                }
-                return false
-            }
-        })
+    // ===== Vuốt ngang trên danh sách để đổi tab: danh sách đi theo ngón tay, thả ra thì chuyển/hoàn lại =====
+    // Có thể chuyển theo hướng dir (1 = tab kế, -1 = lùi) không?
+    private fun canSwipe(dir: Int): Boolean {
+        if (openFolder != null) return dir == -1            // đang mở thư mục: chỉ vuốt phải để thoát
+        return (currentTab + dir) in 0..2
     }
 
-    private fun onSwipeTab(dir: Int) {
-        if (isSwitching) return
-        // Đang mở trong thư mục: vuốt sang phải = quay về danh sách thư mục
-        if (openFolder != null) {
-            if (dir == -1) closeFolder()
-            return
-        }
-        val target = currentTab + dir
-        if (target in 0..2) selectTab(target)
+    private fun commitSwipe(dir: Int) {
+        if (openFolder != null) closeFolder() else selectTab(currentTab + dir)
+    }
+
+    // Trả danh sách về vị trí cũ (khi vuốt chưa đủ xa hoặc đang ở tab đầu/cuối)
+    private fun cancelSwipe() {
+        val rv = binding.recyclerView
+        isSwitching = true
+        rv.animate().cancel()
+        rv.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .setDuration(200)
+            .setInterpolator(DecelerateInterpolator(1.6f))
+            .withEndAction {
+                rv.setLayerType(View.LAYER_TYPE_NONE, null)
+                isSwitching = false
+            }
+            .start()
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (::swipeDetector.isInitialized) {
-            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
-                // Chỉ nhận vuốt khi ngón tay bắt đầu trong vùng danh sách
+        val rv = binding.recyclerView
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
                 val rect = Rect()
-                swipeStartedInList = binding.recyclerView.getGlobalVisibleRect(rect) &&
+                // Chỉ nhận vuốt khi ngón tay bắt đầu trong vùng danh sách và không đang chạy hiệu ứng
+                swipeTracking = !isSwitching && rv.getGlobalVisibleRect(rect) &&
                     rect.contains(ev.rawX.toInt(), ev.rawY.toInt())
+                swipeDragging = false
+                swipeStartX = ev.rawX
+                swipeStartY = ev.rawY
+                swipeVelocity?.recycle()
+                swipeVelocity = if (swipeTracking) VelocityTracker.obtain().also { it.addMovement(ev) } else null
             }
-            if (swipeStartedInList) swipeDetector.onTouchEvent(ev)
+
+            MotionEvent.ACTION_MOVE -> if (swipeTracking) {
+                swipeVelocity?.addMovement(ev)
+                val dx = ev.rawX - swipeStartX
+                val dy = ev.rawY - swipeStartY
+                val slop = ViewConfiguration.get(this).scaledTouchSlop
+
+                if (!swipeDragging) {
+                    if (abs(dx) > slop && abs(dx) > abs(dy) * 1.2f) {
+                        // Khóa vuốt ngang: hủy cú chạm đang gửi cho item (tránh bấm nhầm / cuộn dọc)
+                        swipeDragging = true
+                        val cancel = MotionEvent.obtain(ev)
+                        cancel.action = MotionEvent.ACTION_CANCEL
+                        super.dispatchTouchEvent(cancel)
+                        cancel.recycle()
+                        rv.animate().cancel()
+                        rv.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+                    } else if (abs(dy) > slop && abs(dy) > abs(dx)) {
+                        swipeTracking = false                 // cuộn dọc bình thường
+                    }
+                }
+
+                if (swipeDragging) {
+                    val dir = if (dx < 0) 1 else -1
+                    if (canSwipe(dir)) {
+                        rv.translationX = dx * 0.9f           // đi theo ngón tay
+                        rv.alpha = 1f - 0.5f * min(abs(dx) / rv.width, 1f)
+                    } else {
+                        rv.translationX = dx * 0.25f          // đầu/cuối: kéo nặng tay, thả ra sẽ bật lại
+                        rv.alpha = 1f
+                    }
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (swipeDragging) {
+                    swipeVelocity?.addMovement(ev)
+                    swipeVelocity?.computeCurrentVelocity(1000)
+                    val vx = swipeVelocity?.xVelocity ?: 0f
+                    val dx = ev.rawX - swipeStartX
+                    val dir = if (dx < 0) 1 else -1
+                    // Vuốt nhẹ cũng được: chỉ cần kéo qua ~20% chiều rộng, hoặc vuốt nhanh một đoạn ngắn
+                    val farEnough = abs(dx) > rv.width * 0.20f
+                    val fastEnough = abs(vx) > 700f && abs(dx) > rv.width * 0.06f && (vx < 0) == (dx < 0)
+                    swipeDragging = false
+                    swipeTracking = false
+                    swipeVelocity?.recycle()
+                    swipeVelocity = null
+                    if (ev.actionMasked == MotionEvent.ACTION_UP && canSwipe(dir) && (farEnough || fastEnough)) {
+                        rv.setLayerType(View.LAYER_TYPE_NONE, null)
+                        commitSwipe(dir)
+                    } else {
+                        cancelSwipe()
+                    }
+                    return true
+                }
+                swipeTracking = false
+                swipeVelocity?.recycle()
+                swipeVelocity = null
+            }
         }
         return super.dispatchTouchEvent(ev)
     }
