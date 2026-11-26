@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Một dòng thư mục (danh sách phát đã lưu) -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingStart="16dp"
+    android:paddingEnd="12dp">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardFolder"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:cardBackgroundColor="#EFE5FF"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_folder" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/tvFolderName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:maxLines="1"
+        android:textColor="#1F1B2E"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@id/tvFolderCount"
+        app:layout_constraintEnd_toStartOf="@id/btnFolderMore"
+        app:layout_constraintStart_toEndOf="@id/cardFolder"
+        app:layout_constraintTop_toTopOf="@id/cardFolder"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/tvFolderCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="sans-serif"
+        android:maxLines="1"
+        android:textColor="#8E8AA0"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/cardFolder"
+        app:layout_constraintEnd_toEndOf="@id/tvFolderName"
+        app:layout_constraintStart_toStartOf="@id/tvFolderName"
+        app:layout_constraintTop_toBottomOf="@id/tvFolderName" />
+
+    <ImageView
+        android:id="@+id/btnFolderMore"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintBottom_toBottomOf="@id/cardFolder"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/cardFolder" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginEnd="8dp"
+        android:background="#EDE9F6"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tvFolderName" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
