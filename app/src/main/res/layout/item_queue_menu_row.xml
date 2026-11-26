@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
+    android:drawablePadding="12dp"
     android:fontFamily="sans-serif-medium"
+    android:gravity="center_vertical"
     android:padding="12dp"
     android:textColor="#1F1B2E"
     android:textSize="15sp" />
