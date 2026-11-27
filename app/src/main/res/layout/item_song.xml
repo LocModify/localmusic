@@ -91,6 +91,19 @@
         app:layout_constraintTop_toTopOf="@id/cardCover"
         app:layout_constraintBottom_toBottomOf="@id/cardCover" />
 
+    <!-- Vòng tròn chọn (chế độ chọn nhiều) - nằm đúng chỗ nút ba chấm -->
+    <ImageView
+        android:id="@+id/ivSelect"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:src="@drawable/ic_check_circle_outline"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        app:layout_constraintEnd_toEndOf="@id/btnMore"
+        app:layout_constraintStart_toStartOf="@id/btnMore"
+        app:layout_constraintTop_toTopOf="@id/cardCover"
+        app:tint="#9E9E9E" />
+
     <View
         android:id="@+id/divider"
         android:layout_width="0dp"
