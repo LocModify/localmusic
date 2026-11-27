@@ -127,8 +127,13 @@ class MainActivity : AppCompatActivity() {
         songAdapter = SongAdapter(
             songs = tracks,
             onSongClick = { track -> 
-                val index = tracks.indexOf(track)
-                if (index != -1) playSongAt(index)
+                val folder = openFolder
+                if (folder != null) {
+                    playFromFolder(track, folder)      // đang mở thư mục: phát lần lượt theo thư mục
+                } else {
+                    val index = tracks.indexOf(track)
+                    if (index != -1) playSongAt(index)
+                }
             },
             onMoreClick = { track, view -> 
                 val index = tracks.indexOf(track)
@@ -817,6 +822,36 @@ class MainActivity : AppCompatActivity() {
             c.seekTo(insertIndex, 0L)
             c.play()
         }
+    }
+
+    // Phát bài trong thư mục: hàng đợi = các bài của thư mục này (đúng thứ tự),
+    // hết thư mục thì nối tiếp sang các thư mục bên dưới (đúng thứ tự trong danh sách thư mục)
+    private fun playFromFolder(track: Track, folder: SavedPlaylist) {
+        val c = controller ?: return
+        val folders = PlaylistStore.getAll(this)
+        val start = folders.indexOfFirst { it.name == folder.name }.coerceAtLeast(0)
+
+        val seen = mutableSetOf<String>()          // mỗi bài chỉ xuất hiện 1 lần trong hàng đợi
+        val queue = mutableListOf<Track>()
+        for (f in folders.drop(start)) {
+            for (u in f.uris) {
+                if (!seen.add(u)) continue
+                tracks.firstOrNull { it.uri.toString() == u }?.let { queue.add(it) }
+            }
+        }
+        val startIndex = queue.indexOfFirst { it.uri == track.uri }
+        if (startIndex == -1) return
+
+        // Hàng đợi hiện tại đã đúng y như vậy thì chỉ cần chuyển bài, không dựng lại
+        val sameQueue = c.mediaItemCount == queue.size &&
+            (0 until c.mediaItemCount).all { c.getMediaItemAt(it).localConfiguration?.uri == queue[it].uri }
+        if (sameQueue) {
+            c.seekTo(startIndex, 0L)
+        } else {
+            c.setMediaItems(queue.map { buildMediaItem(it) }, startIndex, 0L)
+            c.prepare()
+        }
+        c.play()
     }
 
     private fun connectController() {
