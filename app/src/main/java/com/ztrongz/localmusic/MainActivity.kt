@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.VelocityTracker
@@ -39,7 +40,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.ztrongz.localmusic.databinding.ActivityMainBinding
@@ -79,9 +82,15 @@ class MainActivity : AppCompatActivity() {
     // Nút Back: đang mở thư mục thì quay về danh sách thư mục
     private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            closeFolder()
+            if (songAdapter.isSelecting) exitFolderSelection() else closeFolder()
         }
     }
+
+    // Kéo thả đổi vị trí (giữ lâu rồi kéo lên/xuống)
+    private lateinit var reorderHelper: ItemTouchHelper
+    private var isReordering = false
+    private var dragMoved = false
+    private var dragOriginalBg: android.graphics.drawable.Drawable? = null
 
     private val pickFiles = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -124,7 +133,8 @@ class MainActivity : AppCompatActivity() {
             onMoreClick = { track, view -> 
                 val index = tracks.indexOf(track)
                 if (index != -1) showSongOptions(index, view)
-            }
+            },
+            onSelectionChanged = { refreshFolderBar() }
         )
         folderAdapter = FolderAdapter(
             countOf = { p -> tracks.count { t -> p.uris.contains(t.uri.toString()) } },
@@ -139,7 +149,15 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = songAdapter
         defaultSearchHint = binding.etSearch.hint
         onBackPressedDispatcher.addCallback(this, backCallback)
-        binding.folderBackBar.setOnClickListener { closeFolder() }   // thanh "← Tên thư mục"
+        // Thanh "← Tên thư mục": đang chọn nhiều thì thoát chế độ chọn, không thì về danh sách thư mục
+        binding.folderBackBar.setOnClickListener {
+            if (songAdapter.isSelecting) exitFolderSelection() else closeFolder()
+        }
+        binding.tvFolderSelect.setOnClickListener {
+            if (songAdapter.isSelecting) exitFolderSelection() else songAdapter.enterSelection()
+        }
+        binding.tvFolderDelete.setOnClickListener { deleteSelectedFromFolder() }
+        setupReorder()
 
         setupCategoryChips()
         setupSearchBar()
@@ -325,7 +343,8 @@ class MainActivity : AppCompatActivity() {
             MotionEvent.ACTION_DOWN -> {
                 val rect = Rect()
                 // Chỉ nhận vuốt khi ngón tay bắt đầu trong vùng danh sách và không đang chạy hiệu ứng
-                swipeTracking = !isSwitching && rv.getGlobalVisibleRect(rect) &&
+                val selecting = ::songAdapter.isInitialized && songAdapter.isSelecting
+                swipeTracking = !isSwitching && !selecting && rv.getGlobalVisibleRect(rect) &&
                     rect.contains(ev.rawX.toInt(), ev.rawY.toInt())
                 swipeDragging = false
                 swipeStartX = ev.rawX
@@ -334,7 +353,7 @@ class MainActivity : AppCompatActivity() {
                 swipeVelocity = if (swipeTracking) VelocityTracker.obtain().also { it.addMovement(ev) } else null
             }
 
-            MotionEvent.ACTION_MOVE -> if (swipeTracking) {
+            MotionEvent.ACTION_MOVE -> if (swipeTracking && !isReordering) {
                 swipeVelocity?.addMovement(ev)
                 val dx = ev.rawX - swipeStartX
                 val dy = ev.rawY - swipeStartY
@@ -426,6 +445,103 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ===== Chọn nhiều trong thư mục =====
+    private fun exitFolderSelection() {
+        songAdapter.exitSelection()
+        refreshFolderBar()
+    }
+
+    // Cập nhật thanh thư mục: tên / "Đã chọn N" và các nút Chọn - Hủy - Xóa
+    private fun refreshFolderBar() {
+        val f = openFolder ?: return
+        val selecting = songAdapter.isSelecting
+        binding.tvFolderTitle.text = if (selecting) "Đã chọn ${songAdapter.selectedCount()}" else f.name
+        binding.tvFolderDelete.visibility = if (selecting) View.VISIBLE else View.GONE
+        binding.tvFolderSelect.text = if (selecting) "Hủy" else "Chọn"
+    }
+
+    // Xóa các bài đã chọn khỏi thư mục (bài vẫn còn trong thư viện)
+    private fun deleteSelectedFromFolder() {
+        val f = openFolder ?: return
+        val uris = songAdapter.selectedUris()
+        if (uris.isEmpty()) {
+            Toast.makeText(this, "Chưa chọn bài nào", Toast.LENGTH_SHORT).show()
+            return
+        }
+        PlaylistStore.removeSongs(this, f.name, uris)
+        openFolder = PlaylistStore.getAll(this).firstOrNull { it.name == f.name }
+        songAdapter.exitSelection()
+        Toast.makeText(this, "Đã xóa ${uris.size} bài khỏi thư mục", Toast.LENGTH_SHORT).show()
+        filterAndShowSongs()
+    }
+
+    // ===== Giữ rồi kéo lên/xuống để đổi vị trí: thư mục (trong danh sách thư mục) hoặc bài (trong thư mục) =====
+    private fun setupReorder() {
+        reorderHelper = ItemTouchHelper(object : ItemTouchHelper.Callback() {
+            override fun isLongPressDragEnabled() = true
+            override fun isItemViewSwipeEnabled() = false
+
+            override fun getMovementFlags(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
+                val canDrag = when {
+                    currentQuery.isNotEmpty() -> false                       // đang tìm kiếm: không đổi vị trí
+                    rv.adapter === folderAdapter -> true
+                    rv.adapter === songAdapter -> openFolder != null && !songAdapter.isSelecting
+                    else -> false
+                }
+                return if (canDrag) makeMovementFlags(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) else 0
+            }
+
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+                val from = vh.bindingAdapterPosition
+                val to = target.bindingAdapterPosition
+                if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
+                if (rv.adapter === folderAdapter) folderAdapter.moveItem(from, to) else songAdapter.moveItem(from, to)
+                dragMoved = true
+                return true
+            }
+
+            override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {}
+
+            // Bắt đầu kéo: rung nhẹ, nổi bật dòng đang kéo
+            override fun onSelectedChanged(vh: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(vh, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && vh != null) {
+                    isReordering = true
+                    swipeTracking = false                 // không để vuốt đổi tab chen vào
+                    dragMoved = false
+                    vh.itemView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    dragOriginalBg = vh.itemView.background
+                    vh.itemView.setBackgroundColor(Color.parseColor("#F3ECFF"))
+                    vh.itemView.elevation = 16f
+                    vh.itemView.animate().alpha(0.95f).setDuration(120).start()
+                }
+            }
+
+            // Thả tay: trả giao diện về như cũ và lưu thứ tự mới
+            override fun clearView(rv: RecyclerView, vh: RecyclerView.ViewHolder) {
+                super.clearView(rv, vh)
+                if (!isReordering) return
+                isReordering = false
+                vh.itemView.background = dragOriginalBg
+                vh.itemView.elevation = 0f
+                vh.itemView.animate().alpha(1f).setDuration(120).start()
+                if (!dragMoved) return
+                dragMoved = false
+
+                if (rv.adapter === folderAdapter) {
+                    PlaylistStore.reorder(this@MainActivity, folderAdapter.currentList().map { it.name })
+                } else {
+                    val f = openFolder ?: return
+                    val shown = songAdapter.currentList().map { it.uri.toString() }
+                    val rest = f.uris.filter { it !in shown }      // bài không hiển thị (đã xóa khỏi thư viện) giữ ở cuối
+                    PlaylistStore.setOrder(this@MainActivity, f.name, shown + rest)
+                    openFolder = PlaylistStore.getAll(this@MainActivity).firstOrNull { it.name == f.name }
+                }
+            }
+        })
+        reorderHelper.attachToRecyclerView(binding.recyclerView)
+    }
+
     // Menu dấu 3 chấm của thư mục: xóa thư mục (không xóa bài hát)
     private fun showFolderMenu(p: SavedPlaylist, anchor: View) {
         val popupView = LayoutInflater.from(this).inflate(R.layout.dialog_folder_menu, null)
@@ -477,7 +593,9 @@ class MainActivity : AppCompatActivity() {
             bar.alpha = 1f
             bar.visibility = View.GONE
         }
-        binding.tvFolderTitle.text = openFolder?.name ?: ""
+        // Rời khỏi thư mục thì thoát chế độ chọn nhiều
+        if (openFolder == null && songAdapter.isSelecting) songAdapter.exitSelection()
+        refreshFolderBar()
 
         // Tab Thư mục (chưa mở thư mục nào): hiện danh sách thư mục
         if (isShowingFolders && openFolder == null) {
@@ -493,9 +611,9 @@ class MainActivity : AppCompatActivity() {
 
         var displayList: List<Track> = tracks
 
-        // Đang mở 1 thư mục: chỉ hiện các bài thuộc thư mục đó
+        // Đang mở 1 thư mục: chỉ hiện các bài thuộc thư mục đó, theo đúng thứ tự đã sắp
         openFolder?.let { f ->
-            displayList = displayList.filter { f.uris.contains(it.uri.toString()) }
+            displayList = f.uris.mapNotNull { u -> tracks.firstOrNull { it.uri.toString() == u } }
         }
 
         if (isShowingFavorites) {
