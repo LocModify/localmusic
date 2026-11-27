@@ -128,6 +128,10 @@ class MainActivity : AppCompatActivity() {
         )
         folderAdapter = FolderAdapter(
             countOf = { p -> tracks.count { t -> p.uris.contains(t.uri.toString()) } },
+            // Ảnh thư mục = ảnh bìa của bài đầu tiên (bài còn tồn tại trong thư viện)
+            coverOf = { p ->
+                p.uris.firstNotNullOfOrNull { u -> tracks.firstOrNull { it.uri.toString() == u } }?.cover
+            },
             onFolderClick = { p -> openFolderView(p) },
             onMoreClick = { p, view -> showFolderMenu(p, view) }
         )
