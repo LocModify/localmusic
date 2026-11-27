@@ -507,6 +507,19 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {}
 
+            // Tự cuộn danh sách khi kéo dòng sát mép trên/dưới: mặc định rất chậm nên tự tính lại
+            override fun interpolateOutOfBoundsScroll(
+                rv: RecyclerView, viewSize: Int, viewSizeOutOfBounds: Int,
+                totalSize: Int, msSinceStartScroll: Long
+            ): Int {
+                val dir = if (viewSizeOutOfBounds < 0) -1 else 1
+                val maxPx = rv.resources.displayMetrics.density * 36f           // tốc độ tối đa mỗi khung hình (dp)
+                val ratio = min(1f, abs(viewSizeOutOfBounds).toFloat() / viewSize)   // kéo ra khỏi mép càng xa càng nhanh
+                val timeRatio = min(1f, msSinceStartScroll / 500f)                 // giữ càng lâu càng nhanh
+                val speed = maxPx * (0.30f + 0.70f * ratio) * (0.45f + 0.55f * timeRatio)
+                return dir * maxOf(speed.toInt(), 6)
+            }
+
             // Bắt đầu kéo: rung nhẹ, nổi bật dòng đang kéo
             override fun onSelectedChanged(vh: RecyclerView.ViewHolder?, actionState: Int) {
                 super.onSelectedChanged(vh, actionState)
@@ -831,11 +844,10 @@ class MainActivity : AppCompatActivity() {
         val folders = PlaylistStore.getAll(this)
         val start = folders.indexOfFirst { it.name == folder.name }.coerceAtLeast(0)
 
-        val seen = mutableSetOf<String>()          // mỗi bài chỉ xuất hiện 1 lần trong hàng đợi
+        // Nối đúng theo từng thư mục (bài nằm ở nhiều thư mục vẫn được phát lại ở thư mục sau)
         val queue = mutableListOf<Track>()
         for (f in folders.drop(start)) {
             for (u in f.uris) {
-                if (!seen.add(u)) continue
                 tracks.firstOrNull { it.uri.toString() == u }?.let { queue.add(it) }
             }
         }
