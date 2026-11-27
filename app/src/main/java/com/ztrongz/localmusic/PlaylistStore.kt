@@ -53,6 +53,15 @@ object PlaylistStore {
         return true
     }
 
+    // Bỏ 1 bài khỏi thư mục (KHÔNG xóa bài khỏi thư viện)
+    fun removeSong(context: Context, folderName: String, uri: String) {
+        val list = getAll(context)
+        val i = list.indexOfFirst { it.name == folderName }
+        if (i == -1) return
+        list[i] = SavedPlaylist(folderName, list[i].uris.filter { it != uri })
+        saveAll(context, list)
+    }
+
     fun delete(context: Context, name: String) {
         val list = getAll(context)
         list.removeAll { it.name == name }
