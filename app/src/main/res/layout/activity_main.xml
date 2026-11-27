@@ -315,6 +315,33 @@
             android:maxLines="1"
             android:textColor="#1F1B2E"
             android:textSize="16sp" />
+
+        <!-- Chỉ hiện khi đang chọn nhiều: xóa các bài đã chọn khỏi thư mục -->
+        <TextView
+            android:id="@+id/tvFolderDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="8dp"
+            android:text="Xóa"
+            android:textColor="#FF0000"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <!-- Chọn nhiều / Hủy -->
+        <TextView
+            android:id="@+id/tvFolderSelect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="8dp"
+            android:text="Chọn"
+            android:textColor="#7C3AED"
+            android:textSize="15sp" />
     </LinearLayout>
 
     <!-- RECYCLERVIEW -->
