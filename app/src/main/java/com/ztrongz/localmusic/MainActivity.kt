@@ -600,9 +600,22 @@ class MainActivity : AppCompatActivity() {
             ShareHelper.shareSong(this, track.uri, track.title)
         }
 
+        // Đang xem bên trong 1 thư mục: "Xóa" chỉ bỏ bài khỏi thư mục, KHÔNG xóa khỏi thư viện (tab Tất cả)
+        val folder = openFolder
+        if (folder != null) {
+            ((btnDelete as ViewGroup).getChildAt(1) as TextView).text = "Xóa khỏi thư mục"
+        }
+
         btnDelete.setOnClickListener {
             popupWindow.dismiss()
-            deleteSong(position)
+            if (folder != null) {
+                PlaylistStore.removeSong(this, folder.name, track.uri.toString())
+                openFolder = PlaylistStore.getAll(this).firstOrNull { it.name == folder.name }
+                Toast.makeText(this, "Đã xóa khỏi thư mục", Toast.LENGTH_SHORT).show()
+                filterAndShowSongs()
+            } else {
+                deleteSong(position)
+            }
         }
 
         popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
