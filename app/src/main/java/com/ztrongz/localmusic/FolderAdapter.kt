@@ -16,7 +16,7 @@ class FolderAdapter(
     private val onMoreClick: (SavedPlaylist, View) -> Unit
 ) : RecyclerView.Adapter<FolderAdapter.VH>() {
 
-    private var items: List<SavedPlaylist> = emptyList()
+    private var items: MutableList<SavedPlaylist> = mutableListOf()
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvName: TextView = view.findViewById(R.id.tvFolderName)
@@ -42,7 +42,17 @@ class FolderAdapter(
     override fun getItemCount(): Int = items.size
 
     fun updateData(newList: List<SavedPlaylist>) {
-        items = newList
+        items = newList.toMutableList()
         notifyDataSetChanged()
     }
+
+    // Kéo thả đổi vị trí thư mục
+    fun moveItem(from: Int, to: Int) {
+        if (from !in items.indices || to !in items.indices) return
+        val item = items.removeAt(from)
+        items.add(to, item)
+        notifyItemMoved(from, to)
+    }
+
+    fun currentList(): List<SavedPlaylist> = items
 }
