@@ -53,6 +53,32 @@ object PlaylistStore {
         return true
     }
 
+    // Bỏ nhiều bài khỏi thư mục cùng lúc (KHÔNG xóa khỏi thư viện)
+    fun removeSongs(context: Context, folderName: String, uris: Set<String>) {
+        val list = getAll(context)
+        val i = list.indexOfFirst { it.name == folderName }
+        if (i == -1) return
+        list[i] = SavedPlaylist(folderName, list[i].uris.filter { it !in uris })
+        saveAll(context, list)
+    }
+
+    // Lưu thứ tự các thư mục theo danh sách tên (sau khi kéo thả)
+    fun reorder(context: Context, names: List<String>) {
+        val all = getAll(context)
+        val ordered = names.mapNotNull { n -> all.firstOrNull { it.name == n } }
+        val rest = all.filter { p -> names.none { it == p.name } }   // phòng trường hợp thiếu
+        saveAll(context, ordered + rest)
+    }
+
+    // Lưu thứ tự các bài trong 1 thư mục (sau khi kéo thả)
+    fun setOrder(context: Context, folderName: String, uris: List<String>) {
+        val list = getAll(context)
+        val i = list.indexOfFirst { it.name == folderName }
+        if (i == -1) return
+        list[i] = SavedPlaylist(folderName, uris)
+        saveAll(context, list)
+    }
+
     // Bỏ 1 bài khỏi thư mục (KHÔNG xóa bài khỏi thư viện)
     fun removeSong(context: Context, folderName: String, uri: String) {
         val list = getAll(context)
