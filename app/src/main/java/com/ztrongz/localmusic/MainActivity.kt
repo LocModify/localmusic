@@ -115,6 +115,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Chọn thêm bài cho 1 thư mục (dùng màn hình PickSongsActivity ở chế độ thư mục)
+    private var pendingAddFolder: String? = null
+    private val addToFolderLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val name = pendingAddFolder
+        pendingAddFolder = null
+        if (result.resultCode == RESULT_OK && name != null) {
+            val uris = result.data?.getStringArrayListExtra(PickSongsActivity.RESULT_URIS)
+            if (!uris.isNullOrEmpty()) {
+                val added = PlaylistStore.addSongs(this, name, uris)
+                Toast.makeText(this, "Đã thêm $added bài vào thư mục", Toast.LENGTH_SHORT).show()
+                filterAndShowSongs()
+            }
+        }
+    }
+
     private val requestNotif = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { }
@@ -573,6 +590,32 @@ class MainActivity : AppCompatActivity() {
         popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         popup.elevation = 15f
 
+        popupView.findViewById<View>(R.id.btnFolderPlay).setOnClickListener {
+            popup.dismiss()
+            playFolder(p, shuffle = false)
+        }
+        popupView.findViewById<View>(R.id.btnFolderShuffle).setOnClickListener {
+            popup.dismiss()
+            playFolder(p, shuffle = true)
+        }
+        popupView.findViewById<View>(R.id.btnFolderQueue).setOnClickListener {
+            popup.dismiss()
+            addFolderToQueue(p)
+        }
+        popupView.findViewById<View>(R.id.btnFolderAddSongs).setOnClickListener {
+            popup.dismiss()
+            pendingAddFolder = p.name
+            val intent = Intent(this, PickSongsActivity::class.java)
+                .putExtra(PickSongsActivity.EXTRA_FOLDER_MODE, true)
+                .putExtra(PickSongsActivity.EXTRA_FOLDER_NAME, p.name)
+                .putStringArrayListExtra(PickSongsActivity.EXTRA_QUEUE_URIS, ArrayList(p.uris))   // bài đã có trong thư mục: làm mờ
+            addToFolderLauncher.launch(intent)
+            overridePendingTransition(R.anim.slide_up, 0)
+        }
+        popupView.findViewById<View>(R.id.btnFolderRename).setOnClickListener {
+            popup.dismiss()
+            showRenameFolderDialog(p)
+        }
         popupView.findViewById<View>(R.id.btnFolderDelete).setOnClickListener {
             popup.dismiss()
             PlaylistStore.delete(this, p.name)
@@ -838,20 +881,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Phát bài trong thư mục: hàng đợi = các bài của thư mục này (đúng thứ tự),
-    // hết thư mục thì nối tiếp sang các thư mục bên dưới (đúng thứ tự trong danh sách thư mục)
-    private fun playFromFolder(track: Track, folder: SavedPlaylist) {
-        val c = controller ?: return
+    // Hàng đợi của 1 thư mục: các bài của thư mục này (đúng thứ tự), rồi nối tiếp các thư mục bên dưới.
+    // Trả về (hàng đợi, số bài của chính thư mục này)
+    private fun buildFolderQueue(folder: SavedPlaylist): Pair<List<Track>, Int> {
         val folders = PlaylistStore.getAll(this)
         val start = folders.indexOfFirst { it.name == folder.name }.coerceAtLeast(0)
-
-        // Nối đúng theo từng thư mục (bài nằm ở nhiều thư mục vẫn được phát lại ở thư mục sau)
         val queue = mutableListOf<Track>()
-        for (f in folders.drop(start)) {
+        var own = 0
+        folders.drop(start).forEachIndexed { index, f ->
             for (u in f.uris) {
-                tracks.firstOrNull { it.uri.toString() == u }?.let { queue.add(it) }
+                tracks.firstOrNull { it.uri.toString() == u }?.let {
+                    queue.add(it)
+                    if (index == 0) own++
+                }
             }
         }
+        return queue to own
+    }
+
+    // Phát bài trong thư mục: hàng đợi = các bài của thư mục này, hết thì nối tiếp các thư mục bên dưới.
+    // shuffle: null = giữ nguyên chế độ ngẫu nhiên hiện tại, true / false = bật / tắt
+    private fun playFromFolder(track: Track, folder: SavedPlaylist, shuffle: Boolean? = null) {
+        val c = controller ?: return
+        val queue = buildFolderQueue(folder).first
         val startIndex = queue.indexOfFirst { it.uri == track.uri }
         if (startIndex == -1) return
 
@@ -864,7 +916,75 @@ class MainActivity : AppCompatActivity() {
             c.setMediaItems(queue.map { buildMediaItem(it) }, startIndex, 0L)
             c.prepare()
         }
+        if (shuffle != null) c.shuffleModeEnabled = shuffle
         c.play()
+    }
+
+    // Menu thư mục: "Phát" (từ bài đầu, theo thứ tự) / "Phát ngẫu nhiên" (bắt đầu từ 1 bài bất kỳ)
+    private fun playFolder(folder: SavedPlaylist, shuffle: Boolean) {
+        val (queue, own) = buildFolderQueue(folder)
+        if (own == 0) {
+            Toast.makeText(this, "Thư mục chưa có bài hát", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val startTrack = if (shuffle) queue[(0 until own).random()] else queue[0]
+        playFromFolder(startTrack, folder, shuffle)
+    }
+
+    // Menu thư mục: đưa các bài của thư mục vào CUỐI hàng đợi (không ngắt bài đang phát, bỏ qua bài đã có)
+    private fun addFolderToQueue(folder: SavedPlaylist) {
+        val c = controller ?: return
+        val (queue, own) = buildFolderQueue(folder)
+        if (own == 0) {
+            Toast.makeText(this, "Thư mục chưa có bài hát", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val existing = (0 until c.mediaItemCount).mapNotNull { c.getMediaItemAt(it).localConfiguration?.uri }.toSet()
+        val toAdd = queue.take(own).filter { it.uri !in existing }
+        if (toAdd.isEmpty()) {
+            Toast.makeText(this, "Các bài này đã có trong hàng đợi", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val items = toAdd.map { buildMediaItem(it) }
+        val shuffleOn = c.shuffleModeEnabled
+        if (c.mediaItemCount == 0) c.setMediaItems(items) else c.addMediaItems(items)
+        c.shuffleModeEnabled = shuffleOn
+        Toast.makeText(this, "Đã thêm ${toAdd.size} bài vào hàng đợi", Toast.LENGTH_SHORT).show()
+    }
+
+    // Đổi tên thư mục (không cho trùng tên)
+    private fun showRenameFolderDialog(folder: SavedPlaylist) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_save_playlist, null)
+        val dialog = AlertDialog.Builder(this).setView(view).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+
+        view.findViewById<TextView>(R.id.tvSaveTitle).text = "Đổi tên thư mục"
+        val edt = view.findViewById<EditText>(R.id.edtPlaylistName)
+        val tvError = view.findViewById<TextView>(R.id.tvSaveError)
+        edt.setText(folder.name)
+        edt.selectAll()
+        edt.doAfterTextChanged { tvError.visibility = View.GONE }
+
+        view.findViewById<View>(R.id.btnSaveCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<View>(R.id.btnSaveOk).setOnClickListener {
+            val name = edt.text.toString().trim()
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Hãy nhập tên thư mục", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (name == folder.name) {
+                dialog.dismiss()
+                return@setOnClickListener
+            }
+            if (!PlaylistStore.rename(this, folder.name, name)) {
+                tvError.visibility = View.VISIBLE      // tên trùng thư mục khác
+                return@setOnClickListener
+            }
+            dialog.dismiss()
+            filterAndShowSongs()
+        }
+        dialog.show()
     }
 
     private fun connectController() {
