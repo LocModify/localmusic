@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.text.TextUtils
 import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -120,6 +121,20 @@ class QueueAdapter(
         }
     }
 
+    private fun setMarquee(tv: TextView, on: Boolean) {
+        if (on) {
+            tv.ellipsize = TextUtils.TruncateAt.MARQUEE
+            tv.marqueeRepeatLimit = -1
+            tv.isHorizontalFadingEdgeEnabled = true
+            tv.setFadingEdgeLength((14 * tv.resources.displayMetrics.density).toInt())
+            tv.isSelected = true
+        } else {
+            tv.isSelected = false
+            tv.isHorizontalFadingEdgeEnabled = false
+            tv.ellipsize = TextUtils.TruncateAt.END
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
         val mediaItem = mutableItems[position]
@@ -167,9 +182,9 @@ class QueueAdapter(
             holder.tvDuration.visibility = View.VISIBLE
         }
 
-        // Tên dài: chữ tự chạy lặp lại (marquee cần isSelected = true)
-        holder.tvTitle.isSelected = true
-        holder.tvArtist.isSelected = true
+        // Chữ chạy (marquee) + mờ viền rất tốn GPU nếu bật cho mọi dòng -> chỉ bật ở bài đang phát
+        setMarquee(holder.tvTitle, isCurrent)
+        setMarquee(holder.tvArtist, isCurrent)
 
         applySelectionState(holder, position)
 
