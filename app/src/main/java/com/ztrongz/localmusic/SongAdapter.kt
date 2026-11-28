@@ -39,8 +39,9 @@ class SongAdapter(
             tvArtist.text = track.artist
             tvDuration.text = formatTime(track.duration)
 
-            if (track.cover != null) {
-                ivCover.setImageBitmap(track.cover)
+            val thumb = ThumbCache.get(track)
+            if (thumb != null) {
+                ivCover.setImageBitmap(thumb)
             } else {
                 ivCover.setImageResource(R.drawable.bg_cover_default)
             }
