@@ -45,6 +45,9 @@ class PickSongsActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_QUEUE_URIS = "queue_uris"       // danh sách uri đang có trong hàng đợi (do bảng Danh sách phát gửi sang)
         const val RESULT_ADDED_COUNT = "added_count"    // số bài đã thêm (trả về khi đóng)
+        const val EXTRA_FOLDER_MODE = "folder_mode"     // true = chọn bài cho 1 thư mục: chỉ trả về danh sách uri, không đụng tới trình phát
+        const val EXTRA_FOLDER_NAME = "folder_name"
+        const val RESULT_URIS = "result_uris"           // (chế độ thư mục) các uri đã chọn
         private const val THUMB_TARGET_PX = 128         // cạnh ngắn ảnh bìa thu nhỏ (px). Tăng = nét hơn nhưng tốn RAM hơn
         private const val BATCH_SIZE = 8                // đọc xong bao nhiêu bài thì cập nhật danh sách một lần
     }
@@ -63,6 +66,7 @@ class PickSongsActivity : AppCompatActivity() {
     private val selected = linkedSetOf<String>()          // các bài đã tick (theo uri)
     private val inQueue = hashSetOf<String>()             // các bài đã có trong hàng đợi
     private var query = ""
+    private var folderMode = false
 
     private lateinit var adapter: PickAdapter
     private lateinit var rvPick: RecyclerView
@@ -81,6 +85,11 @@ class PickSongsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_pick_songs)
 
         intent.getStringArrayListExtra(EXTRA_QUEUE_URIS)?.let { inQueue.addAll(it) }
+        folderMode = intent.getBooleanExtra(EXTRA_FOLDER_MODE, false)
+        if (folderMode) {
+            val name = intent.getStringExtra(EXTRA_FOLDER_NAME) ?: ""
+            findViewById<TextView>(R.id.tvPickTitle).text = "Thêm vào \"$name\""
+        }
 
         rvPick = findViewById(R.id.rvPick)
         tvSubtitle = findViewById(R.id.tvPickSubtitle)
@@ -136,7 +145,8 @@ class PickSongsActivity : AppCompatActivity() {
 
     private fun updateBottom() {
         val count = selected.size
-        btnConfirm.text = if (count > 0) "Thêm vào danh sách ($count)" else "Chọn bài hát để thêm"
+        val target = if (folderMode) "thư mục" else "danh sách"
+        btnConfirm.text = if (count > 0) "Thêm vào $target ($count)" else "Chọn bài hát để thêm"
         btnConfirm.isEnabled = count > 0
         btnConfirm.alpha = if (count > 0) 1f else 0.5f
         tvSubtitle.text = if (count > 0) "Đã chọn $count • ${allItems.size} bài hát" else "${allItems.size} bài hát trong thư viện"
@@ -149,6 +159,14 @@ class PickSongsActivity : AppCompatActivity() {
 
     // ---------------------------------------------------------------- Xác nhận thêm
     private fun confirmAdd() {
+        // Chế độ thư mục: chỉ trả về các uri đã chọn (giữ đúng thứ tự thư viện), màn hình chính sẽ lưu vào thư mục
+        if (folderMode) {
+            val pickedUris = ArrayList(allItems.filter { selected.contains(it.uri) }.map { it.uri })
+            if (pickedUris.isEmpty()) return
+            setResult(RESULT_OK, Intent().putStringArrayListExtra(RESULT_URIS, pickedUris))
+            finishWithAnim()
+            return
+        }
         val c = controller
         if (c == null) {
             Toast.makeText(this, "Đang kết nối trình phát, thử lại sau giây lát", Toast.LENGTH_SHORT).show()
