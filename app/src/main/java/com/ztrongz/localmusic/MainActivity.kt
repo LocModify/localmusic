@@ -145,7 +145,8 @@ class MainActivity : AppCompatActivity() {
             countOf = { p -> tracks.count { t -> p.uris.contains(t.uri.toString()) } },
             // Ảnh thư mục = ảnh bìa của bài đầu tiên (bài còn tồn tại trong thư viện)
             coverOf = { p ->
-                p.uris.firstNotNullOfOrNull { u -> tracks.firstOrNull { it.uri.toString() == u } }?.cover
+                p.uris.firstNotNullOfOrNull { u -> tracks.firstOrNull { it.uri.toString() == u } }
+                    ?.let { ThumbCache.get(it) }
             },
             onFolderClick = { p -> openFolderView(p) },
             onMoreClick = { p, view -> showFolderMenu(p, view) }
@@ -928,19 +929,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Nén ảnh bìa gắn vào MediaItem rất tốn thời gian (chạy ở luồng chính) -> thu nhỏ còn tối đa 800px và nhớ kết quả
+    private val artworkCache = HashMap<String, ByteArray>()
+
+    private fun artworkBytesFor(track: Track): ByteArray {
+        val cover = track.cover ?: return defaultArtworkBytes
+        return artworkCache.getOrPut(track.uri.toString()) {
+            val maxSide = 800
+            val biggest = maxOf(cover.width, cover.height)
+            val bmp = if (biggest > maxSide) {
+                val s = maxSide.toFloat() / biggest
+                Bitmap.createScaledBitmap(cover, (cover.width * s).toInt(), (cover.height * s).toInt(), true)
+            } else cover
+            val stream = ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.JPEG, 88, stream)
+            stream.toByteArray()
+        }
+    }
+
     private fun buildMediaItem(track: Track): MediaItem {
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(track.title)
             .setArtist(track.artist)
             .setDurationMs(track.duration)
-
-        if (track.cover != null) {
-            val stream = ByteArrayOutputStream()
-            track.cover.compress(Bitmap.CompressFormat.JPEG, 90, stream)
-            metadataBuilder.setArtworkData(stream.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-        } else {
-            metadataBuilder.setArtworkData(getDefaultArtworkBytes(), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-        }
+            .setArtworkData(artworkBytesFor(track), MediaMetadata.PICTURE_TYPE_FRONT_COVER)
 
         return MediaItem.Builder()
             .setUri(track.uri)
@@ -971,11 +983,12 @@ class MainActivity : AppCompatActivity() {
         c.shuffleModeEnabled = wasShuffleOn 
     }
 
-    private fun getDefaultArtworkBytes(): ByteArray {
+    // Ảnh mặc định: chỉ giải mã + nén 1 lần (trước đây làm lại cho từng bài không có ảnh)
+    private val defaultArtworkBytes: ByteArray by lazy {
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.bg_cover_default)
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
-        return stream.toByteArray()
+        stream.toByteArray()
     }
 
     private fun extractTrackInfo(uri: Uri): Track? {
