@@ -53,6 +53,31 @@ object PlaylistStore {
         return true
     }
 
+    // Đổi tên thư mục. Trả về false nếu tên rỗng hoặc trùng với thư mục khác
+    fun rename(context: Context, oldName: String, newName: String): Boolean {
+        val n = newName.trim()
+        if (n.isEmpty()) return false
+        val list = getAll(context)
+        val i = list.indexOfFirst { it.name == oldName }
+        if (i == -1) return false
+        if (list.indices.any { it != i && list[it].name.equals(n, ignoreCase = true) }) return false
+        list[i] = SavedPlaylist(n, list[i].uris)
+        saveAll(context, list)
+        return true
+    }
+
+    // Thêm bài vào CUỐI thư mục (bài đã có thì bỏ qua). Trả về số bài thực sự được thêm
+    fun addSongs(context: Context, folderName: String, uris: List<String>): Int {
+        val list = getAll(context)
+        val i = list.indexOfFirst { it.name == folderName }
+        if (i == -1) return 0
+        val toAdd = uris.filter { it !in list[i].uris }.distinct()
+        if (toAdd.isEmpty()) return 0
+        list[i] = SavedPlaylist(folderName, list[i].uris + toAdd)
+        saveAll(context, list)
+        return toAdd.size
+    }
+
     // Bỏ nhiều bài khỏi thư mục cùng lúc (KHÔNG xóa khỏi thư viện)
     fun removeSongs(context: Context, folderName: String, uris: Set<String>) {
         val list = getAll(context)
